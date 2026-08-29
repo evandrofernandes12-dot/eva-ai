@@ -70,6 +70,19 @@ st.markdown("""
         font-family: 'Orbitron', sans-serif;
         font-size: 0.8rem;
     }
+    
+    .mic-btn {
+        background-color: #0891b2;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-family: 'Orbitron', sans-serif;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 10px;
+        box-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -83,6 +96,37 @@ eva_instruction = (
 
 st.sidebar.markdown("<h2 style='font-family: Orbitron; color: #00f2ff;'>SYSTEM CORE</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("<div class='hud-box'><b>NÚCLEO CENTRAL:</b> ATIVO</div>", unsafe_allow_html=True)
+
+# Módulo de Comando de Voz (Microfone via Web Speech API)
+st.sidebar.subheader("🎙️ Entrada de Voz")
+st.sidebar.markdown("""
+<button class="mic-btn" onclick="startDictation()">🎤 Ativar Microfone</button>
+<script>
+    function startDictation() {
+        if (window.hasOwnProperty('webkitSpeechRecognition')) {
+            var recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = "pt-BR";
+            recognition.start();
+            recognition.onresult = function(e) {
+                var text = e.results[0][0].transcript;
+                recognition.stop();
+                var chatInput = window.parent.document.querySelector('textarea[data-testid="stChatInputTextArea"]');
+                if (chatInput) {
+                    chatInput.value = text;
+                    chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            };
+            recognition.onerror = function(e) {
+                recognition.stop();
+            }
+        } else {
+            alert("Navegador não suporta reconhecimento de voz.");
+        }
+    }
+</script>
+""", unsafe_allow_html=True)
 
 enable_web_search = st.sidebar.checkbox("🌐 Varredura Web em Tempo Real", value=False)
 uploaded_file = st.sidebar.file_uploader("📂 Ingestão de Dados (PDF/TXT)", type=["txt", "pdf"])
@@ -120,6 +164,7 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
                 tools = [{"google_search": {}}] if enable_web_search else []
                 full_prompt = prompt + doc_context
 
+                # Correção oficial do modelo para evitar o erro 404
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=full_prompt,
@@ -133,6 +178,7 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
                 ans_text = response.text
                 placeholder.markdown(ans_text)
 
+                # Resposta em áudio (Text-To-Speech)
                 js_speech = f"""
                 <script>
                     var msg = new SpeechSynthesisUtterance({repr(ans_text)});
