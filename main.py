@@ -85,7 +85,7 @@ eva_instruction = (
 st.sidebar.markdown("<h2 style='font-family: Orbitron; color: #00f2ff;'>SYSTEM CORE</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("<div class='hud-box'><b>NÚCLEO CENTRAL:</b> ATIVO</div>", unsafe_allow_html=True)
 
-# Módulo de Comando de Voz no Painel Lateral
+# Módulo de Comando de Voz na Sidebar
 st.sidebar.subheader("🎙️ Entrada de Voz")
 with st.sidebar:
     components.html("""
@@ -153,8 +153,9 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
                 tools = [{"google_search": {}}] if enable_web_search else []
                 full_prompt = prompt + doc_context
 
+                # Atualizado para o endpoint oficial aceito pela API
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-3.6-flash",
                     contents=full_prompt,
                     config=types.GenerateContentConfig(
                         system_instruction=eva_instruction,
@@ -166,7 +167,7 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
                 ans_text = response.text
                 placeholder.markdown(ans_text)
 
-                # Síntese de Voz (TTS - E.V.A. fala a resposta)
+                # Leitura por Voz da resposta (TTS)
                 js_speech = f"""
                 <script>
                     var msg = new SpeechSynthesisUtterance({repr(ans_text)});
