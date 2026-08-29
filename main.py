@@ -4,7 +4,6 @@ import os
 from google import genai
 from google.genai import types
 
-# Configuração da página
 st.set_page_config(
     page_title="E.V.A. Protocol",
     page_icon="⚡",
@@ -12,88 +11,82 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ESTILO VISUAL HUD HOLOGRÁFICO
+# INJEÇÃO DA INTERFACE HUD COMPLETA DE REVERÊNCIA NO BACKGROUND
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
 
-    /* Fundo Tecnológico com Arc Reactor centralizado */
+    /* Fundo com o HUD Holográfico Completo */
     .stApp {
-        background: radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.12) 0%, rgba(2, 8, 20, 0.98) 70%), #010409 !important;
+        background: url('https://images.wallpapersden.com/image/download/iron-man-hud_bGhlaGyUmZqaraWkpJRmZ2VlrWllZWU.jpg') no-repeat center center fixed !important;
+        background-size: cover !important;
         color: #00f2ff !important;
         font-family: 'Rajdhani', sans-serif !important;
     }
 
-    /* Desenho do Reator no Fundo */
-    .stApp::before {
+    /* Camada de vidro escuro para dar leitura ao texto */
+    .stApp::after {
         content: "";
         position: fixed;
-        top: 50%;
-        left: 55%;
-        transform: translate(-50%, -50%);
-        width: 480px;
-        height: 480px;
-        border: 2px solid rgba(0, 242, 255, 0.15);
-        border-radius: 50%;
-        box-shadow: 0 0 50px rgba(0, 242, 255, 0.1), inset 0 0 30px rgba(0, 242, 255, 0.1);
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(2, 8, 20, 0.45);
         pointer-events: none;
         z-index: 0;
     }
 
-    /* Barra Lateral Tática */
+    /* Barra Lateral Holográfica */
     [data-testid="stSidebar"] {
-        background: rgba(3, 12, 28, 0.9) !important;
-        backdrop-filter: blur(15px) !important;
-        border-right: 2px solid rgba(0, 242, 255, 0.4) !important;
-        box-shadow: 5px 0 25px rgba(0, 242, 255, 0.15);
+        background: rgba(3, 12, 28, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        border-right: 2px solid rgba(0, 242, 255, 0.5) !important;
     }
 
-    /* Cabeçalho Personalizado da E.V.A. */
+    /* Título Personalizado E.V.A. com Efeito Neon HUD */
     .eva-title {
         font-family: 'Orbitron', sans-serif;
         color: #00f2ff;
-        font-size: 2.5rem;
+        font-size: 2.8rem;
         font-weight: 900;
-        letter-spacing: 6px;
-        text-shadow: 0 0 20px #00f2ff, 0 0 40px rgba(0, 242, 255, 0.5);
+        letter-spacing: 8px;
+        text-shadow: 0 0 15px #00f2ff, 0 0 30px rgba(0, 242, 255, 0.8);
         margin-bottom: 0px;
     }
 
     .eva-subtitle {
         font-family: 'Rajdhani', sans-serif;
         color: #f59e0b;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: 700;
-        letter-spacing: 3px;
+        letter-spacing: 4px;
         text-transform: uppercase;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
     }
 
-    /* Mensagens Estilo Vidro Holográfico */
+    /* Estilo de Vidro Futurista nas Mensagens */
     .stChatMessage {
-        background: rgba(4, 20, 45, 0.75) !important;
+        background: rgba(4, 20, 45, 0.8) !important;
         backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(0, 242, 255, 0.4) !important;
+        border: 1px solid rgba(0, 242, 255, 0.6) !important;
         border-left: 4px solid #00f2ff !important;
-        border-radius: 6px !important;
-        box-shadow: 0 0 20px rgba(0, 242, 255, 0.1) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.2) !important;
         margin-bottom: 12px !important;
+        z-index: 1;
     }
 
-    /* Campo de Entrada de Texto */
     .stTextInput > div > div > input {
         background-color: rgba(2, 12, 30, 0.95) !important;
         color: #00f2ff !important;
         border: 1.5px solid #00f2ff !important;
-        border-radius: 4px !important;
+        border-radius: 6px !important;
         font-family: 'Orbitron', sans-serif !important;
-        box-shadow: 0 0 15px rgba(0, 242, 255, 0.3) !important;
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.4) !important;
     }
 
-    /* Caixas Módulo Tático na Sidebar */
     .hud-stat {
-        background: rgba(0, 242, 255, 0.05);
-        border: 1px solid rgba(0, 242, 255, 0.3);
+        background: rgba(0, 242, 255, 0.08);
+        border: 1px solid rgba(0, 242, 255, 0.4);
         padding: 8px 12px;
         border-radius: 4px;
         font-family: 'Orbitron', sans-serif;
@@ -113,12 +106,12 @@ eva_instruction = (
     "Responda sempre em Português do Brasil com precisão cirúrgica e termos operacionais, chamando o usuário de chefe."
 )
 
-# Sidebar
+# Painel Lateral
 st.sidebar.markdown("<div class='eva-title' style='font-size: 1.8rem;'>E.V.A.</div>", unsafe_allow_html=True)
 st.sidebar.markdown("<div class='eva-subtitle' style='font-size: 0.8rem;'>ENTIDADE VIRTUAL AVANÇADA</div>", unsafe_allow_html=True)
 
 st.sidebar.markdown("""
-    <div class='hud-stat'><b>CORE SYSTEM:</b> ONLINE</div>
+    <div class='hud-stat'><b>SYSTEM CORE:</b> ONLINE</div>
     <div class='hud-stat'><b>NEURAL LINK:</b> ATIVO</div>
 """, unsafe_allow_html=True)
 
@@ -131,7 +124,7 @@ if uploaded_file is not None:
     doc_context = f"\n\n[DADOS CARREGADOS PELO OPERADOR]:\n{content[:4000]}"
     st.sidebar.success("Arquivo indexado na memória!")
 
-# Painel Central Superior
+# Cabeçalho da E.V.A.
 st.markdown("<div class='eva-title'>E.V.A.</div>", unsafe_allow_html=True)
 st.markdown("<div class='eva-subtitle'>ENTIDADE VIRTUAL AVANÇADA</div>", unsafe_allow_html=True)
 
@@ -172,7 +165,6 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
                 ans_text = response.text
                 placeholder.markdown(ans_text)
 
-                # Fala em Áudio Nv. Navegador
                 js_speech = f"""
                 <script>
                     var msg = new SpeechSynthesisUtterance({repr(ans_text)});
