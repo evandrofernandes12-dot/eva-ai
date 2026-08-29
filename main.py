@@ -121,7 +121,7 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
                 full_prompt = prompt + doc_context
 
                 response = client.models.generate_content(
-                    model="gemini-1.5-flash",
+                    model="gemini-2.5-flash",
                     contents=full_prompt,
                     config=types.GenerateContentConfig(
                         system_instruction=eva_instruction,
