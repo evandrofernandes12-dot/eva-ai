@@ -11,60 +11,34 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# INTERFACE HUD COMPLETA COM GRAPHICS CIANO E ARC REACTOR VETORIAL
+# HUD STARK COMPLETO - IMAGEM DE FUNDO FULL HD INTEGRADA
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
 
+    /* Fundo com HUD Sci-Fi Completo (Ciano / Arc Reactor) */
     .stApp {
-        background-color: #020916 !important;
-        background-image: 
-            radial-gradient(circle at 50% 45%, rgba(0, 242, 255, 0.18) 0%, transparent 60%),
-            linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px) !important;
-        background-size: 100% 100%, 30px 30px, 30px 30px !important;
+        background: url('https://wallpapercave.com/wp/wp2691500.jpg') no-repeat center center fixed !important;
+        background-size: cover !important;
         color: #00f2ff !important;
         font-family: 'Rajdhani', sans-serif !important;
     }
 
-    /* Desenho do Arc Reactor e Anéis HUD Táticos */
+    /* Sobreposição para suavizar e destacar o texto */
     .stApp::before {
         content: "";
         position: fixed;
-        top: 45%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 420px;
-        height: 420px;
-        border: 2px dashed rgba(0, 242, 255, 0.4);
-        border-radius: 50%;
-        box-shadow: 0 0 40px rgba(0, 242, 255, 0.2), inset 0 0 30px rgba(0, 242, 255, 0.2);
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(2, 8, 20, 0.45);
         pointer-events: none;
         z-index: 0;
     }
 
-    /* Anel Externo HUD com Marcações */
-    .stApp::after {
-        content: "";
-        position: fixed;
-        top: 45%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 520px;
-        height: 520px;
-        border: 1px solid rgba(0, 242, 255, 0.2);
-        border-top: 4px solid #00f2ff;
-        border-bottom: 4px solid #00f2ff;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 0;
-    }
-
+    /* Sidebar Transparente */
     [data-testid="stSidebar"] {
-        background: rgba(2, 12, 28, 0.92) !important;
-        backdrop-filter: blur(15px) !important;
+        background: rgba(2, 12, 28, 0.88) !important;
+        backdrop-filter: blur(12px) !important;
         border-right: 2px solid rgba(0, 242, 255, 0.5) !important;
-        box-shadow: 5px 0 20px rgba(0, 242, 255, 0.2);
     }
 
     .eva-title {
@@ -75,6 +49,8 @@ st.markdown("""
         letter-spacing: 8px;
         text-shadow: 0 0 15px #00f2ff, 0 0 30px rgba(0, 242, 255, 0.8);
         margin-bottom: 0px;
+        position: relative;
+        z-index: 1;
     }
 
     .eva-subtitle {
@@ -85,16 +61,20 @@ st.markdown("""
         letter-spacing: 4px;
         text-transform: uppercase;
         margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
     }
 
+    /* Cards de Conversa em Vidro Futurista */
     .stChatMessage {
         background: rgba(3, 18, 42, 0.85) !important;
         backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(0, 242, 255, 0.5) !important;
+        border: 1px solid rgba(0, 242, 255, 0.6) !important;
         border-left: 4px solid #00f2ff !important;
         border-radius: 6px !important;
-        box-shadow: 0 0 15px rgba(0, 242, 255, 0.15) !important;
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.2) !important;
         margin-bottom: 12px !important;
+        position: relative;
         z-index: 1;
     }
 
@@ -104,7 +84,7 @@ st.markdown("""
         border: 1.5px solid #00f2ff !important;
         border-radius: 4px !important;
         font-family: 'Orbitron', sans-serif !important;
-        box-shadow: 0 0 15px rgba(0, 242, 255, 0.3) !important;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.4) !important;
     }
 
     .hud-stat {
