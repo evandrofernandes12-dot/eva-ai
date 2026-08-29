@@ -11,37 +11,62 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# INJEÇÃO DA INTERFACE HUD COMPLETA DE REVERÊNCIA NO BACKGROUND
+# INTERFACE HUD COMPLETA COM GRAPHICS CIANO E ARC REACTOR VETORIAL
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
 
-    /* Fundo com o HUD Holográfico Completo */
     .stApp {
-        background: url('https://images.wallpapersden.com/image/download/iron-man-hud_bGhlaGyUmZqaraWkpJRmZ2VlrWllZWU.jpg') no-repeat center center fixed !important;
-        background-size: cover !important;
+        background-color: #020916 !important;
+        background-image: 
+            radial-gradient(circle at 50% 45%, rgba(0, 242, 255, 0.18) 0%, transparent 60%),
+            linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 30px 30px, 30px 30px !important;
         color: #00f2ff !important;
         font-family: 'Rajdhani', sans-serif !important;
     }
 
-    /* Camada de vidro escuro para dar leitura ao texto */
-    .stApp::after {
+    /* Desenho do Arc Reactor e Anéis HUD Táticos */
+    .stApp::before {
         content: "";
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(2, 8, 20, 0.45);
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 420px;
+        height: 420px;
+        border: 2px dashed rgba(0, 242, 255, 0.4);
+        border-radius: 50%;
+        box-shadow: 0 0 40px rgba(0, 242, 255, 0.2), inset 0 0 30px rgba(0, 242, 255, 0.2);
         pointer-events: none;
         z-index: 0;
     }
 
-    /* Barra Lateral Holográfica */
-    [data-testid="stSidebar"] {
-        background: rgba(3, 12, 28, 0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        border-right: 2px solid rgba(0, 242, 255, 0.5) !important;
+    /* Anel Externo HUD com Marcações */
+    .stApp::after {
+        content: "";
+        position: fixed;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 520px;
+        height: 520px;
+        border: 1px solid rgba(0, 242, 255, 0.2);
+        border-top: 4px solid #00f2ff;
+        border-bottom: 4px solid #00f2ff;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
     }
 
-    /* Título Personalizado E.V.A. com Efeito Neon HUD */
+    [data-testid="stSidebar"] {
+        background: rgba(2, 12, 28, 0.92) !important;
+        backdrop-filter: blur(15px) !important;
+        border-right: 2px solid rgba(0, 242, 255, 0.5) !important;
+        box-shadow: 5px 0 20px rgba(0, 242, 255, 0.2);
+    }
+
     .eva-title {
         font-family: 'Orbitron', sans-serif;
         color: #00f2ff;
@@ -55,22 +80,20 @@ st.markdown("""
     .eva-subtitle {
         font-family: 'Rajdhani', sans-serif;
         color: #f59e0b;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         font-weight: 700;
         letter-spacing: 4px;
         text-transform: uppercase;
         margin-bottom: 20px;
-        text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
     }
 
-    /* Estilo de Vidro Futurista nas Mensagens */
     .stChatMessage {
-        background: rgba(4, 20, 45, 0.8) !important;
+        background: rgba(3, 18, 42, 0.85) !important;
         backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(0, 242, 255, 0.6) !important;
+        border: 1px solid rgba(0, 242, 255, 0.5) !important;
         border-left: 4px solid #00f2ff !important;
-        border-radius: 8px !important;
-        box-shadow: 0 0 20px rgba(0, 242, 255, 0.2) !important;
+        border-radius: 6px !important;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.15) !important;
         margin-bottom: 12px !important;
         z-index: 1;
     }
@@ -79,9 +102,9 @@ st.markdown("""
         background-color: rgba(2, 12, 30, 0.95) !important;
         color: #00f2ff !important;
         border: 1.5px solid #00f2ff !important;
-        border-radius: 6px !important;
+        border-radius: 4px !important;
         font-family: 'Orbitron', sans-serif !important;
-        box-shadow: 0 0 20px rgba(0, 242, 255, 0.4) !important;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.3) !important;
     }
 
     .hud-stat {
@@ -97,7 +120,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Chaves de API
 api_key = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
 
 eva_instruction = (
@@ -106,13 +128,13 @@ eva_instruction = (
     "Responda sempre em Português do Brasil com precisão cirúrgica e termos operacionais, chamando o usuário de chefe."
 )
 
-# Painel Lateral
 st.sidebar.markdown("<div class='eva-title' style='font-size: 1.8rem;'>E.V.A.</div>", unsafe_allow_html=True)
 st.sidebar.markdown("<div class='eva-subtitle' style='font-size: 0.8rem;'>ENTIDADE VIRTUAL AVANÇADA</div>", unsafe_allow_html=True)
 
 st.sidebar.markdown("""
     <div class='hud-stat'><b>SYSTEM CORE:</b> ONLINE</div>
     <div class='hud-stat'><b>NEURAL LINK:</b> ATIVO</div>
+    <div class='hud-stat'><b>DIAGNOSTICS:</b> OPTIMAL</div>
 """, unsafe_allow_html=True)
 
 enable_web_search = st.sidebar.checkbox("🌐 Varredura Web em Tempo Real", value=False)
@@ -124,7 +146,6 @@ if uploaded_file is not None:
     doc_context = f"\n\n[DADOS CARREGADOS PELO OPERADOR]:\n{content[:4000]}"
     st.sidebar.success("Arquivo indexado na memória!")
 
-# Cabeçalho da E.V.A.
 st.markdown("<div class='eva-title'>E.V.A.</div>", unsafe_allow_html=True)
 st.markdown("<div class='eva-subtitle'>ENTIDADE VIRTUAL AVANÇADA</div>", unsafe_allow_html=True)
 
