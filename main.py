@@ -4,118 +4,123 @@ import os
 from google import genai
 from google.genai import types
 
-# Configuração da página estilo HUD Stark
+# Configuração da página
 st.set_page_config(
-    page_title="F.R.I.D.A.Y. // E.V.A. Protocol",
-    page_icon="🤖",
+    page_title="E.V.A. Protocol",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ESTILO VISUAL HUD (Sexta-Feira / J.A.R.V.I.S.)
+# ESTILO VISUAL HUD HOLOGRÁFICO
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
 
+    /* Fundo Tecnológico com Arc Reactor centralizado */
     .stApp {
-        background: radial-gradient(circle at 50% 30%, #030a16 0%, #010409 100%) !important;
-        color: #38bdf8 !important;
+        background: radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.12) 0%, rgba(2, 8, 20, 0.98) 70%), #010409 !important;
+        color: #00f2ff !important;
         font-family: 'Rajdhani', sans-serif !important;
     }
 
-    [data-testid="stSidebar"] {
-        background: rgba(8, 15, 30, 0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        border-right: 1px solid rgba(0, 242, 255, 0.25) !important;
+    /* Desenho do Reator no Fundo */
+    .stApp::before {
+        content: "";
+        position: fixed;
+        top: 50%;
+        left: 55%;
+        transform: translate(-50%, -50%);
+        width: 480px;
+        height: 480px;
+        border: 2px solid rgba(0, 242, 255, 0.15);
+        border-radius: 50%;
+        box-shadow: 0 0 50px rgba(0, 242, 255, 0.1), inset 0 0 30px rgba(0, 242, 255, 0.1);
+        pointer-events: none;
+        z-index: 0;
     }
 
-    .stark-header {
+    /* Barra Lateral Tática */
+    [data-testid="stSidebar"] {
+        background: rgba(3, 12, 28, 0.9) !important;
+        backdrop-filter: blur(15px) !important;
+        border-right: 2px solid rgba(0, 242, 255, 0.4) !important;
+        box-shadow: 5px 0 25px rgba(0, 242, 255, 0.15);
+    }
+
+    /* Cabeçalho Personalizado da E.V.A. */
+    .eva-title {
         font-family: 'Orbitron', sans-serif;
         color: #00f2ff;
-        font-size: 2.2rem;
+        font-size: 2.5rem;
         font-weight: 900;
-        letter-spacing: 4px;
-        text-shadow: 0 0 15px rgba(0, 242, 255, 0.6);
+        letter-spacing: 6px;
+        text-shadow: 0 0 20px #00f2ff, 0 0 40px rgba(0, 242, 255, 0.5);
+        margin-bottom: 0px;
     }
 
-    .stark-sub {
+    .eva-subtitle {
         font-family: 'Rajdhani', sans-serif;
         color: #f59e0b;
-        font-size: 0.95rem;
-        letter-spacing: 2px;
+        font-size: 1.1rem;
         font-weight: 700;
-        margin-bottom: 20px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 25px;
     }
 
+    /* Mensagens Estilo Vidro Holográfico */
     .stChatMessage {
-        background: rgba(10, 20, 38, 0.6) !important;
-        backdrop-filter: blur(8px) !important;
-        border: 1px solid rgba(0, 242, 255, 0.3) !important;
-        border-radius: 10px !important;
+        background: rgba(4, 20, 45, 0.75) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(0, 242, 255, 0.4) !important;
+        border-left: 4px solid #00f2ff !important;
+        border-radius: 6px !important;
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.1) !important;
         margin-bottom: 12px !important;
     }
 
+    /* Campo de Entrada de Texto */
     .stTextInput > div > div > input {
-        background-color: rgba(6, 11, 25, 0.9) !important;
+        background-color: rgba(2, 12, 30, 0.95) !important;
         color: #00f2ff !important;
-        border: 1px solid #00f2ff !important;
-        border-radius: 8px !important;
+        border: 1.5px solid #00f2ff !important;
+        border-radius: 4px !important;
+        font-family: 'Orbitron', sans-serif !important;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.3) !important;
     }
 
-    .hud-box {
-        background: rgba(0, 242, 255, 0.03);
-        border-left: 3px solid #00f2ff;
-        padding: 10px;
+    /* Caixas Módulo Tático na Sidebar */
+    .hud-stat {
+        background: rgba(0, 242, 255, 0.05);
+        border: 1px solid rgba(0, 242, 255, 0.3);
+        padding: 8px 12px;
         border-radius: 4px;
-        margin-bottom: 10px;
         font-family: 'Orbitron', sans-serif;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
+        margin-bottom: 8px;
+        color: #38bdf8;
     }
     </style>
 """, unsafe_allow_html=True)
 
+# Chaves de API
 api_key = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
 
 eva_instruction = (
-    "Você é a E.V.A. (Entidade Virtual Avançada), uma inteligência artificial inspirada nos sistemas F.R.I.D.A.Y. e J.A.R.V.I.S. "
-    "Sua personalidade é analítica, polida, leal e eficiente, com um toque leve de ironia fina e elegância. "
+    "Você é a E.V.A. (Entidade Virtual Avançada), uma inteligência artificial inspirada nos sistemas J.A.R.V.I.S. e F.R.I.D.A.Y. "
+    "Sua personalidade é extremamente analítica, polida, leal e eficiente. "
     "Responda sempre em Português do Brasil com precisão cirúrgica e termos operacionais, chamando o usuário de chefe."
 )
 
-st.sidebar.markdown("<h2 style='font-family: Orbitron; color: #00f2ff;'>SYSTEM CORE</h2>", unsafe_allow_html=True)
-st.sidebar.markdown("<div class='hud-box'><b>NÚCLEO CENTRAL:</b> ATIVO</div>", unsafe_allow_html=True)
+# Sidebar
+st.sidebar.markdown("<div class='eva-title' style='font-size: 1.8rem;'>E.V.A.</div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div class='eva-subtitle' style='font-size: 0.8rem;'>ENTIDADE VIRTUAL AVANÇADA</div>", unsafe_allow_html=True)
 
-# Módulo de Comando de Voz na Sidebar
-st.sidebar.subheader("🎙️ Entrada de Voz")
-with st.sidebar:
-    components.html("""
-        <button onclick="startDictation()" style="width:100%; padding:10px; background:#0891b2; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
-            🎤 Falar no Microfone
-        </button>
-        <script>
-            function startDictation() {
-                if (window.hasOwnProperty('webkitSpeechRecognition') || window.hasOwnProperty('SpeechRecognition')) {
-                    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    var recognition = new SpeechRecognition();
-                    recognition.continuous = false;
-                    recognition.interimResults = false;
-                    recognition.lang = "pt-BR";
-                    recognition.start();
-                    recognition.onresult = function(e) {
-                        var text = e.results[0][0].transcript;
-                        recognition.stop();
-                        var chatInput = window.parent.document.querySelector('textarea[data-testid="stChatInputTextArea"]');
-                        if (chatInput) {
-                            chatInput.value = text;
-                            chatInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-                    };
-                } else {
-                    alert("Seu navegador não suporta a API de voz.");
-                }
-            }
-        </script>
-    """, height=60)
+st.sidebar.markdown("""
+    <div class='hud-stat'><b>CORE SYSTEM:</b> ONLINE</div>
+    <div class='hud-stat'><b>NEURAL LINK:</b> ATIVO</div>
+""", unsafe_allow_html=True)
 
 enable_web_search = st.sidebar.checkbox("🌐 Varredura Web em Tempo Real", value=False)
 uploaded_file = st.sidebar.file_uploader("📂 Ingestão de Dados (PDF/TXT)", type=["txt", "pdf"])
@@ -126,8 +131,9 @@ if uploaded_file is not None:
     doc_context = f"\n\n[DADOS CARREGADOS PELO OPERADOR]:\n{content[:4000]}"
     st.sidebar.success("Arquivo indexado na memória!")
 
-st.markdown("<div class='stark-header'>E.V.A. // MARK VIII</div>", unsafe_allow_html=True)
-st.markdown("<div class='stark-sub'>TACTICAL INTERFACE & REASONING SYSTEM</div>", unsafe_allow_html=True)
+# Painel Central Superior
+st.markdown("<div class='eva-title'>E.V.A.</div>", unsafe_allow_html=True)
+st.markdown("<div class='eva-subtitle'>ENTIDADE VIRTUAL AVANÇADA</div>", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -143,17 +149,16 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
 
     with st.chat_message("assistant"):
         placeholder = st.empty()
-        placeholder.markdown("*(Executando varredura e alinhamento de parâmetros...)*")
+        placeholder.markdown("*(Processando alinhamento de parâmetros...)*")
 
         if not api_key:
-            placeholder.error("SISTEMA BLOQUEADO: Credencial de API não localizada nos Secrets.")
+            placeholder.error("SISTEMA BLOQUEADO: Credencial de API ausente nos Secrets.")
         else:
             try:
                 client = genai.Client(api_key=api_key)
                 tools = [{"google_search": {}}] if enable_web_search else []
                 full_prompt = prompt + doc_context
 
-                # Atualizado para o endpoint oficial aceito pela API
                 response = client.models.generate_content(
                     model="gemini-3.6-flash",
                     contents=full_prompt,
@@ -167,7 +172,7 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
                 ans_text = response.text
                 placeholder.markdown(ans_text)
 
-                # Leitura por Voz da resposta (TTS)
+                # Fala em Áudio Nv. Navegador
                 js_speech = f"""
                 <script>
                     var msg = new SpeechSynthesisUtterance({repr(ans_text)});
@@ -181,4 +186,4 @@ if prompt := st.chat_input("Aguardando diretriz, chefe..."):
                 st.session_state.messages.append({"role": "assistant", "content": ans_text})
 
             except Exception as e:
-                placeholder.error(f"E.V.A. > Anomalia no núcleo de comunicação: {e}")
+                placeholder.error(f"E.V.A. > Anomalia no núcleo: {e}")
