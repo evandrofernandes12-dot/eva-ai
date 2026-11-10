@@ -6,6 +6,8 @@ import { Rig } from './rig.js';
 import { buildClipDefs, buildClips } from './poses.js';
 import { createMaterials, buildHair, buildOrc, buildWolf, buildClothing, buildFaceSurface } from './parts.js';
 import { BASES, RACES } from './presets.js';
+import { Equipment, createEquipMaterials } from './equipment.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 const TARGET_HEIGHT = 1.8;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -106,6 +108,9 @@ export class CharacterEngine {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color('#0e1118');
     this.scene.fog = new THREE.Fog('#0e1118', 8, 18);
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = 0.5;
 
     this.camera = new THREE.PerspectiveCamera(32, w / h, 0.05, 60);
     this.camera.position.set(0.6, 1.35, 4.4);
@@ -238,6 +243,7 @@ export class CharacterEngine {
     this.wolfParts = buildWolf(this.rig, this.mats);
     this.hair = buildHair(this.rig, this.mats, body);
     this.clothes = body ? buildClothing(this.rig, body, this.mats, baseId === 'female') : [];
+    this.equipment = new Equipment(this.rig, body, this.mats, createEquipMaterials());
     this.mixer = new THREE.AnimationMixer(model);
     this.actions = {};
     this._clipKey = null;
@@ -317,7 +323,8 @@ export class CharacterEngine {
     }
 
     // visibilidade das peças
-    for (const c of this.clothes) c.visible = state.clothes;
+    for (const c of this.clothes) c.visible = state.equip.outfit === 'basic';
+    this.equipment.apply(state);
     this.mats.cloth.color.set(state.colors.cloth);
     for (const o of this.hair.short) o.visible = state.hair === 'short';
     for (const o of this.hair.long) o.visible = state.hair === 'long';
@@ -330,10 +337,11 @@ export class CharacterEngine {
     this._frame(eff.height);
 
     // animações (reconstrói se a postura/pernas mudaram)
-    const key = JSON.stringify([state.race, eff.legs.toFixed(3), eff.hipsBase.toFixed(3)]);
+    const grip = this.equipment.grip(state);
+    const key = JSON.stringify([state.race, eff.legs.toFixed(3), eff.hipsBase.toFixed(3), !!grip.Left, !!grip.Right]);
     if (key !== this._clipKey) {
       this._clipKey = key;
-      this._buildActions(race.posture, eff.hipsBase);
+      this._buildActions(race.posture, eff.hipsBase, grip);
     }
     this.play(state.anim, !prev);
     this._fitGround();
@@ -408,11 +416,11 @@ export class CharacterEngine {
   }
 
   // ------------------------------------------------------------------ animações
-  _buildActions(posture, hipsBase) {
+  _buildActions(posture, hipsBase, grip) {
     const time = this.actions[this.current]?.time || 0;
     this.mixer.stopAllAction();
     for (const c of Object.values(this.clips || {})) this.mixer.uncacheClip(c);
-    this.defs = buildClipDefs(this.rig, { posture, hipsBase, bodyH: TARGET_HEIGHT });
+    this.defs = buildClipDefs(this.rig, { posture, hipsBase, bodyH: TARGET_HEIGHT, grip });
     this.clips = buildClips(this.rig, this.defs);
     this.actions = {};
     for (const [name, clip] of Object.entries(this.clips)) {

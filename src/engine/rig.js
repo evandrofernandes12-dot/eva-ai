@@ -58,6 +58,7 @@ export class Rig {
       const b = this.bones[key];
       const r = { q: b.quaternion.clone(), p: b.position.clone(), s: b.scale.clone() };
       this.rest[key] = r;
+      r.mw = b.matrixWorld.clone();
       b.matrixWorld.decompose(p, (r.wq = new THREE.Quaternion()), s);
       r.wp = p.clone();
       const par = b.parent;
@@ -88,6 +89,37 @@ export class Rig {
 
   has(k) { return !!this.bones[k]; }
 
+  /** Referencial da mão no repouso (T-pose, palma para baixo): f = dedos, l = linha dos nós, n = normal da palma. */
+  handFrame(S) {
+    const P = (k) => this.rest[k].wp;
+    const hand = P(`${S}Hand`);
+    const f = P(`${S}HandMiddle1`).clone().sub(hand).normalize();
+    const l = P(`${S}HandThumb1`).clone().sub(P(`${S}HandPinky1`)).normalize();
+    const n = new THREE.Vector3().crossVectors(f, l).normalize();
+    if (n.y > 0) n.negate();
+    const lf = l.clone();
+    if (lf.z < 0) lf.negate();
+    const grip = hand.clone().addScaledVector(f, 0.05).addScaledVector(n, 0.012);
+    return { hand, f, l, lf, n, grip };
+  }
+
+  /** Eixo de flexão (no espaço local do osso) de cada falange, para fechar a mão. */
+  curlAxes(S) {
+    const { n } = this.handFrame(S);
+    const out = {};
+    for (const F of ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']) {
+      for (let i = 1; i <= 3; i++) {
+        const k = `${S}Hand${F}${i}`;
+        const next = `${S}Hand${F}${i + 1}`;
+        if (!this.rest[k] || !this.rest[next]) continue;
+        const f = this.rest[next].wp.clone().sub(this.rest[k].wp).normalize();
+        const a = new THREE.Vector3().crossVectors(f, n).normalize();
+        out[k] = a.applyQuaternion(this.rest[k].wq.clone().invert());
+      }
+    }
+    return out;
+  }
+
   /** Posição de repouso (espaço do modelo) de um osso. */
   restPos(key) { return this.rest[key]?.wp.clone(); }
 
@@ -109,6 +141,7 @@ export class Rig {
           const cur = r.dir.clone().applyQuaternion(inh.clone().multiply(r.wq.clone().invert()));
           target = new THREE.Quaternion().setFromUnitVectors(cur, s.aim.clone().normalize()).multiply(inh);
         }
+        if (s.local) target = pw.clone().multiply(r.q).multiply(s.local);
         if (s.delta) target = s.delta.clone().multiply(target);
       }
       wq[key] = target;

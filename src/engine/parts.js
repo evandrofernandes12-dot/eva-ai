@@ -47,7 +47,7 @@ export function buildFaceSurface(rig, bodyMesh) {
 }
 
 /** Mescla as malhas de um grupo por material (menos draw calls / nós no arquivo exportado). */
-function mergeByMaterial(group) {
+export function mergeByMaterial(group) {
   group.updateMatrix();
   const buckets = new Map();
   for (const child of [...group.children]) {
@@ -71,10 +71,9 @@ function mergeByMaterial(group) {
 }
 
 /** Converte um grupo criado em coordenadas do modelo para o espaço local do osso e o anexa. */
-function attachGroup(rig, boneKey, group) {
+export function attachGroup(rig, boneKey, group) {
   const bone = rig.bones[boneKey];
-  bone.updateWorldMatrix(true, false);
-  const inv = bone.matrixWorld.clone().invert();
+  const inv = rig.rest[boneKey].mw.clone().invert();
   group.matrixAutoUpdate = true;
   inv.decompose(group.position, group.quaternion, group.scale);
   bone.add(group);
@@ -110,14 +109,30 @@ export function createMaterials() {
  * Roupa "casca": copia os triângulos do corpo dentro de uma região e os afasta ~6 mm pela normal.
  * É um SkinnedMesh que compartilha o esqueleto, então deforma junto com a escala/animação.
  */
-function bodyShell(src, test, mat, offset = 0.006) {
+/** Posições de repouso (espaço do modelo) de todos os vértices do corpo; calculadas uma vez e reaproveitadas. */
+export function restPoints(src) {
+  if (src.userData.restPts) return src.userData.restPts;
+  src.updateWorldMatrix(true, false);
+  const pos = src.geometry.attributes.position;
+  const t = new THREE.Vector3();
+  const pts = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    src.getVertexPosition(i, t).applyMatrix4(src.matrixWorld);
+    pts[i * 3] = t.x; pts[i * 3 + 1] = t.y; pts[i * 3 + 2] = t.z;
+  }
+  src.userData.restPts = pts;
+  return pts;
+}
+
+export function bodyShell(src, test, mat, offset = 0.006) {
   src.updateWorldMatrix(true, false);
   const g = src.geometry;
   const pos = g.attributes.position;
+  const pts = restPoints(src);
   const t = new THREE.Vector3();
   const ok = new Uint8Array(pos.count);
   for (let i = 0; i < pos.count; i++) {
-    src.getVertexPosition(i, t).applyMatrix4(src.matrixWorld);
+    t.set(pts[i * 3], pts[i * 3 + 1], pts[i * 3 + 2]);
     ok[i] = test(t) ? 1 : 0;
   }
   const idx = g.index.array;

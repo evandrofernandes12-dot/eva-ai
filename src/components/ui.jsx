@@ -79,3 +79,30 @@ export function Toggle({ label, checked, onChange, disabled }) {
     </label>
   );
 }
+
+export function Select({ label, value, options, onChange, disabled }) {
+  return (
+    <label className={`flex items-center justify-between gap-3 text-xs ${disabled ? 'opacity-40' : ''}`}>
+      <span className="text-slate-300">{label}</span>
+      <select
+        value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}
+        className="w-[52%] rounded-lg border border-ink-600 bg-ink-700 px-2 py-1.5 text-xs text-slate-200 outline-none focus:border-accent"
+      >
+        {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+export function Tabs({ tabs, value, onChange }) {
+  return (
+    <div className="grid grid-cols-2 gap-1 rounded-xl bg-ink-800 p-1">
+      {tabs.map((t) => (
+        <button
+          key={t.id} type="button" onClick={() => onChange(t.id)}
+          className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${value === t.id ? 'bg-accent text-white' : 'text-slate-400 hover:text-white'}`}
+        >{t.label}</button>
+      ))}
+    </div>
+  );
+}

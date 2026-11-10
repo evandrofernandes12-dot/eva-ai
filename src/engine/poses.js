@@ -18,7 +18,9 @@ const q = (axis, a) => new THREE.Quaternion().setFromAxisAngle(axis, a);
  * posture: { spine, neck, head } = pitch extra (rad, + = para frente) por raça (corcunda do lobisomem etc.).
  * legDrop: queda extra do quadril (m) - não usado aqui; o ajuste de comprimento de perna entra por hipsBase.
  */
-export function buildClipDefs(rig, { posture = {}, hipsBase = 0, bodyH = 1.8 }) {
+export function buildClipDefs(rig, { posture = {}, hipsBase = 0, bodyH = 1.8, grip = {} }) {
+  const curls = {};
+  for (const S of ['Left', 'Right']) if (grip[S]) curls[S] = rig.curlAxes(S);
   const sideL = Math.sign(rig.restPos('LeftArm').x - rig.restPos('RightArm').x) || 1;
   const sx = { Left: sideL, Right: -sideL };
   // v(side, out, up, fwd): vetor no espaço do modelo
@@ -60,6 +62,15 @@ export function buildClipDefs(rig, { posture = {}, hipsBase = 0, bodyH = 1.8 }) 
     if (posture.spine) for (const k of ['Spine', 'Spine1', 'Spine2']) add(k, pitch(posture.spine / 3));
     if (posture.neck) add('Neck', pitch(posture.neck));
     if (posture.head) add('Head', pitch(posture.head));
+    // mão fechada ao segurar item (flexão das falanges)
+    for (const S of Object.keys(curls)) {
+      for (const [k, axis] of Object.entries(curls[S])) {
+        const finger = k.includes('Thumb');
+        const j = Number(k.slice(-1));
+        const ang = finger ? [0.25, 0.45, 0.5][j - 1] : [1.15, 1.35, 0.95][j - 1];
+        s[k] = { local: new THREE.Quaternion().setFromAxisAngle(axis, ang) };
+      }
+    }
     return s;
   };
 
