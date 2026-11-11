@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa do Eu — Uma jornada prática de autoconhecimento</title>
+<meta name="description" content="Workbook digital em PDF com 8 módulos, exercícios de reflexão, diário guiado de 21 dias e plano pessoal de desenvolvimento. R$ 39,00.">
+<meta property="og:title" content="Mapa do Eu — Você conhece a si mesmo de verdade?">
+<meta property="og:description" content="Workbook digital de autoconhecimento: 8 módulos, diário de 21 dias e plano pessoal. R$ 39,00.">
+<meta property="og:image" content="img/hero.jpg">
+<style>
+:root{
+  --navy:#07142b; --navy2:#0b1f3f; --cyan:#5fd4e8; --gold:#e8b94a; --gold2:#f6d77c;
+  --text:#eaf1fb; --muted:#a9b8d0; --card:#0e2347;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Georgia,"Times New Roman",serif;background:var(--navy);color:var(--text);line-height:1.65;font-size:18px}
+img{max-width:100%;display:block}
+a{color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+.sans{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+section{padding:64px 0}
+h1,h2,h3{line-height:1.2;font-weight:700}
+h2{font-size:clamp(26px,4vw,36px);margin-bottom:20px;text-align:center}
+h2 span,h1 span{color:var(--gold)}
+.eyebrow{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.2em;font-size:13px;text-transform:uppercase;color:var(--cyan);text-align:center;margin-bottom:12px}
+.lead{color:var(--muted);text-align:center;max-width:680px;margin:0 auto 32px}
+
+/* hero */
+.hero{background:radial-gradient(1200px 500px at 50% -10%,#16356b 0%,var(--navy) 70%);padding:48px 0 40px;text-align:center}
+.hero h1{font-size:clamp(34px,6vw,58px);margin-bottom:14px}
+.hero p.sub{font-size:clamp(18px,2.6vw,22px);color:var(--muted);max-width:640px;margin:0 auto 28px}
+.hero-img{border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.55);border:1px solid rgba(232,185,74,.35);margin:0 auto 32px}
+
+.btn{display:inline-block;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-weight:800;font-size:19px;letter-spacing:.02em;text-decoration:none;color:#1a1200;background:linear-gradient(180deg,var(--gold2),var(--gold));padding:18px 38px;border-radius:999px;box-shadow:0 8px 24px rgba(232,185,74,.35);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(232,185,74,.5)}
+.price-line{margin-top:14px;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;color:var(--muted)}
+
+/* trust bar */
+.trust{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:center;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;color:var(--cyan);margin-top:26px}
+.trust div::before{content:"✓ ";color:var(--gold);font-weight:700}
+
+/* cards */
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:var(--card);border:1px solid rgba(95,212,232,.18);border-radius:14px;padding:22px}
+.card h3{font-size:18px;margin-bottom:6px;color:var(--gold2)}
+.card p{font-size:16px;color:var(--muted)}
+.mod{display:flex;gap:14px;align-items:flex-start}
+.mod .n{font-family:-apple-system,sans-serif;font-weight:800;color:var(--navy);background:var(--gold);min-width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:15px}
+.mod h3{color:var(--text);font-size:17px;font-weight:600}
+
+.alt{background:var(--navy2)}
+ul.check{list-style:none;max-width:640px;margin:0 auto}
+ul.check li{padding:10px 0 10px 34px;position:relative;border-bottom:1px solid rgba(255,255,255,.07)}
+ul.check li::before{content:"✓";position:absolute;left:0;color:var(--gold);font-weight:700;font-family:sans-serif}
+
+/* offer */
+.offer{text-align:center}
+.offer-img{border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid rgba(232,185,74,.35);margin:0 auto 30px}
+.price{font-size:clamp(52px,9vw,84px);font-weight:700;color:var(--gold);line-height:1;margin:6px 0}
+.price small{font-size:.35em;color:var(--muted);font-weight:400;vertical-align:top;margin-right:6px}
+
+/* faq */
+details{background:var(--card);border:1px solid rgba(95,212,232,.18);border-radius:12px;padding:16px 20px;margin-bottom:12px;max-width:720px;margin-left:auto;margin-right:auto}
+summary{cursor:pointer;font-weight:600;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px}
+details p{margin-top:10px;color:var(--muted);font-size:16px}
+
+.notice{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:13px;color:var(--muted);text-align:center;max-width:720px;margin:0 auto;padding:28px 20px 40px;border-top:1px solid rgba(255,255,255,.08)}
+
+/* sticky mobile CTA */
+.sticky{position:fixed;left:0;right:0;bottom:0;padding:10px 14px;background:rgba(7,20,43,.94);backdrop-filter:blur(6px);border-top:1px solid rgba(232,185,74,.4);text-align:center;display:none;z-index:10}
+.sticky .btn{width:100%;padding:14px 20px;font-size:17px}
+@media (max-width:640px){.sticky{display:block} body{padding-bottom:78px} section{padding:48px 0} body{font-size:17px}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Você conhece a si mesmo <span>de verdade?</span></h1>
+    <p class="sub">Descubra seus padrões, compreenda suas emoções e comece a construir uma relação mais consciente consigo mesmo.</p>
+    <img class="hero-img" src="img/hero.jpg" alt="Mapa do Eu — workbook digital de autoconhecimento, 8 módulos, diário de 21 dias, R$ 39,00" width="1536" height="1024">
+    <a class="btn buy" href="#" data-buy>GARANTA JÁ O SEU</a>
+    <p class="price-line">Pagamento único de R$ 39,00 · Acesso imediato em PDF</p>
+    <div class="trust">
+      <div>Entrega digital (PDF)</div>
+      <div>Compra segura</div>
+      <div>Acesso imediato</div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Você se identifica?</p>
+    <h2>Algumas situações parecem <span>se repetir</span> na sua vida?</h2>
+    <p class="lead">Nem sempre conseguimos explicar por que reagimos de determinada maneira, repetimos certos padrões ou temos dificuldade para tomar decisões. O primeiro passo é aprender a observar a si mesmo — e o Mapa do Eu foi criado para acompanhar você nesse processo, com perguntas orientadas e exercícios práticos.</p>
+    <div class="grid">
+      <div class="card"><h3>Entenda suas emoções</h3><p>Aprenda a nomear o que sente em vez de apenas tentar esconder.</p></div>
+      <div class="card"><h3>Identifique padrões</h3><p>Observe o que acontece antes de um comportamento se repetir.</p></div>
+      <div class="card"><h3>Questione rótulos</h3><p>Diferencie quem você é do que ouviu sobre si ao longo da vida.</p></div>
+      <div class="card"><h3>Defina direção</h3><p>Reflita sobre valores, propósito e próximos passos realistas.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <p class="eyebrow">Conteúdo</p>
+    <h2>8 módulos de autoconhecimento</h2>
+    <p class="lead">Cada módulo combina uma explicação acessível, perguntas de reflexão, exercícios de preenchimento e um desafio prático.</p>
+    <div class="grid">
+      <div class="card mod"><div class="n">1</div><h3>Quem sou eu?</h3></div>
+      <div class="card mod"><div class="n">2</div><h3>O universo das emoções</h3></div>
+      <div class="card mod"><div class="n">3</div><h3>O que existe por trás dos meus comportamentos?</h3></div>
+      <div class="card mod"><div class="n">4</div><h3>Padrões repetitivos e mecanismos de defesa</h3></div>
+      <div class="card mod"><div class="n">5</div><h3>Minha história e minhas experiências</h3></div>
+      <div class="card mod"><div class="n">6</div><h3>Crenças, pensamentos e autossabotagem</h3></div>
+      <div class="card mod"><div class="n">7</div><h3>Valores, propósito e direção</h3></div>
+      <div class="card mod"><div class="n">8</div><h3>Construindo uma nova relação comigo mesmo</h3></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Além da leitura</p>
+    <h2>Você vai <span>praticar</span></h2>
+    <ul class="check">
+      <li>Perguntas orientadoras para reflexão</li>
+      <li>Exercícios de identificação de padrões</li>
+      <li>Atividades de reconhecimento emocional</li>
+      <li><strong>Diário guiado de 21 dias</strong> — pequenas reflexões diárias</li>
+      <li><strong>Plano pessoal de desenvolvimento</strong> — objetivos e ações</li>
+    </ul>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Para quem é este material?</h2>
+    <ul class="check">
+      <li>Quem deseja conhecer melhor a si mesmo</li>
+      <li>Quem quer compreender suas emoções</li>
+      <li>Quem busca refletir sobre comportamentos recorrentes</li>
+      <li>Quem quer identificar crenças que influenciam suas escolhas</li>
+      <li>Quem quer criar o hábito de reflexão e crescimento pessoal</li>
+    </ul>
+  </div>
+</section>
+
+<section class="offer" id="oferta">
+  <div class="wrap">
+    <p class="eyebrow">Investimento único</p>
+    <img class="offer-img" src="img/oferta.jpg" alt="Mapa do Eu — Produto digital em PDF por R$ 39,00" width="1536" height="1024" loading="lazy">
+    <div class="price"><small>R$</small>39,00</div>
+    <p class="lead" style="margin-bottom:24px">Pagamento único · Material digital em PDF · Acesso imediato</p>
+    <a class="btn buy" href="#" data-buy>QUERO COMEÇAR MINHA JORNADA</a>
+    <p class="price-line">Conhecer a si mesmo é um processo. O primeiro passo é fazer perguntas melhores.</p>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Perguntas frequentes</h2>
+    <details><summary>Como recebo o material?</summary><p>Após a confirmação do pagamento, o acesso ao PDF é liberado automaticamente na plataforma de compra.</p></details>
+    <details><summary>É um livro para ler ou para preencher?</summary><p>Os dois. É um workbook: traz explicações curtas e espaços para você escrever suas respostas, no seu ritmo.</p></details>
+    <details><summary>Quanto tempo preciso por dia?</summary><p>Sugerimos de 10 a 20 minutos por atividade, em um ambiente tranquilo. Você pode voltar às atividades quando fizer sentido.</p></details>
+    <details><summary>Isso substitui terapia?</summary><p>Não. O Mapa do Eu é um material educativo e de desenvolvimento pessoal. Não realiza diagnóstico e não substitui psicoterapia, psicanálise, atendimento médico ou qualquer acompanhamento profissional. Se uma atividade provocar sofrimento intenso, interrompa e procure apoio profissional.</p></details>
+    <details><summary>Posso imprimir?</summary><p>Sim. O PDF foi pensado em formato A4 para leitura na tela ou impressão.</p></details>
+  </div>
+</section>
+
+<p class="notice">Material educativo e reflexivo de autoconhecimento e desenvolvimento pessoal. Não substitui acompanhamento psicológico, psicanalítico ou médico, e não garante resultados específicos.<br>© Mapa do Eu</p>
+
+<div class="sticky"><a class="btn buy" href="#" data-buy>GARANTA O SEU · R$ 39,00</a></div>
+
+<script>
+// >>> COLE AQUI o link de checkout da Kiwify (ex.: https://pay.kiwify.com.br/XXXXXXX) <<<
+var CHECKOUT_URL = "";
+document.querySelectorAll("[data-buy]").forEach(function (a) {
+  if (CHECKOUT_URL) { a.href = CHECKOUT_URL; }
+  else { a.addEventListener("click", function (e) { e.preventDefault(); alert("Link de compra ainda não configurado."); }); }
+});
+</script>
+</body>
+</html>
