@@ -5,7 +5,7 @@
 - proximo_tema_fe: 2            (ver temas-fe.md)
 
 ## Já publicados
-- 2026-11-11 (quarta, fé): "Luto e esperança" (temas-fe.md nº 1). Carrossel publicado (https://www.instagram.com/p/DfmMKnDl6-f/) e story da manhã publicado às ~06:50. Story da noite guardado em media-5377ac8c108ec7a6/story-noite.mp4, a publicar às 19:50. Versículo: Mateus 5:4 (NAA).
+- 2026-11-11 (quarta, fé): "Luto e esperança" (temas-fe.md nº 1). Carrossel publicado (https://www.instagram.com/p/DfmMKnDl6-f/) e story da manhã publicado às ~06:50. Story da noite publicado às 19:53 (id 17902561287454818); mídia removida da branch. Versículo: Mateus 5:4 (NAA).
 - 2026-11-04: Luto (Freud + neurociência)
 - 2026-11-08: Falso self e compulsão de agradar (Winnicott)
 - 2026-11-10: Apego (Bowlby, Ainsworth, Panksepp), carrossel de 9 slides
