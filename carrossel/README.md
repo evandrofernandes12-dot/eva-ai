@@ -25,6 +25,7 @@ Os stories do dia seguem o tema do carrossel do mesmo dia. O Reel dos dias Ter/Q
 - Reel: `node carrossel/reel.js reel.json saida.mp4` (mp4 1080x1920, 30 a 45 s, sem voz, transições suaves, com trilha
   instrumental original gerada por `musica.js`, sem direitos de terceiros). Campo `"musica"` do reel.json: `"reflexivo"`
   (tom menor, dias comuns), `"esperanca"` (tom maior, dias de fé) ou `"nenhuma"`.
+  Campo `"estilo"`: `"melodico"` (padrão: ~92 BPM, arpejo em colcheias, baixo, melodia e chocalho suave) ou `"calmo"` (versão lenta só de pad e notas soltas).
   Exemplo: `exemplos/reel.json` (`segundos` = duração de cada cena). Fica dentro da zona segura do Instagram.
 
 ## Publicação (somente após aprovação explícita do usuário)

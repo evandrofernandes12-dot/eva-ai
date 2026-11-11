@@ -13,7 +13,7 @@ const data = JSON.parse(fs.readFileSync(input, 'utf8'));
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'reel-'));
 execFileSync('node', [path.join(__dirname, 'render.js'), input, dir], { stdio: 'inherit' });
 
-const { gerarMusica } = require('./musica');
+const { gerarMusica, gerarMusicaMelodica } = require('./musica');
 const n = data.slides.length;
 const dur = data.segundos || Array(n).fill(5);
 const T = 0.6; // duração da transição
@@ -27,7 +27,7 @@ if (clima === 'nenhuma') {
   args.push('-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
 } else {
   const wav = path.join(dir, 'trilha.wav');
-  gerarMusica(wav, total, clima);
+  (data.estilo === 'calmo' ? gerarMusica : gerarMusicaMelodica)(wav, total, clima);
   args.push('-i', wav);
 }
 let filter = '';
@@ -40,7 +40,7 @@ for (let i = 1; i < n; i++) {
   last = out;
 }
 filter = filter.replace(/;$/, '');
-args.push('-filter_complex', filter + (clima === 'nenhuma' ? '' : `;[${n}:a]aecho=0.8:0.6:70|140:0.25|0.15,lowpass=f=4500,volume=0.9,afade=t=in:st=0:d=1.5,afade=t=out:st=${Math.max(0, total - 3)}:d=3[aout]`), '-map', '[vout]', '-map', clima === 'nenhuma' ? `${n}:a` : '[aout]', '-t', String(total),
+args.push('-filter_complex', filter + (clima === 'nenhuma' ? '' : `;[${n}:a]aecho=0.8:0.65:60|130|190:0.3|0.2|0.1,lowpass=f=6500,volume=0.9,afade=t=in:st=0:d=1.5,afade=t=out:st=${Math.max(0, total - 3)}:d=3[aout]`), '-map', '[vout]', '-map', clima === 'nenhuma' ? `${n}:a` : '[aout]', '-t', String(total),
   '-c:v', 'libx264', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', '30', '-crf', '23', '-preset', 'medium',
   '-c:a', 'aac', '-b:a', '96k', '-shortest', '-movflags', '+faststart', output);
 execFileSync('ffmpeg', args, { stdio: ['ignore', 'ignore', 'inherit'] });
