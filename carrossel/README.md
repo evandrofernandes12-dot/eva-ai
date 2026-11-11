@@ -20,12 +20,13 @@ Os stories do dia seguem o tema do carrossel do mesmo dia. O Reel dos dias Ter/Q
 
 ## Ferramentas
 - Carrossel: `node carrossel/render.js slides.json <pasta>` (PNG 1080x1440). Exemplo: `exemplos/falso-self.json`.
-- Story: mesmo script com `"format": "vertical"` e um único slide (PNG 1080x1920). Exemplos: `exemplos/story-manha.json`
+- Story em vídeo (com música): `node carrossel/story-video.js story.json saida.mp4` (mp4 1080x1920, ~12 s, imagem com zoom suave e a mesma trilha instrumental).
+- Story em imagem: mesmo script do carrossel com `"format": "vertical"` e um único slide (PNG 1080x1920). Exemplos: `exemplos/story-manha.json`
   (rótulo "BOM DIA · ...", frase curta provocativa) e `exemplos/story-noite.json` (rótulo "PARA A NOITE", uma pergunta).
 - Reel: `node carrossel/reel.js reel.json saida.mp4` (mp4 1080x1920, 30 a 45 s, sem voz, transições suaves, com trilha
   instrumental original gerada por `musica.js`, sem direitos de terceiros). Campo `"musica"` do reel.json: `"reflexivo"`
   (tom menor, dias comuns), `"esperanca"` (tom maior, dias de fé) ou `"nenhuma"`.
-  Campo `"estilo"`: `"melodico"` (padrão: ~92 BPM, arpejo em colcheias, baixo, melodia e chocalho suave) ou `"calmo"` (versão lenta só de pad e notas soltas).
+  Campo `"estilo"`: `"calmo"` (PADRÃO, escolhido pelo usuário: pad suave e notas soltas) ou `"melodico"` (mais rápido, com melodia; o usuário não gostou).
   Exemplo: `exemplos/reel.json` (`segundos` = duração de cada cena). Fica dentro da zona segura do Instagram.
 
 ## Publicação (somente após aprovação explícita do usuário)
@@ -35,8 +36,9 @@ Subir mídia numa pasta `media-<hex aleatório>` na branch de trabalho e usar as
 - **Carrossel:** ação `publish_media_v2` (1 a 10 imagens, `caption`, `instagramPageId`).
 - **Reel:** ação `publish_video` (`video` = URL do mp4, `caption`).
 - **Story:** não há ação pronta, usar a API do Instagram pelo Zapier (testado, funciona):
-  1. POST `https://graph.facebook.com/v21.0/17841401082763268/media` com `media_type=STORIES` e `image_url=<URL>`
-     (ação `_zap_raw_request` mutating, `querystring`). Retorna `id` do contêiner.
+  1. POST `https://graph.facebook.com/v21.0/17841401082763268/media` com `media_type=STORIES` e `video_url=<URL do mp4>`
+     (story em vídeo com música, gerado por `story-video.js`; para imagem parada usar `image_url=<URL do png>`)
+     (ação `_zap_raw_request` mutating, `querystring`). Retorna `id` do contêiner. Testado com vídeo: funciona.
   2. Conferir com GET `https://graph.facebook.com/v21.0/<id>?fields=status_code` até `FINISHED`.
   3. POST `https://graph.facebook.com/v21.0/17841401082763268/media_publish` com `creation_id=<id>`.
   Se algo falhar, entregar a imagem do story ao usuário (caminho completo do PNG) para postar manualmente.
