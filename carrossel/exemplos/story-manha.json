@@ -1,0 +1,10 @@
+{
+  "format": "vertical",
+  "slides": [
+    {"kind":"text","label":"BOM DIA &nbsp;·&nbsp; PSICANÁLISE","blocks":[
+      {"type":"h1","html":"Você diz “sim”<br>e depois <b class=\"g\">se arrepende?</b>"},
+      {"type":"orn"},
+      {"type":"p","html":"Talvez o “sim” <b class=\"g\">nunca</b> tenha sido seu."}
+    ]}
+  ]
+}

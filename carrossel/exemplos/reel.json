@@ -1,0 +1,13 @@
+{
+  "format": "vertical",
+  "segundos": [4, 5, 5, 6, 5, 5, 5],
+  "slides": [
+    {"kind":"cover","label":"PSICANÁLISE","blocks":[{"type":"h1","html":"Agradar todo mundo<br>não é <b class=\"g\">só bondade.</b>"}]},
+    {"kind":"text","label":"O SINTOMA","blocks":[{"type":"h2","html":"Dizer “sim”<br>e depois <b class=\"g\">ficar com raiva de si.</b>"}]},
+    {"kind":"text","label":"A ORIGEM","blocks":[{"type":"h2","html":"Quem aprende cedo que ser <b class=\"g\">“fácil de lidar”</b> garante o carinho..."}]},
+    {"kind":"text","label":"WINNICOTT","blocks":[{"type":"h2","html":"Winnicott chamou isso de <b class=\"g\">falso self:</b>"},{"type":"p","html":"a parte que se adapta para ser aceito."}]},
+    {"kind":"text","label":"A CONTRADIÇÃO","blocks":[{"type":"h2","html":"Agradar também<br>protege <b class=\"g\">você.</b>"},{"type":"s","html":"Parece generosidade. Muitas vezes é controle."}]},
+    {"kind":"quote","label":"PARA REFLETIR","blocks":[{"type":"h1 q","html":"O que aconteceria se você <b class=\"g\">decepcionasse alguém?</b>"}]},
+    {"kind":"cta","label":"PARA LEVAR","blocks":[{"type":"h1","html":"Dizer “não”<br>dói <b class=\"g\">no começo.</b>"},{"type":"box","icon":"save","title":"SALVE","html":"para lembrar."},{"type":"box","icon":"send","title":"ENVIE","html":"para quem precisa ouvir."}]}
+  ]
+}

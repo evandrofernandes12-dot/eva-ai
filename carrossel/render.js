@@ -38,6 +38,8 @@ const data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
 const footer = data.footer || 'EVANDRO FERNANDES &nbsp;·&nbsp; PSICANALISTA CLÍNICO';
 const slides = data.slides;
 const total = slides.length;
+const vertical = data.format === 'vertical';
+const H = vertical ? 1920 : 1440;
 
 const block = (b) => {
   switch (b.type) {
@@ -54,14 +56,14 @@ const block = (b) => {
 
 const render = (s, i, fontsCss) => {
   const cover = s.kind === 'cover';
-  const right = s.right || (cover ? 'ARRASTE →' : `${String(i + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`);
+  const right = s.right !== undefined ? s.right : (vertical ? (data.handle || '@evandro_fernandes.fe_psique') : (cover ? 'ARRASTE →' : `${String(i + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`));
   let body = s.blocks.map(block).join('');
   if (s.kind === 'quote') body = `<div class="qm">“</div>` + body;
   if (s.kind === 'cta') body = body.replace(/(<div class="box">[\s\S]*<\/div>)$/, '<div class="boxes">$1</div>');
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 ${fontsCss}
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1080px;height:1440px;background:radial-gradient(ellipse at 50% 45%,#12294f 0%,#0a1630 45%,#050d22 100%);font-family:'LoraL',serif;color:#f5efe6;position:relative;overflow:hidden}
+body{width:1080px;height:${H}px;background:radial-gradient(ellipse at 50% 45%,#12294f 0%,#0a1630 45%,#050d22 100%);font-family:'LoraL',serif;color:#f5efe6;position:relative;overflow:hidden}
 .frame{position:absolute;inset:44px;border:1.5px solid rgba(212,168,83,.45)}
 .c{position:absolute;width:48px;height:48px;border:4px solid #d4a853}
 .c.tl{left:42px;top:42px;border-right:0;border-bottom:0}.c.tr{right:42px;top:42px;border-left:0;border-bottom:0}
@@ -87,6 +89,7 @@ body{width:1080px;height:1440px;background:radial-gradient(ellipse at 50% 45%,#1
 .box{display:flex;align-items:center;gap:36px;border:2.5px solid #d4a853;border-radius:34px;padding:34px 44px;background:#071329;text-align:left}
 .box b{display:block;font:700 34px 'Inter',sans-serif;color:#d4a853;margin-bottom:8px;letter-spacing:1px}
 .box span{font-size:36px;line-height:1.35}
+${vertical ? `.top{top:250px}.tl2{top:290px}.main{top:420px;bottom:520px}.main.cover{top:500px}.foot{top:1456px;height:110px;flex-direction:column;justify-content:center;gap:12px;text-align:center}.foot .r{letter-spacing:2px}.rings{top:-40px}` : ''}
 </style></head><body>
 <div class="frame"></div><div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
 ${cover ? '<div class="rings"><div style="inset:0"></div><div style="inset:100px"></div><div style="inset:200px"></div></div>' : ''}
@@ -101,7 +104,7 @@ ${cover ? '<div class="rings"><div style="inset:0"></div><div style="inset:100px
   fs.mkdirSync(outDir, { recursive: true });
   const tmp = fs.mkdtempSync('/tmp/carrossel-');
   const b = await chromium.launch();
-  const p = await b.newPage({ viewport: { width: 1080, height: 1440 }, deviceScaleFactor: 1 });
+  const p = await b.newPage({ viewport: { width: 1080, height: H }, deviceScaleFactor: 1 });
   for (let i = 0; i < total; i++) {
     const f = path.join(tmp, `s${i + 1}.html`);
     fs.writeFileSync(f, render(slides[i], i, fontsCss));
