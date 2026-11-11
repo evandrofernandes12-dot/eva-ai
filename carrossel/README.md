@@ -22,7 +22,9 @@ Os stories do dia seguem o tema do carrossel do mesmo dia. O Reel dos dias Ter/Q
 - Carrossel: `node carrossel/render.js slides.json <pasta>` (PNG 1080x1440). Exemplo: `exemplos/falso-self.json`.
 - Story: mesmo script com `"format": "vertical"` e um único slide (PNG 1080x1920). Exemplos: `exemplos/story-manha.json`
   (rótulo "BOM DIA · ...", frase curta provocativa) e `exemplos/story-noite.json` (rótulo "PARA A NOITE", uma pergunta).
-- Reel: `node carrossel/reel.js reel.json saida.mp4` (mp4 1080x1920, 30 a 45 s, sem voz, transições suaves).
+- Reel: `node carrossel/reel.js reel.json saida.mp4` (mp4 1080x1920, 30 a 45 s, sem voz, transições suaves, com trilha
+  instrumental original gerada por `musica.js`, sem direitos de terceiros). Campo `"musica"` do reel.json: `"reflexivo"`
+  (tom menor, dias comuns), `"esperanca"` (tom maior, dias de fé) ou `"nenhuma"`.
   Exemplo: `exemplos/reel.json` (`segundos` = duração de cada cena). Fica dentro da zona segura do Instagram.
 
 ## Publicação (somente após aprovação explícita do usuário)

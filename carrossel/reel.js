@@ -13,6 +13,7 @@ const data = JSON.parse(fs.readFileSync(input, 'utf8'));
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'reel-'));
 execFileSync('node', [path.join(__dirname, 'render.js'), input, dir], { stdio: 'inherit' });
 
+const { gerarMusica } = require('./musica');
 const n = data.slides.length;
 const dur = data.segundos || Array(n).fill(5);
 const T = 0.6; // duração da transição
@@ -20,7 +21,15 @@ const args = ['-y', '-loglevel', 'error'];
 for (let i = 0; i < n; i++) {
   args.push('-loop', '1', '-t', String(dur[i] + T), '-i', path.join(dir, `slide-${String(i + 1).padStart(2, '0')}.png`));
 }
-args.push('-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
+const total = dur.reduce((a, b) => a + b, 0);
+const clima = data.musica === undefined ? 'reflexivo' : data.musica; // "reflexivo", "esperanca" ou "nenhuma"
+if (clima === 'nenhuma') {
+  args.push('-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
+} else {
+  const wav = path.join(dir, 'trilha.wav');
+  gerarMusica(wav, total, clima);
+  args.push('-i', wav);
+}
 let filter = '';
 for (let i = 0; i < n; i++) filter += `[${i}:v]scale=1080:1920,setsar=1,fps=30,format=yuv420p[v${i}];`;
 let last = 'v0', acc = 0;
@@ -31,8 +40,7 @@ for (let i = 1; i < n; i++) {
   last = out;
 }
 filter = filter.replace(/;$/, '');
-const total = dur.reduce((a, b) => a + b, 0);
-args.push('-filter_complex', filter, '-map', '[vout]', '-map', `${n}:a`, '-t', String(total),
+args.push('-filter_complex', filter + (clima === 'nenhuma' ? '' : `;[${n}:a]aecho=0.8:0.6:70|140:0.25|0.15,lowpass=f=4500,volume=0.9,afade=t=in:st=0:d=1.5,afade=t=out:st=${Math.max(0, total - 3)}:d=3[aout]`), '-map', '[vout]', '-map', clima === 'nenhuma' ? `${n}:a` : '[aout]', '-t', String(total),
   '-c:v', 'libx264', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', '30', '-crf', '23', '-preset', 'medium',
   '-c:a', 'aac', '-b:a', '96k', '-shortest', '-movflags', '+faststart', output);
 execFileSync('ffmpeg', args, { stdio: ['ignore', 'ignore', 'inherit'] });
