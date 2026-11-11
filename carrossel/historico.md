@@ -11,5 +11,5 @@
 - 2026-11-11: Apego, carrossel (https://www.instagram.com/p/DflTmbojFca/)
 
 ## Próximos temas (conferido em 2026-11-11)
-- Quarta 12/11 (dia de fé): "Luto e esperança" (temas-fe.md nº 1)
-- Quinta 13/11 (dia comum): "Compulsão à repetição" (temas-psicanalise.md nº 1)
+- Quarta 11/11 (dia de fé): "Luto e esperança" (temas-fe.md nº 1)
+- Quinta 12/11 (dia comum, com reel): "Compulsão à repetição" (temas-psicanalise.md nº 1)
