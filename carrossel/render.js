@@ -34,7 +34,11 @@ function ensureFonts() {
   return out;
 }
 
-const data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
+let raw = fs.readFileSync(inputFile, 'utf8');
+const data0 = JSON.parse(raw);
+// {{tema}} nos textos é substituído pelo campo "tema" (nome curto do tema do dia), para o aviso do story bater com o carrossel
+if (data0.tema) raw = raw.replace(/\{\{tema\}\}/g, data0.tema);
+const data = JSON.parse(raw);
 const footer = data.footer || 'EVANDRO FERNANDES &nbsp;·&nbsp; PSICANALISTA CLÍNICO';
 const slides = data.slides;
 const total = slides.length;

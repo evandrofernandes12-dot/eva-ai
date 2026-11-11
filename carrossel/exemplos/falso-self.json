@@ -1,13 +1,171 @@
 {
+  "tema": "falso self",
   "slides": [
-    {"kind":"cover","label":"PSICANÁLISE &nbsp;·&nbsp; SAÚDE MENTAL","blocks":[{"type":"h1","html":"Agradar todo mundo<br>não é <b class=\"g\">só bondade.</b>"},{"type":"orn"},{"type":"big","html":"<i class=\"g\">É uma proteção.</i>"}]},
-    {"kind":"text","label":"O SINTOMA","blocks":[{"type":"h2","html":"Dizer “sim” e depois<br><b class=\"g\">ficar com raiva de si.</b>"},{"type":"h2","html":"Pedir desculpa quando<br>esbarram em <b class=\"g\">você.</b>"},{"type":"orn"},{"type":"s","html":"Por fora: alguém tranquilo.<br><i>Por dentro: cansaço e ressentimento.</i>"}]},
-    {"kind":"text","label":"A ORIGEM","blocks":[{"type":"h2","html":"Quem aprende cedo que ser<br>“fácil de lidar” <b class=\"g\">garante o carinho,</b>"},{"type":"p","html":"aprende também a ler o ambiente <b class=\"g\">antes de ler a si mesmo.</b>"},{"type":"s","html":"<i>Foi uma solução inteligente para uma criança.</i>"}]},
-    {"kind":"text","label":"WINNICOTT","blocks":[{"type":"h2","html":"Winnicott chamou isso de <b class=\"g\">falso self:</b>"},{"type":"p","html":"a parte de você que <b class=\"g\">se adapta para ser aceito.</b>"},{"type":"s","html":"<i>Um pouco dela é saudável: é a educação, o jogo de cintura.</i>"}]},
-    {"kind":"text","label":"O PROBLEMA","blocks":[{"type":"h2","html":"O problema é quando ela<br><b class=\"g\">assume o comando</b>"},{"type":"orn"},{"type":"p","html":"e a <b class=\"g\">espontaneidade</b> some."},{"type":"s","html":"<i>Você já não sabe o que quer,<br>só o que esperam de você.</i>"}]},
-    {"kind":"text","label":"A CONTRADIÇÃO","blocks":[{"type":"h2","html":"Agradar também<br>protege <b class=\"g\">você.</b>"},{"type":"p","html":"Se eu sou o “bonzinho”, o outro<br>não tem motivo para me rejeitar."},{"type":"orn"},{"type":"s","html":"Parece generosidade.<br><b class=\"g\">Muitas vezes é controle.</b>"}]},
-    {"kind":"text","label":"O CORPO","blocks":[{"type":"h2","html":"Estudos de neuroimagem sugerem que a <b class=\"g\">rejeição social</b> ativa regiões que também participam da <b class=\"g\">dor física.</b>"},{"type":"s","html":"<i>Por isso desapontar alguém<br>pode dar um aperto no peito.</i>"}]},
-    {"kind":"quote","label":"PARA REFLETIR","blocks":[{"type":"h1 q","html":"O que aconteceria se você <b class=\"g\">deixasse alguém decepcionado?</b>"}]},
-    {"kind":"cta","label":"PARA LEVAR","blocks":[{"type":"h1","html":"Dizer “não” dói<br><b class=\"g\">no começo.</b>"},{"type":"p","html":"Mas é um passo para<br><b class=\"g\">relações mais reais.</b>"},{"type":"box","icon":"save","title":"SALVE","html":"para lembrar antes do próximo<br>“sim” automático."},{"type":"box","icon":"send","title":"ENVIE","html":"para alguém que “nunca<br>dá trabalho”."}]}
+    {
+      "kind": "cover",
+      "label": "PSICANÁLISE &nbsp;·&nbsp; SAÚDE MENTAL",
+      "blocks": [
+        {
+          "type": "h1",
+          "html": "Agradar todo mundo<br>não é <b class=\"g\">só bondade.</b>"
+        },
+        {
+          "type": "orn"
+        },
+        {
+          "type": "big",
+          "html": "<i class=\"g\">É uma proteção.</i>"
+        }
+      ]
+    },
+    {
+      "kind": "text",
+      "label": "O SINTOMA",
+      "blocks": [
+        {
+          "type": "h2",
+          "html": "Dizer “sim” e depois<br><b class=\"g\">ficar com raiva de si.</b>"
+        },
+        {
+          "type": "h2",
+          "html": "Pedir desculpa quando<br>esbarram em <b class=\"g\">você.</b>"
+        },
+        {
+          "type": "orn"
+        },
+        {
+          "type": "s",
+          "html": "Por fora: alguém tranquilo.<br><i>Por dentro: cansaço e ressentimento.</i>"
+        }
+      ]
+    },
+    {
+      "kind": "text",
+      "label": "A ORIGEM",
+      "blocks": [
+        {
+          "type": "h2",
+          "html": "Quem aprende cedo que ser<br>“fácil de lidar” <b class=\"g\">garante o carinho,</b>"
+        },
+        {
+          "type": "p",
+          "html": "aprende também a ler o ambiente <b class=\"g\">antes de ler a si mesmo.</b>"
+        },
+        {
+          "type": "s",
+          "html": "<i>Foi uma solução inteligente para uma criança.</i>"
+        }
+      ]
+    },
+    {
+      "kind": "text",
+      "label": "WINNICOTT",
+      "blocks": [
+        {
+          "type": "h2",
+          "html": "Winnicott chamou isso de <b class=\"g\">falso self:</b>"
+        },
+        {
+          "type": "p",
+          "html": "a parte de você que <b class=\"g\">se adapta para ser aceito.</b>"
+        },
+        {
+          "type": "s",
+          "html": "<i>Um pouco dela é saudável: é a educação, o jogo de cintura.</i>"
+        }
+      ]
+    },
+    {
+      "kind": "text",
+      "label": "O PROBLEMA",
+      "blocks": [
+        {
+          "type": "h2",
+          "html": "O problema é quando ela<br><b class=\"g\">assume o comando</b>"
+        },
+        {
+          "type": "orn"
+        },
+        {
+          "type": "p",
+          "html": "e a <b class=\"g\">espontaneidade</b> some."
+        },
+        {
+          "type": "s",
+          "html": "<i>Você já não sabe o que quer,<br>só o que esperam de você.</i>"
+        }
+      ]
+    },
+    {
+      "kind": "text",
+      "label": "A CONTRADIÇÃO",
+      "blocks": [
+        {
+          "type": "h2",
+          "html": "Agradar também<br>protege <b class=\"g\">você.</b>"
+        },
+        {
+          "type": "p",
+          "html": "Se eu sou o “bonzinho”, o outro<br>não tem motivo para me rejeitar."
+        },
+        {
+          "type": "orn"
+        },
+        {
+          "type": "s",
+          "html": "Parece generosidade.<br><b class=\"g\">Muitas vezes é controle.</b>"
+        }
+      ]
+    },
+    {
+      "kind": "text",
+      "label": "O CORPO",
+      "blocks": [
+        {
+          "type": "h2",
+          "html": "Estudos de neuroimagem sugerem que a <b class=\"g\">rejeição social</b> ativa regiões que também participam da <b class=\"g\">dor física.</b>"
+        },
+        {
+          "type": "s",
+          "html": "<i>Por isso desapontar alguém<br>pode dar um aperto no peito.</i>"
+        }
+      ]
+    },
+    {
+      "kind": "quote",
+      "label": "PARA REFLETIR",
+      "blocks": [
+        {
+          "type": "h1 q",
+          "html": "O que aconteceria se você <b class=\"g\">deixasse alguém decepcionado?</b>"
+        }
+      ]
+    },
+    {
+      "kind": "cta",
+      "label": "PARA LEVAR",
+      "blocks": [
+        {
+          "type": "h1",
+          "html": "Dizer “não” dói<br><b class=\"g\">no começo.</b>"
+        },
+        {
+          "type": "p",
+          "html": "Mas é um passo para<br><b class=\"g\">relações mais reais.</b>"
+        },
+        {
+          "type": "box",
+          "icon": "save",
+          "title": "SALVE",
+          "html": "para lembrar antes do próximo<br>“sim” automático."
+        },
+        {
+          "type": "box",
+          "icon": "send",
+          "title": "ENVIE",
+          "html": "para alguém que “nunca<br>dá trabalho”."
+        }
+      ]
+    }
   ]
 }

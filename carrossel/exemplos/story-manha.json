@@ -1,20 +1,56 @@
 {
+  "tema": "falso self",
   "format": "vertical",
   "musica": "reflexivo",
-  "segundos": [6, 7, 5],
+  "segundos": [
+    6,
+    7,
+    5
+  ],
   "slides": [
-    {"kind":"text","label":"BOM DIA &nbsp;·&nbsp; PSICANÁLISE","blocks":[
-      {"type":"h1","html":"Você diz “sim”<br>e depois <b class=\"g\">se arrepende?</b>"}
-    ]},
-    {"kind":"text","label":"PARA PENSAR","blocks":[
-      {"type":"h2","html":"Talvez o “sim”<br><b class=\"g\">nunca</b> tenha sido seu."},
-      {"type":"orn"},
-      {"type":"s","html":"Winnicott chamou de <b class=\"g\">falso self</b>:<br>a parte que se adapta para ser aceito."}
-    ]},
-    {"kind":"text","label":"HOJE NO FEED","blocks":[
-      {"type":"h2","html":"Carrossel novo<br>sobre <b class=\"g\">falso self</b>"},
-      {"type":"orn"},
-      {"type":"s","html":"Passe no meu perfil e<br><b class=\"g\">salve</b> para ler com calma."}
-    ]}
+    {
+      "kind": "text",
+      "label": "BOM DIA &nbsp;·&nbsp; PSICANÁLISE",
+      "blocks": [
+        {
+          "type": "h1",
+          "html": "Você diz “sim”<br>e depois <b class=\"g\">se arrepende?</b>"
+        }
+      ]
+    },
+    {
+      "kind": "text",
+      "label": "PARA PENSAR",
+      "blocks": [
+        {
+          "type": "h2",
+          "html": "Talvez o “sim”<br><b class=\"g\">nunca</b> tenha sido seu."
+        },
+        {
+          "type": "orn"
+        },
+        {
+          "type": "s",
+          "html": "Winnicott chamou de <b class=\"g\">falso self</b>:<br>a parte que se adapta para ser aceito."
+        }
+      ]
+    },
+    {
+      "kind": "text",
+      "label": "HOJE NO FEED",
+      "blocks": [
+        {
+          "type": "h2",
+          "html": "Carrossel novo<br>sobre <b class=\"g\">{{tema}}</b>"
+        },
+        {
+          "type": "orn"
+        },
+        {
+          "type": "s",
+          "html": "Veja o post de hoje no feed e<br><b class=\"g\">salve</b> para ler com calma."
+        }
+      ]
+    }
   ]
 }

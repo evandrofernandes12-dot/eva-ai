@@ -46,6 +46,14 @@ Subir mídia numa pasta `media-<hex aleatório>` na branch de trabalho e usar as
   Se algo falhar, entregar a imagem do story ao usuário (caminho completo do PNG) para postar manualmente.
 - Depois, conferir com a ação `new_media`, apagar a pasta de mídia e atualizar `historico.md` (commit e push).
 
+## Tema do dia e conferência (obrigatório antes de mostrar o pacote)
+- Todo JSON do dia (carrossel, story manhã, story noite, reel) tem o campo `"tema"`: o nome CURTO do tema do dia
+  (até 4 palavras, minúsculas, ex.: `"luto e esperança"`), IDÊNTICO nos quatro arquivos.
+- O banner 3 do story da manhã ("HOJE NO FEED") nunca leva o tema escrito à mão: usa `{{tema}}`, que o `render.js` troca pelo campo `tema`.
+- Rodar `node carrossel/conferir.js carrossel.json story-manha.json story-noite.json [reel.json]`. Se acusar problema, corrigir antes de mostrar.
+  Ele pega tema diferente entre os arquivos e texto de exemplo esquecido (ex.: "falso self" num dia de outro tema).
+- Os arquivos de `exemplos/` são só modelos de formato: nunca reaproveitar o texto deles.
+
 ## Regras de conteúdo
 - Gancho curto e provocativo; combater o viés de concordância (mostrar o ganho inconsciente).
 - Linguagem neutra em gênero; sem tom de coach; sem promessas de cura nem diagnóstico.
