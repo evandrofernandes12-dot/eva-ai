@@ -1,10 +1,15 @@
 {
   "format": "vertical",
+  "musica": "reflexivo",
+  "segundos": [6, 8],
   "slides": [
     {"kind":"text","label":"BOM DIA &nbsp;·&nbsp; PSICANÁLISE","blocks":[
-      {"type":"h1","html":"Você diz “sim”<br>e depois <b class=\"g\">se arrepende?</b>"},
+      {"type":"h1","html":"Você diz “sim”<br>e depois <b class=\"g\">se arrepende?</b>"}
+    ]},
+    {"kind":"text","label":"PARA PENSAR","blocks":[
+      {"type":"h2","html":"Talvez o “sim”<br><b class=\"g\">nunca</b> tenha sido seu."},
       {"type":"orn"},
-      {"type":"p","html":"Talvez o “sim” <b class=\"g\">nunca</b> tenha sido seu."}
+      {"type":"s","html":"Winnicott chamou de <b class=\"g\">falso self</b>:<br>a parte que se adapta para ser aceito."}
     ]}
   ]
 }

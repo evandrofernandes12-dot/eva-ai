@@ -16,7 +16,7 @@ execFileSync('node', [path.join(__dirname, 'render.js'), input, dir], { stdio: '
 const { gerarMusica, gerarMusicaMelodica } = require('./musica');
 const n = data.slides.length;
 const dur = data.segundos || Array(n).fill(5);
-const T = 0.6; // duração da transição
+const T = 0.8; // duração da transição
 const args = ['-y', '-loglevel', 'error'];
 for (let i = 0; i < n; i++) {
   args.push('-loop', '1', '-t', String(dur[i] + T), '-i', path.join(dir, `slide-${String(i + 1).padStart(2, '0')}.png`));
@@ -36,7 +36,7 @@ let last = 'v0', acc = 0;
 for (let i = 1; i < n; i++) {
   acc += dur[i - 1];
   const out = i === n - 1 ? 'vout' : `x${i}`;
-  filter += `[${last}][v${i}]xfade=transition=fade:duration=${T}:offset=${(acc - 0.0).toFixed(2)}[${out}];`;
+  filter += `[${last}][v${i}]xfade=transition=fadeblack:duration=${T}:offset=${(acc - 0.0).toFixed(2)}[${out}];`;
   last = out;
 }
 filter = filter.replace(/;$/, '');

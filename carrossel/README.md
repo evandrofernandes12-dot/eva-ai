@@ -20,7 +20,9 @@ Os stories do dia seguem o tema do carrossel do mesmo dia. O Reel dos dias Ter/Q
 
 ## Ferramentas
 - Carrossel: `node carrossel/render.js slides.json <pasta>` (PNG 1080x1440). Exemplo: `exemplos/falso-self.json`.
-- Story em vídeo (com música): `node carrossel/story-video.js story.json saida.mp4` (mp4 1080x1920, ~12 s, imagem com zoom suave e a mesma trilha instrumental).
+- Story em vídeo (com música): `node carrossel/story-video.js story.json saida.mp4` (mp4 1080x1920, ~14 s). Dois banners que passam um para o outro
+  (transição escurecendo, sem texto sobreposto), zoom suave e a mesma trilha instrumental. Banner 1 = gancho (6 s); banner 2 = virada/ideia
+  com o autor ou a pergunta (8 s). `"segundos"` define a duração de cada banner. Exemplos: `exemplos/story-manha.json` e `story-noite.json`.
 - Story em imagem: mesmo script do carrossel com `"format": "vertical"` e um único slide (PNG 1080x1920). Exemplos: `exemplos/story-manha.json`
   (rótulo "BOM DIA · ...", frase curta provocativa) e `exemplos/story-noite.json` (rótulo "PARA A NOITE", uma pergunta).
 - Reel: `node carrossel/reel.js reel.json saida.mp4` (mp4 1080x1920, 30 a 45 s, sem voz, transições suaves, com trilha
