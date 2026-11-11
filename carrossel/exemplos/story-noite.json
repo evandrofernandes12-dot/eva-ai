@@ -1,13 +1,18 @@
 {
   "format": "vertical",
   "musica": "reflexivo",
-  "segundos": [6, 8],
+  "segundos": [6, 7, 5],
   "slides": [
     {"kind":"text","label":"PARA A NOITE","blocks":[
       {"type":"h2","html":"Hoje você disse “sim”<br>quando queria dizer <b class=\"g\">“não”?</b>"}
     ]},
     {"kind":"quote","label":"PARA REFLETIR","blocks":[
       {"type":"h1 q","html":"Que “sim” de hoje <b class=\"g\">custou mais</b> do que valeu?"}
+    ]},
+    {"kind":"text","label":"ATÉ AMANHÃ","blocks":[
+      {"type":"h2","html":"Boa noite."},
+      {"type":"orn"},
+      {"type":"s","html":"Amanhã tem <b class=\"g\">mais um tema</b><br>para pensar. Siga para não perder."}
     ]}
   ]
 }
