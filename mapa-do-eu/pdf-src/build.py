@@ -3,6 +3,9 @@ Uso: python3 build.py && node render.js   (requer playwright + chromium)"""
 import html, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from conteudo import *
+from secoes_1_4 import ABERTURA, SECOES as S1
+from secoes_5_8 import SECOES as S2
+SECOES = {**S1, **S2}
 e = html.escape
 OUT = os.path.join(os.path.dirname(__file__), "..", "Mapa_do_Eu_Workbook.pdf")
 HTML = os.path.join(os.path.dirname(__file__), "workbook.html")
@@ -48,11 +51,20 @@ p.append(f'''<section class="page"><h1 class="pt">Boas-vindas à sua jornada</h1
 
 # módulos
 for m in MODULOS:
-    secs = ''.join(f'<h3>{e(t)}</h3><p>{e(x)}</p>' for t,x in m["secoes"])
+    ab, epi = ABERTURA[m["n"]]
+    lista = ''.join(f'<li>{e(sc["t"])}</li>' for sc in SECOES[m["n"]])
     perg = ''.join(f'<div class="q"><b>{i}. {e(q)}</b>{lines(2)}</div>' for i,q in enumerate(m["perguntas"],1))
-    p.append(f'''<section class="page"><div class="mk">Módulo {m["n"]}</div><h1 class="pt">{e(m["titulo"])}</h1>
-<div class="sub">{e(m["sub"])}</div>{secs}</section>
-<section class="page"><h3 class="cap">Exercício de reflexão</h3>{perg}
+    p.append(f'''<section class="page opener"><div class="mk">Módulo {m["n"]}</div><h1 class="pt big">{e(m["titulo"])}</h1>
+<div class="sub">{e(m["sub"])}</div><p class="intro">{e(ab)}</p>
+<h3>Neste módulo</h3><ul class="bul big">{lista}<li>Exercício de reflexão, desafio prático e folha de trabalho</li></ul>
+<div class="quote">{e(epi)}</div></section>''')
+    for sc in SECOES[m["n"]]:
+        paras = ''.join(f'<p>{e(x)}</p>' for x in sc["p"])
+        obs = ''.join(f'<div class="ob"><b>{e(o)}</b>{lines(2)}</div>' for o in sc["obs"])
+        p.append(f'''<section class="page sec"><div class="mk">Módulo {m["n"]}</div><h1 class="pt">{e(sc["t"])}</h1><div class="hr"></div>
+{paras}<div class="ex"><span>Exemplo do cotidiano</span>{e(sc["ex"])}</div>
+<div class="po"><h4>Pare e observe</h4>{obs}</div></section>''')
+    p.append(f'''<section class="page"><h3 class="cap">Exercício de reflexão</h3>{perg}
 <h3 class="cap">Desafio prático</h3><p>{e(m["desafio"])}</p></section>
 <section class="page"><h3 class="cap">Folha de trabalho — {e(m["folha"])}</h3>
 <div class="ws">''' + ''.join(f'<div class="q"><b>{t}</b>{lines(4)}</div>' for t in ["O que observei:","O que senti ou pensei:","O que aprendi:","Qual será meu próximo passo:"]) + '</div></section>')
@@ -111,6 +123,10 @@ p{margin-bottom:2mm}
 .days .day{break-inside:avoid;margin-bottom:5mm;padding-bottom:1mm;border-bottom:.5pt dashed #c9d1de}.days h3{margin-top:0;font-size:11pt}.days p{font-size:9.4pt;margin-bottom:1mm}.pd{color:#07142b}.an{font-size:8.5pt;color:#6b778a;margin-top:1.5mm}
 .days .lines i{height:6.6mm}
 .plan .q{margin-bottom:3mm}.plan .lines i{height:6.6mm}.plan .sub{margin-bottom:4mm}.plan h1.pt{font-size:19pt}
+.sec{font-size:10.3pt;line-height:1.58}.sec p{margin-bottom:2.8mm;text-align:left}.sec h1.pt{font-size:20pt;margin-bottom:2mm}.hr{height:.8pt;background:#e8b94a;margin:0 0 4.5mm}
+.ex{border-left:2pt solid #e8b94a;background:#f6f1e2;padding:3mm 4.5mm;margin:3mm 0 4mm;font-size:9.3pt;line-height:1.45;break-inside:avoid}.ex span{display:block;font:700 7.8pt Inter;letter-spacing:.16em;text-transform:uppercase;color:#8a6a14;margin-bottom:1.5mm}
+.po{border:.8pt solid #0e7c90;border-radius:2.5mm;padding:3mm 4.5mm 0.5mm;break-inside:avoid}.po h4{font:700 8pt Inter;letter-spacing:.16em;text-transform:uppercase;color:#0e7c90;margin-bottom:2mm}.ob{margin-bottom:1.5mm;font-size:9.3pt}.ob .lines i{height:5.6mm}
+.opener h1.big{font-size:28pt;margin:6mm 0 3mm}.opener .intro{font-size:11.5pt;line-height:1.7}.bul.big li{font-size:11pt;margin-bottom:2.5mm}.opener .quote{margin-top:14mm}
 .chk{list-style:none}.chk li{padding:3.2mm 0 3.2mm 9mm;position:relative;border-bottom:.5pt solid #e1e6ee}.chk li::before{content:"";position:absolute;left:0;top:3.6mm;width:4.5mm;height:4.5mm;border:.8pt solid #0e7c90;border-radius:1mm}
 .end{text-align:center;margin-top:22mm}.end p{font:italic 14pt/1.5 "Bitstream Charter",serif;color:#07142b}.end small{display:block;margin-top:12mm;font-size:7.8pt;color:#6b778a;line-height:1.5}
 '''

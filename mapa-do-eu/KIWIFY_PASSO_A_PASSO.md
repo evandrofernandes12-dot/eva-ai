@@ -19,7 +19,7 @@ Os nomes dos menus da Kiwify podem mudar um pouco; siga a ideia de cada etapa.
 ## 3. Entrega do PDF
 1. Dentro do produto → **Área de membros** → criar um módulo/conteúdo.
 2. Anexar `Mapa_do_Eu_Workbook.pdf` como arquivo para download.
-3. Conferir se o PDF aberto na área de membros é o correto (37 páginas, com capa).
+3. Conferir se o PDF aberto na área de membros é o correto (61 páginas, com capa).
 
 ## 4. Checkout
 1. Produto → **Checkout**/**Links**: copie o link de pagamento.
