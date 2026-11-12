@@ -36,7 +36,7 @@ Subir mídia numa pasta `media-<hex aleatório>` na branch de trabalho e usar as
 `https://raw.githubusercontent.com/<dono>/<repo>/<branch>/<pasta>/<arquivo>`. Depois de postar, apagar a pasta.
 
 - **Carrossel:** ação `publish_media_v2` (1 a 10 imagens, `caption`, `instagramPageId`).
-- **Reel:** ação `publish_video` (`video` = URL do mp4, `caption`).
+- **Reel:** ação `publish_video` (`video` = URL do mp4, `caption`). Pode falhar com 'Video is still processing'; nesse caso NÃO repetir às cegas (risco de duplicar): conferir se saiu e publicar pela API: POST /media com `media_type=REELS`, `video_url`, `caption`; esperar `status_code=FINISHED`; POST /media_publish.
 - **Story:** não há ação pronta, usar a API do Instagram pelo Zapier (testado, funciona):
   1. POST `https://graph.facebook.com/v21.0/17841401082763268/media` com `media_type=STORIES` e `video_url=<URL do mp4>`
      (story em vídeo com música, gerado por `story-video.js`; para imagem parada usar `image_url=<URL do png>`)
