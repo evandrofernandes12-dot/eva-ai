@@ -1850,6 +1850,36 @@ function realMats(female, o) {
   const eye = L('E', () => new T.MeshLambertMaterial({ color: 0x7a5636, skinning: true }));
   return { skin, cloth, hair, eye };
 }
+/* junta as peças do corpo/armadura que usam o mesmo material em poucas malhas: menos desenhos por personagem, mesma aparência */
+const _mergeCache = new Map();
+function mergeSkins(root) {
+  const list = root.children.filter(c => c.isSkinnedMesh && c.geometry && c.geometry.attributes.skinIndex && !Array.isArray(c.material));
+  if (list.length < 3) return;
+  const same = (a, b) => { const A = a.skeleton.boneInverses, B = b.skeleton.boneInverses; if (A.length !== B.length) return false; for (let i = 0; i < A.length; i++) { const x = A[i].elements, y = B[i].elements; for (let j = 0; j < 16; j++) if (Math.abs(x[j] - y[j]) > 1e-5) return false; } return a.bindMatrix.equals(b.bindMatrix); };
+  const need = ['position', 'normal', 'uv', 'skinIndex', 'skinWeight'], groups = new Map();
+  for (const m of list) { if (!need.every(a => m.geometry.attributes[a])) continue; const k = m.material.uuid + (m.userData.gear ? 'g' : 'p'); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(m); }
+  for (const arr of groups.values()) {
+    if (arr.length < 2) continue; const first = arr[0]; if (!arr.every(m => m === first || same(first, m))) continue;
+    const shared = arr.every(m => m.geometry.userData.shared), key = shared ? arr.map(m => m.geometry.uuid).join(',') : null;
+    let geo = key && _mergeCache.get(key);
+    if (!geo) {
+      let nv = 0, ni = 0; for (const m of arr) { const g = m.geometry; nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; }
+      const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), si = new Float32Array(nv * 4), sw = new Float32Array(nv * 4), idx = new Uint32Array(ni); let vo = 0, io = 0;
+      for (const m of arr) {
+        const g = m.geometry, A = g.attributes, c = A.position.count;
+        const cp = (dst, at, n) => { for (let i = 0; i < c; i++) for (let k = 0; k < n; k++) dst[(vo + i) * n + k] = at.getComponent ? at.getComponent(i, k) : at.array[i * n + k]; };
+        cp(pos, A.position, 3); cp(nor, A.normal, 3); cp(uv, A.uv, 2); cp(si, A.skinIndex, 4); cp(sw, A.skinWeight, 4);
+        if (g.index) { for (let i = 0; i < g.index.count; i++) idx[io + i] = g.index.getX(i) + vo; io += g.index.count; } else { for (let i = 0; i < c; i++) idx[io + i] = vo + i; io += c; }
+        vo += c;
+      }
+      geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.BufferAttribute(nor, 3)); geo.setAttribute('uv', new T.BufferAttribute(uv, 2)); geo.setAttribute('skinIndex', new T.BufferAttribute(si, 4)); geo.setAttribute('skinWeight', new T.BufferAttribute(sw, 4)); geo.setIndex(new T.BufferAttribute(idx, 1));
+      if (key) { geo.userData.shared = true; _mergeCache.set(key, geo); }
+    }
+    const mm = new T.SkinnedMesh(geo, first.material); mm.frustumCulled = false; mm.castShadow = first.castShadow; mm.receiveShadow = first.receiveShadow; mm.userData.gear = !!first.userData.gear; mm.bind(first.skeleton, first.bindMatrix);
+    for (const m of arr) { root.remove(m); if (!m.geometry.userData.shared) m.geometry.dispose(); }
+    root.add(mm);
+  }
+}
 function makeReal(o) {
   o = Object.assign({ female: false, scale: 1, hair: 0x5a3a1e, hat: null }, o);
   const root = CharLib.build(window.CHARS[(o.female ? 'F' : 'M') + (o.outfit === 'ranger' ? 'R' : '')], realMats(o.female, o)), R = root.userData.rot, B = root.userData.bones;
@@ -1866,6 +1896,7 @@ function makeReal(o) {
   gearReal(root, o);
   if (o.cape != null) capeAt(root, o.cape);
   if (o.bulk) bulkReal(root, o.bulk);
+  mergeSkins(root); if (head.children.length > 1) bakeStatic(head, true);
   const mk = () => new T.Group();
   g.userData = { legL: mk(), legR: mk(), armL: mk(), armR: mk(), hand, handL, foreL, chest, holdL, head: mk(), headG: head, bd, o, real: root };
   g.scale.setScalar(o.scale); syncReal(g.userData); return g;
