@@ -158,6 +158,7 @@ const ITEMS = [
   { id: 'rod', lv: 1, at: 'forge', icon: '🎣', name: 'Vara de Pescar', cost: { wood: 25, hide: 5 }, desc: 'Pesca mais rápido e rende mais peixe' },
   { id: 'spear', lv: 1, at: 'forge', icon: '🔱', name: 'Lança de Caça', cost: { wood: 30, stone: 25 }, desc: 'Arma corpo a corpo, dano 5' },
   { id: 'bow', lv: 1, at: 'forge', icon: '🏹', name: 'Arco de Caça', cost: { wood: 40, hide: 10 }, desc: 'Ataque à distância, dano 4' },
+  { id: 'staff', lv: 1, at: 'forge', icon: '🪄', name: 'Cajado Simples', cost: { wood: 40, hide: 10 }, desc: 'Lança orbes mágicos à distância, dano 4' },
   { id: 'sword', lv: 1, at: 'forge', icon: '⚔️', name: 'Espada de Defesa', cost: { wood: 20, stone: 60, hide: 15 }, desc: 'Arma forte, dano 8', hall: 3 },
   { id: 'shield', lv: 1, at: 'forge', icon: '🛡️', name: 'Escudo de Madeira', cost: { wood: 50, hide: 20 }, desc: 'Recebe 35% menos dano' },
   { id: 'tunic', lv: 1, at: 'tailor', icon: '🥋', name: 'Túnica de Couro', cost: { hide: 20, food: 10 }, desc: '+30 de vida máxima' },
@@ -180,6 +181,7 @@ const WEAPONS = [
   { id: 'bow', icon: '🏹', name: 'Arco', dmg: 4, cd: .9, range: 14 },
   { id: 'sword', icon: '⚔️', name: 'Espada', dmg: 8, cd: .55, range: 3.0 },
   { id: 'dagger', icon: '🗡️', name: 'Faca', dmg: 3, cd: .32, range: 2.4 },
+  { id: 'staff', icon: '🪄', name: 'Cajado', dmg: 4, cd: .85, range: 12 },
 ];
 const GATHER = { axe: [2, 3, 5], pick: [2, 3, 5], fell: [3, 4, 6] };
 
@@ -252,8 +254,8 @@ const QUESTS = [
   { t: 'Pescaria na lagoa', d: 'Clique na água da lagoa para pescar. Pesque 3 peixes.', n: 3, p: () => G.stats.fish, r: { food: 40, wood: 40, gems: 2 } },
   { t: 'Fartura na mesa', d: 'Melhore uma Horta para o nível 2.', n: 2, p: () => maxLv('farm'), r: { wood: 60, stone: 40 } },
   { t: 'Um Salão maior', d: 'Melhore o Salão do Chefe para o nível 2.', n: 2, p: () => hallLv(), r: { wood: 100, stone: 80, gems: 5 } },
-  { t: 'O fogo da forja', d: 'Melhore a Ferraria para o nível 2.', n: 2, p: () => maxLv('forge'), r: { wood: 80, stone: 60, hide: 20 } },
-  { t: 'Arma na mão', d: 'Forje uma Lança de Caça ou um Arco na Ferraria.', n: 1, p: () => (G.equip.spear || G.equip.bow) ? 1 : 0, r: { food: 60, hide: 20, gems: 4 } },
+  { t: 'O fogo da forja', d: 'Melhore a Forja para o nível 2.', n: 2, p: () => maxLv('forge'), r: { wood: 80, stone: 60, hide: 20 } },
+  { t: 'Arma na mão', d: 'Forje uma Lança de Caça, um Arco ou um Cajado na Forja.', n: 1, p: () => (G.equip.spear || G.equip.bow || G.equip.staff) ? 1 : 0, r: { food: 60, hide: 20, gems: 4 } },
   { t: 'Defenda a aldeia', d: 'Derrote 5 goblins invasores ou do acampamento inimigo.', n: 5, p: () => G.stats.kills, r: { wood: 100, stone: 100, gems: 6 } },
   { t: 'Olhos na floresta', d: 'Melhore uma Torre de Vigia para o nível 2.', n: 2, p: () => maxLv('tower'), r: { wood: 120, stone: 80 } },
   { t: 'Gente trabalhadora', d: 'Contrate 3 aldeões com o chefe.', n: 3, p: () => G.stats.hired, r: { food: 100, hide: 30, gems: 6 } },
@@ -326,7 +328,7 @@ const G = {
   started: false, gender: 'm', name: 'Aldo',
   res: { wood: 120, stone: 60, food: 60, hide: 0, gems: 5 },
   stats: { trees: 0, rocks: 0, hunts: 0, kills: 0, camps: 0, hired: 0, fish: 0, wolves: 0, ogres: 0, kings: 0, rides: 0, nights: 0 },
-  quest: 0, equip: { axe: 0, pick: 0, spear: 0, bow: 0, sword: 0, shield: 0, tunic: 0, boots: 0, hat: 0, rod: 0, dagger: 0, ring: 0, neck: 0, brace: 0 },
+  quest: 0, equip: { axe: 0, pick: 0, spear: 0, bow: 0, sword: 0, shield: 0, tunic: 0, boots: 0, hat: 0, rod: 0, dagger: 0, staff: 0, ring: 0, neck: 0, brace: 0 },
   look: { skin: null, hair: null, cloth: null, gear: null },
   pq: { guerreiro: { st: 0 }, lanceiro: { st: 0 }, arqueiro: { st: 0 }, mago: { st: 0 } },
   pet: { guerreiro: { xp: 0 }, lanceiro: { xp: 0 }, arqueiro: { xp: 0 }, mago: { xp: 0 } },
@@ -4214,12 +4216,12 @@ function curWeapon() { const w = curWeapon0(), fx = w.cls ? magFx() : null; retu
 function curWeapon0() { const w = G.weapon === 'cls' ? (clsWeapon() || WEAPONS[0]) : (WEAPONS.find(x => x.id === G.weapon) || WEAPONS[0]), m = dmgMul(); return m > 1 ? Object.assign({}, w, { dmg: Math.round(w.dmg * m) }) : w; }
 function setWeapon(id) {
   if (id === 'cls' && !G.cls) { UI.toast('Escolha uma classe no painel Herói (X).', 'bad'); return; }
-  if (id !== 'fist' && id !== 'cls' && !G.equip[id]) { UI.toast('Você ainda não tem essa arma. Forje na Ferraria!', 'bad'); return; }
+  if (id !== 'fist' && id !== 'cls' && !G.equip[id]) { UI.toast('Você ainda não tem essa arma. Forje na Forja!', 'bad'); return; }
   G.weapon = id; UI.refreshHotbar(); Sfx.click();
 }
 function attackNearest() {
   if (P.fish) stopFishing(); const w = curWeapon(); let best = null, bd = w.range + 7;
-  const ranged = w.id === 'bow' || w.cls === 'arqueiro' || w.cls === 'mago';
+  const ranged = w.id === 'bow' || w.id === 'staff' || w.cls === 'arqueiro' || w.cls === 'mago';
   for (const e of Enemies) { if (e.dead || (e.alt > 4 && !ranged)) continue; const d = dist2(P.pos, e.pos); if (d < bd) { bd = d; best = e; } }
   if (!best) for (const a of Animals) { if (a.dead) continue; const d = dist2(P.pos, a.pos); if (d < bd) { bd = d; best = a; } }
   if (best) { P.task = { type: 'attack', ent: best }; P.moveTo = null; } else { P.act = 1; Sfx.chop(); }
@@ -4271,7 +4273,7 @@ function castLine() {
   const tk = P.task; const dd = POND.r * (.35 + Math.random() * .3);
   P.fish = { phase: 'wait', t: (2.2 + Math.random() * 3.2) * (G.equip.rod ? .55 : 1), x: POND.x + tk.ux * dd, z: POND.z + tk.uz * dd, bt: 0 };
   P.yaw = Math.atan2(-tk.ux, -tk.uz); P.act = 1; P.task = null; bobber.visible = true; fishLine.visible = true; Sfx.cast(); splashRing(P.fish.x, P.fish.z);
-  UI.toast(G.equip.rod ? '🎣 Linha lançada! Espere morder…' : '🎣 Lançando com as mãos… Uma vara de pescar ajuda! (Ferraria)');
+  UI.toast(G.equip.rod ? '🎣 Linha lançada! Espere morder…' : '🎣 Lançando com as mãos… Uma vara de pescar ajuda! (Forja)');
 }
 function reelIn() {
   const f = P.fish; if (!f || f.phase !== 'bite') return;
@@ -4285,7 +4287,7 @@ function reelIn() {
 /* ---- ações do jogador ---- */
 function weaponHit(ent) {
   const w = curWeapon(); P.act = 1; P.cd = w.cd;
-  if (w.id === 'bow') { spawnArrow(new T.Vector3(P.pos.x, P.pos.y + 1.4, P.pos.z), ent, w.dmg, 'ally', 30); Sfx.tone(600, .08, 'triangle', .05, -300); }
+  if (w.id === 'bow' || w.id === 'staff') { spawnArrow(new T.Vector3(P.pos.x, P.pos.y + 1.4, P.pos.z), ent, w.dmg, 'ally', 30); Sfx.tone(w.id === 'staff' ? 880 : 600, .08, 'triangle', .05, -300); }
   else if (w.cls === 'arqueiro' || w.cls === 'mago') fireArrows(ent, w);
   else if (w.cls === 'lanceiro') thrustSpear(ent, w);
   else {
@@ -4399,7 +4401,7 @@ function updatePlayer(dt, t) {
     if (Math.hypot(P.pos.x - POND.x, P.pos.z - POND.z) > POND.r * 1.22 + 14) stopFishing();
   }
   const hk = heldFor(); if (hk !== P.held) { P.held = hk; setHeld(P.mesh, hk); setFpTool(hk); }
-  animPerson(P.mesh, t, P.mount ? false : moving, P.running ? 1.4 : 1, P.act, (w.id === 'bow' && P.held === 'bow') || (w.cls === 'arqueiro' && P.held && P.held.indexOf('cls:arqueiro') === 0) ? 'shoot' : (w.cls === 'mago' && P.held && P.held.indexOf('cls:mago') === 0) ? 'cast' : (w.cls === 'lanceiro' && P.held && P.held.indexOf('cls:lanceiro') === 0) ? 'thrust' : P.fish ? 'hoe' : 'swing');
+  animPerson(P.mesh, t, P.mount ? false : moving, P.running ? 1.4 : 1, P.act, (w.id === 'bow' && P.held === 'bow') || (w.cls === 'arqueiro' && P.held && P.held.indexOf('cls:arqueiro') === 0) ? 'shoot' : w.id === 'staff' && P.held === 'staff' ? 'cast' : (w.cls === 'mago' && P.held && P.held.indexOf('cls:mago') === 0) ? 'cast' : (w.cls === 'lanceiro' && P.held && P.held.indexOf('cls:lanceiro') === 0) ? 'thrust' : P.fish ? 'hoe' : 'swing');
   if (P.mount) { P.mesh.userData.legL.rotation.x = -1.25; P.mesh.userData.legR.rotation.x = -1.25; }
   /* indicadores */
   const tgt = P.task && (P.task.ent || P.task.plot);
@@ -4711,7 +4713,7 @@ window.addEventListener('keydown', e => {
   else if (k === 'h') UI.openHelp();
   else if (k === 'm') UI.toggleSound();
   else if (k === 'escape') UI.closePanel();
-  else if (k >= '1' && k <= '5') setWeapon(WEAPONS[+k - 1].id);
+  else if (k >= '1' && k <= '6') setWeapon(WEAPONS[+k - 1].id);
   else if (k === '6') setWeapon('cls');
   else if (k === 'x') UI.openHero();
 });
@@ -4852,7 +4854,7 @@ function craftItem(it) {
   if (!canPay(it.cost)) { UI.toast('Faltam recursos', 'bad'); return; }
   pay(it.cost); G.equip[it.id] = it.lv; Sfx.build();
   UI.toast(`${it.icon} ${it.name} pronto!`, 'good');
-  if (['spear', 'bow', 'sword', 'dagger'].includes(it.id)) G.weapon = it.id;
+  if (['spear', 'bow', 'staff', 'sword', 'dagger'].includes(it.id)) G.weapon = it.id;
   if (['tunic', 'boots', 'hat', 'ring', 'neck', 'brace'].includes(it.id)) { buildPlayer(); }
   P.maxHp = maxHpP(); UI.refreshAll(); UI.refreshQuest(); UI.refreshHotbar();
 }
@@ -5227,7 +5229,7 @@ const UI = (() => {
     for (const w of WEAPONS) { const own = w.id === 'fist' || G.equip[w.id]; h += `<button class="btn ${G.weapon === w.id ? 'y' : 'w'}" data-a="weapon" data-w="${w.id}" ${own ? '' : 'disabled'}>${w.icon} ${w.name} <small>dano ${w.dmg}</small></button>`; }
     h += `</div><div class="stats" style="margin-top:8px">${statBox('Vida máx.', maxHpP())}${statBox('Velocidade', '+' + (G.equip.boots ? 20 : 0) + '%')}${statBox('Machado', ['Mãos', 'Pedra', 'Reforçado'][G.equip.axe])}${statBox('Picareta', ['Mãos', 'Pedra', 'Reforçada'][G.equip.pick])}${statBox('Vara', G.equip.rod ? 'Sim' : 'Não')}${statBox('Escudo', G.equip.shield ? 'Sim' : 'Não')}${statBox('Joias', (G.equip.ring ? 1 : 0) + (G.equip.neck ? 1 : 0) + (G.equip.brace ? 1 : 0) + '/3')}</div>`;
     for (const at of ['forge', 'tailor']) {
-      h += `<h3>${BT[at].icon} ${at === 'forge' ? 'Ferraria · ferramentas, armas e joias' : 'Alfaiataria · roupas'}</h3>`;
+      h += `<h3>${BT[at].icon} ${at === 'forge' ? 'Forja · ferramentas, armas e joias' : 'Alfaiataria · roupas'}</h3>`;
       if (at === 'forge' && G.cls) h += G.cls === 'mago' ? `<p style="opacity:.8">🪄 O cajado do mago é feito e evoluído na Casa do Mago 🔮.</p>` : `<div class="grid2">${heroCard('w')}</div><p style="opacity:.8">Acima: a arma da sua classe. Abaixo: ferramentas e armas simples.</p>`;
       h += `<div class="grid2">`;
       ITEMS.forEach((it, i) => {
@@ -5291,9 +5293,9 @@ const UI = (() => {
     return { html: `${title('Como jogar')}
       <h3>🖱️ Controles</h3><p><b>Clique no chão</b> para andar · <b>WASD</b>/setas movem · <b>arraste</b> para girar a câmera · <b>roda</b> dá zoom · <b>Shift</b> ou <b>R</b> corre (gasta ⚡ energia).</p>
       <p><b>V</b> 1ª/3ª pessoa · <b>C</b> vista aérea · <b>1–5</b> armas · <b>Espaço</b> ataca · <b>F</b> interage (falar, montar, pescar) · <b>E</b> desce do cavalo · <b>B</b> equipamentos · <b>M</b> som.</p>
-      <h3>🌲 Coleta</h3><p>Clique em árvores 🌲, rochas 🪨, arbustos 🫐 e animais 🦌. Forje machado e picareta na Ferraria para render mais.</p>
+      <h3>🌲 Coleta</h3><p>Clique em árvores 🌲, rochas 🪨, arbustos 🫐 e animais 🦌. Forje machado e picareta na Forja para render mais.</p>
       <h3>🎣 Pesca e 🐴 cavalos</h3><p>Clique na água da lagoa para pescar e aperte <b>F</b> quando a boia afundar. Clique em um cavalo selvagem para montar e correr pela floresta.</p>
-      <h3>🏠 Aldeia</h3><p>A aldeia já vem construída: cada lugar tem a sua construção (serraria, pedreira, horta, ferraria...). Toque numa construção para melhorá-la. Cada melhoria tem um tempo, demora mais a cada nível e rende mais. Toque na bolha sobre as construções para coletar. A <b>Muralha</b> cerca a aldeia com 4 portões.</p>
+      <h3>🏠 Aldeia</h3><p>A aldeia já vem construída: cada lugar tem a sua construção (serraria, pedreira, horta, forja...). Toque numa construção para melhorá-la. Cada melhoria tem um tempo, demora mais a cada nível e rende mais. Toque na bolha sobre as construções para coletar. A <b>Muralha</b> cerca a aldeia com 4 portões.</p>
       <h3>🌙 Noite e defesa</h3><p>À noite lobos rondam a floresta: fique perto da fogueira e dos guardas. Goblins, xamãs e ogros atacam a aldeia de tempos em tempos. Há acampamentos inimigos na mata, e um <b>Rei Goblin</b> bem longe.</p>
       <h3>🤝 Aldeões</h3><p>Fale com o Chefe Aldrik para contratar lenhadores, mineradores, caçadores, fazendeiros, pescadores, cozinheiros, guardas e construtores. Eles precisam de moradia.</p>` };
   }
