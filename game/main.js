@@ -424,7 +424,7 @@ const Sfx = {
 /* ====================== MUNDO 3D: renderizador, terreno, floresta ====================== */
 const canvas = $('#c');
 const TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-let QLV = 2; try { const q = localStorage.getItem('aldeia-q'); if (q === '0' || q === '1') QLV = +q; else if (location.hash === '#leve') QLV = 0; } catch (e) { }
+let QLV = TOUCH ? 2 : 1; try { const q = localStorage.getItem('aldeia-q'); if (q === '0' || q === '1') QLV = +q; else if (q === '2') QLV = 2; else if (location.hash === '#leve') QLV = 0; } catch (e) { }
 const renderer = new T.WebGLRenderer({ canvas, antialias: !TOUCH && QLV > 1, powerPreference: 'high-performance' });
 // Tablet-first profile: limita pixels renderizados e custo das sombras para reduzir aquecimento e quedas de FPS.
 const QPR = [.6, .85, TOUCH ? 1.1 : 1.25]; let curPR = Math.min(window.devicePixelRatio || 1, QPR[QLV]);
