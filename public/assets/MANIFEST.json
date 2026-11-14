@@ -1,0 +1,974 @@
+{
+ "generated": "2026-11-14T11:33:29.919Z",
+ "note": "Todos os modelos são CC0/MIT. Caminhos relativos a public/assets/ (servidos em /assets/).",
+ "assets": [
+  {
+   "id": "Knight",
+   "category": "character",
+   "path": "assets/models/characters/Knight.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/single_knight_pack/KnightCharacter.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 393060,
+   "skinned": true,
+   "animations": [
+    "HumanArmature|Death",
+    "HumanArmature|Idle",
+    "HumanArmature|Idle_swordLeft",
+    "HumanArmature|Idle_swordRight",
+    "HumanArmature|Jump",
+    "HumanArmature|Roll",
+    "HumanArmature|Roll_sword",
+    "HumanArmature|Run",
+    "HumanArmature|Run_swordAttack",
+    "HumanArmature|Run_swordRight",
+    "HumanArmature|swordAttackJump",
+    "HumanArmature|Walking"
+   ]
+  },
+  {
+   "id": "BlueDemon",
+   "category": "monster",
+   "path": "assets/models/monsters/BlueDemon.gltf",
+   "source": {
+    "github": "511action/descent-3d-assets",
+    "file": "models/BlueDemon.gltf"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Quaternius \"Ultimate Monsters\" (CC0) segundo a descrição do repo; o repo não traz arquivo de licença próprio.",
+   "bytes": 1190068,
+   "skinned": true,
+   "animations": [
+    "Death",
+    "Duck",
+    "HitReact",
+    "Idle",
+    "Jump",
+    "Jump_Idle",
+    "Jump_Land",
+    "No",
+    "Punch",
+    "Run",
+    "Walk",
+    "Wave",
+    "Weapon",
+    "Yes"
+   ]
+  },
+  {
+   "id": "Demon",
+   "category": "monster",
+   "path": "assets/models/monsters/Demon.gltf",
+   "source": {
+    "github": "511action/descent-3d-assets",
+    "file": "models/Demon.gltf"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Quaternius \"Ultimate Monsters\" (CC0) segundo a descrição do repo; o repo não traz arquivo de licença próprio.",
+   "bytes": 1264925,
+   "skinned": true,
+   "animations": [
+    "Death",
+    "Duck",
+    "HitReact",
+    "Idle",
+    "Jump",
+    "Jump_Idle",
+    "Jump_Land",
+    "No",
+    "Punch",
+    "Run",
+    "Walk",
+    "Wave",
+    "Weapon",
+    "Yes"
+   ]
+  },
+  {
+   "id": "Orc",
+   "category": "monster",
+   "path": "assets/models/monsters/Orc.gltf",
+   "source": {
+    "github": "511action/descent-3d-assets",
+    "file": "models/Orc.gltf"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Quaternius \"Ultimate Monsters\" (CC0) segundo a descrição do repo; o repo não traz arquivo de licença próprio.",
+   "bytes": 1280189,
+   "skinned": true,
+   "animations": [
+    "Death",
+    "Duck",
+    "HitReact",
+    "Idle",
+    "Jump",
+    "Jump_Idle",
+    "Jump_Land",
+    "No",
+    "Punch",
+    "Run",
+    "Walk",
+    "Wave",
+    "Weapon",
+    "Yes"
+   ]
+  },
+  {
+   "id": "Spider",
+   "category": "monster",
+   "path": "assets/models/monsters/Spider.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/easy_enemies_pack/Spider.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 449008,
+   "skinned": true,
+   "animations": [
+    "SpiderArmature|Spider_Attack",
+    "SpiderArmature|Spider_Death",
+    "SpiderArmature|Spider_Idle",
+    "SpiderArmature|Spider_Jump",
+    "SpiderArmature|Spider_Walk"
+   ]
+  },
+  {
+   "id": "Velociraptor",
+   "category": "monster",
+   "path": "assets/models/monsters/Velociraptor.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/dinosaurs_pack/Velociraptor.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 285828,
+   "skinned": true,
+   "animations": [
+    "Armature|Velociraptor_Attack",
+    "Armature|Velociraptor_Death",
+    "Armature|Velociraptor_Idle",
+    "Armature|Velociraptor_Jump",
+    "Armature|Velociraptor_Run",
+    "Armature|Velociraptor_Walk"
+   ]
+  },
+  {
+   "id": "Wolf",
+   "category": "monster",
+   "path": "assets/models/monsters/Wolf.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/animals_pack/Wolf.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 608660,
+   "skinned": true,
+   "animations": [
+    "AnimalArmature|Attack",
+    "AnimalArmature|Death",
+    "AnimalArmature|Eating",
+    "AnimalArmature|Gallop",
+    "AnimalArmature|Gallop_Jump",
+    "AnimalArmature|Idle",
+    "AnimalArmature|Idle_2",
+    "AnimalArmature|Idle_2_HeadLow",
+    "AnimalArmature|Idle_HitReact_Left",
+    "AnimalArmature|Idle_HitReact_Right",
+    "AnimalArmature|Jump_ToIdle",
+    "AnimalArmature|Walk"
+   ]
+  },
+  {
+   "id": "BirchTree_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/BirchTree_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/BirchTree_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 98204,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "BirchTree_2",
+   "category": "forest",
+   "path": "assets/models/environment/forest/BirchTree_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/BirchTree_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 90348,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "BushBerries_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/BushBerries_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/BushBerries_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 50896,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Bush_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Bush_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/Bush_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 21348,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Bush_2",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Bush_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/Bush_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 16100,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "CommonTree_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/CommonTree_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/CommonTree_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 158708,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "CommonTree_2",
+   "category": "forest",
+   "path": "assets/models/environment/forest/CommonTree_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/CommonTree_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 162108,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "CommonTree_3",
+   "category": "forest",
+   "path": "assets/models/environment/forest/CommonTree_3.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/CommonTree_3.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 89340,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "CommonTree_Dead_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/CommonTree_Dead_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/CommonTree_Dead_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 129160,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Flowers",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Flowers.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/Flowers.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 26560,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Grass",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Grass.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/Grass.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 12632,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Grass_2",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Grass_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/Grass_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 12636,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "PineTree_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/PineTree_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/PineTree_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 106060,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "PineTree_2",
+   "category": "forest",
+   "path": "assets/models/environment/forest/PineTree_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/PineTree_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 93688,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "PineTree_3",
+   "category": "forest",
+   "path": "assets/models/environment/forest/PineTree_3.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/PineTree_3.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 131548,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Plant_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Plant_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/Plant_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 18416,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Plant_2",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Plant_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/Plant_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 16040,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Resource_Rock_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Resource_Rock_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/real_time_strategy_pack/Resource_Rock_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 30648,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Resource_Rock_2",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Resource_Rock_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/real_time_strategy_pack/Resource_Rock_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 28332,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Resource_Rock_3",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Resource_Rock_3.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/real_time_strategy_pack/Resource_Rock_3.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 21088,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Rock_Group",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Rock_Group.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/real_time_strategy_pack/Rock_Group.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 40824,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "TreeStump",
+   "category": "forest",
+   "path": "assets/models/environment/forest/TreeStump.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/TreeStump.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 16408,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Willow_1",
+   "category": "forest",
+   "path": "assets/models/environment/forest/Willow_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/Willow_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 109088,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "WoodLog",
+   "category": "forest",
+   "path": "assets/models/environment/forest/WoodLog.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/nature_pack/WoodLog.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 29332,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Barrel",
+   "category": "village",
+   "path": "assets/models/environment/village/Barrel.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Barrel.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 52384,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Bell_Tower",
+   "category": "village",
+   "path": "assets/models/environment/village/Bell_Tower.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Bell_Tower.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 728440,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Blacksmith",
+   "category": "village",
+   "path": "assets/models/environment/village/Blacksmith.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Blacksmith.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 670832,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Bonfire_Lit",
+   "category": "village",
+   "path": "assets/models/environment/village/Bonfire_Lit.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Bonfire_Lit.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 50168,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Cart",
+   "category": "village",
+   "path": "assets/models/environment/village/Cart.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Cart.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 108660,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Crate",
+   "category": "village",
+   "path": "assets/models/environment/village/Crate.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Crate.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 35776,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Fence",
+   "category": "village",
+   "path": "assets/models/environment/village/Fence.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Fence.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 12348,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Gazebo",
+   "category": "village",
+   "path": "assets/models/environment/village/Gazebo.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Gazebo.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 51956,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Hay",
+   "category": "village",
+   "path": "assets/models/environment/village/Hay.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Hay.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 27464,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "House_1",
+   "category": "village",
+   "path": "assets/models/environment/village/House_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/House_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 410268,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "House_2",
+   "category": "village",
+   "path": "assets/models/environment/village/House_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/House_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 509876,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "House_3",
+   "category": "village",
+   "path": "assets/models/environment/village/House_3.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/House_3.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 258580,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "House_4",
+   "category": "village",
+   "path": "assets/models/environment/village/House_4.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/House_4.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 205028,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Inn",
+   "category": "village",
+   "path": "assets/models/environment/village/Inn.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Inn.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 468600,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "MarketStand_1",
+   "category": "village",
+   "path": "assets/models/environment/village/MarketStand_1.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/MarketStand_1.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 84992,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "MarketStand_2",
+   "category": "village",
+   "path": "assets/models/environment/village/MarketStand_2.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/MarketStand_2.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 63640,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Mill",
+   "category": "village",
+   "path": "assets/models/environment/village/Mill.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Mill.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 575508,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Path_Straight",
+   "category": "village",
+   "path": "assets/models/environment/village/Path_Straight.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Path_Straight.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 38356,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Sawmill",
+   "category": "village",
+   "path": "assets/models/environment/village/Sawmill.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Sawmill.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 309568,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Stable",
+   "category": "village",
+   "path": "assets/models/environment/village/Stable.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Stable.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 444596,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "Well",
+   "category": "village",
+   "path": "assets/models/environment/village/Well.glb",
+   "source": {
+    "github": "trebeljahr/quaternius-showcase",
+    "file": "public/glb/medieval_village_pack/Well.glb"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Pacotes Quaternius (CC0), espelhados no repo (código MIT); ver LICENSES.md do repo.",
+   "bytes": 110340,
+   "skinned": false,
+   "animations": []
+  },
+  {
+   "id": "brick_wall_albedo",
+   "category": "texture",
+   "path": "assets/textures/pbr/brick_wall_albedo.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "wall_brick_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 258346
+  },
+  {
+   "id": "brick_wall_normal",
+   "category": "texture",
+   "path": "assets/textures/pbr/brick_wall_normal.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "wall_brick_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 205197
+  },
+  {
+   "id": "brick_wall_roughness",
+   "category": "texture",
+   "path": "assets/textures/pbr/brick_wall_roughness.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "wall_brick_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 269456
+  },
+  {
+   "id": "grass_albedo",
+   "category": "texture",
+   "path": "assets/textures/pbr/grass_albedo.jpg",
+   "source": {
+    "github": "mrdoob/three.js",
+    "file": "examples/textures/terrain/grasslight-big.jpg"
+   },
+   "license": "MIT",
+   "licenseNote": "Texturas dos exemplos oficiais do three.js (repositório MIT), redimensionadas para 1024px.",
+   "bytes": 689199
+  },
+  {
+   "id": "plaster_wall_albedo",
+   "category": "texture",
+   "path": "assets/textures/pbr/plaster_wall_albedo.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "wall_plaster_dirty_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 242866
+  },
+  {
+   "id": "plaster_wall_normal",
+   "category": "texture",
+   "path": "assets/textures/pbr/plaster_wall_normal.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "wall_plaster_dirty_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 269827
+  },
+  {
+   "id": "plaster_wall_roughness",
+   "category": "texture",
+   "path": "assets/textures/pbr/plaster_wall_roughness.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "wall_plaster_dirty_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 323088
+  },
+  {
+   "id": "stone_path_albedo",
+   "category": "texture",
+   "path": "assets/textures/pbr/stone_path_albedo.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "sidewalk_concrete_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 152594
+  },
+  {
+   "id": "stone_path_normal",
+   "category": "texture",
+   "path": "assets/textures/pbr/stone_path_normal.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "sidewalk_concrete_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 181179
+  },
+  {
+   "id": "stone_path_roughness",
+   "category": "texture",
+   "path": "assets/textures/pbr/stone_path_roughness.jpg",
+   "source": {
+    "github": "itz019/tls-textures",
+    "file": "sidewalk_concrete_*"
+   },
+   "license": "CC0-1.0",
+   "licenseNote": "Texturas ambientCG (CC0 1.0), redimensionadas para 1024px.",
+   "bytes": 285181
+  },
+  {
+   "id": "wood_albedo",
+   "category": "texture",
+   "path": "assets/textures/pbr/wood_albedo.jpg",
+   "source": {
+    "github": "mrdoob/three.js",
+    "file": "examples/textures/hardwood2_diffuse.jpg"
+   },
+   "license": "MIT",
+   "licenseNote": "Texturas dos exemplos oficiais do three.js (repositório MIT), redimensionadas para 1024px.",
+   "bytes": 264653
+  },
+  {
+   "id": "wood_bump",
+   "category": "texture",
+   "path": "assets/textures/pbr/wood_bump.jpg",
+   "source": {
+    "github": "mrdoob/three.js",
+    "file": "examples/textures/hardwood2_bump.jpg"
+   },
+   "license": "MIT",
+   "licenseNote": "Texturas dos exemplos oficiais do three.js (repositório MIT), redimensionadas para 1024px.",
+   "bytes": 70140
+  },
+  {
+   "id": "wood_roughness",
+   "category": "texture",
+   "path": "assets/textures/pbr/wood_roughness.jpg",
+   "source": {
+    "github": "mrdoob/three.js",
+    "file": "examples/textures/hardwood2_roughness.jpg"
+   },
+   "license": "MIT",
+   "licenseNote": "Texturas dos exemplos oficiais do three.js (repositório MIT), redimensionadas para 1024px.",
+   "bytes": 91725
+  }
+ ]
+}

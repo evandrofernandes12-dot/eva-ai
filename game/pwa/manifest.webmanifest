@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "A Vida na Floresta",
+  "short_name": "Vida na Floresta",
+  "description": "Jogo de sobrevivência e construção em uma floresta.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#07120a",
+  "theme_color": "#18351f",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
