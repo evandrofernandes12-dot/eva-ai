@@ -8,7 +8,9 @@
     "dev": "vite --host 0.0.0.0 --port 5173",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
-    "assets": "bash scripts/download-assets.sh"
+    "assets": "bash scripts/download-assets.sh",
+    "assets:world": "node scripts/fetch-world-assets.mjs",
+    "assets:manifest": "node scripts/build-manifest.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

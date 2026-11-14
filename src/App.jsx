@@ -82,6 +82,7 @@ export default function App() {
         <div className="pointer-events-none absolute left-4 top-3">
           <div className="text-sm font-semibold tracking-wide text-white">Eva · Criador 3D</div>
           <div className="text-[11px] text-slate-500">{RACES[state.race].label} · {BASES[state.base].label}</div>
+          <a href="world.html" className="pointer-events-auto mt-1 inline-block text-[11px] text-accent hover:underline">🌲 Ver a floresta e a aldeia →</a>
         </div>
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 rounded-2xl border border-ink-600/70 bg-ink-800/85 p-1.5 backdrop-blur">
           {ANIMS.map((a) => (
