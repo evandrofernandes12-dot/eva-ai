@@ -208,10 +208,11 @@ function clsWeapon() { if (!G.cls) return null; const C = CLASSES[G.cls], t = G.
 function clsBonus(kind) { /* bônus de coleta */ const c = clsProg(); if (!c) return 0; return 0; }
 function slotName(slot, t) { const C = CLASSES[G.cls]; return slot === 'w' ? C.w[t] : slot === 'h' ? HATN[G.cls][t] : slot === 't' ? (t === 0 ? 'Camisa de ' + (G.gender === 'f' ? 'Camponesa' : 'Camponês') : t === 1 ? 'Camisa ' + (G.gender === 'f' ? C.nf : C.nm) : TOPN[t]) : slot === 'l' ? (t === 1 ? (G.gender === 'f' ? 'Saia' : 'Calça') + ' ' + (G.gender === 'f' ? C.nf : C.nm) : LEGN[G.gender === 'f' ? 'f' : 'm'][t]) : slot === 'b' ? BOOTN[t] : slot === 's' ? SHN[t] : GLN[t]; }
 function slotCost(slot, t) { return slot === 'w' ? WCOST[t] : OCOST(t); }
+function slotAt(slot) { return slot === 'w' && G.cls === 'mago' ? 'mage' : SLOTS[slot].at; }
 function slotWhy(slot) {
-  if (!G.cls) return 'Escolha uma classe'; const cur = G.cp[G.cls][slot], sp = SLOTS[slot]; if (cur >= sp.max) return 'ok';
-  const nt = cur + 1; if (!countB(sp.at)) return 'Construa a ' + BT[sp.at].name;
-  if (!G.workers.some(w => w.role === (sp.at === 'forge' ? 'smith' : 'artisan'))) return 'Contrate ' + (sp.at === 'forge' ? 'um Ferreiro' : 'um Artesão') + ' com o chefe';
+  if (!G.cls) return 'Escolha uma classe'; const cur = G.cp[G.cls][slot], sp = SLOTS[slot], at = slotAt(slot); if (cur >= sp.max) return 'ok';
+  const nt = cur + 1; if (!countB(at)) return 'Construa a ' + BT[at].name;
+  if (at !== 'mage' && !G.workers.some(w => w.role === (at === 'forge' ? 'smith' : 'artisan'))) return 'Contrate ' + (at === 'forge' ? 'um Ferreiro' : 'um Artesão') + ' com o chefe';
   if (hallLv() < nt) return 'Requer Salão nível ' + nt;
   if (!canPay(slotCost(slot, nt))) return 'Faltam recursos';
   return '';
@@ -5151,6 +5152,7 @@ const UI = (() => {
     h += `<div class="stats">${Object.keys(MATS).map(k => statBox(MATS[k][0] + ' ' + MATS[k][1], G.mag.mats[k])).join('')}</div>`;
     if (!G.cls) return { html: h + '<p>Escolha uma classe no painel Herói primeiro.</p>' };
     const eq = G.mag.eq[G.cls] || {}; let lastS = '';
+    if (G.cls === 'mago') h += `<h3>🪄 Cajado base · feito aqui</h3><div class="grid2">${heroCard('w')}</div><p style="opacity:.8">Depois de evoluir o cajado, crie os encantamentos (fogo, gelo, tempestade) abaixo.</p>`;
     for (const it of MAGIC.filter(i => i.cls.includes(G.cls)).sort((a, b) => SLOTO.indexOf(a.slot) - SLOTO.indexOf(b.slot) || a.lv - b.lv)) {
       if (it.slot !== lastS) { lastS = it.slot; h += `<h3>${it.slot === 'w' ? WN[G.cls] : SLOTN[it.slot]}</h3>`; }
       const own = G.mag.own[it.id], on = eq[it.slot] === it.id, why = own ? '' : ml < it.lv ? `Requer Casa do Mago nível ${it.lv}` : !magCan(it.cost) ? 'Faltam materiais' : '';
@@ -5225,7 +5227,9 @@ const UI = (() => {
     for (const w of WEAPONS) { const own = w.id === 'fist' || G.equip[w.id]; h += `<button class="btn ${G.weapon === w.id ? 'y' : 'w'}" data-a="weapon" data-w="${w.id}" ${own ? '' : 'disabled'}>${w.icon} ${w.name} <small>dano ${w.dmg}</small></button>`; }
     h += `</div><div class="stats" style="margin-top:8px">${statBox('Vida máx.', maxHpP())}${statBox('Velocidade', '+' + (G.equip.boots ? 20 : 0) + '%')}${statBox('Machado', ['Mãos', 'Pedra', 'Reforçado'][G.equip.axe])}${statBox('Picareta', ['Mãos', 'Pedra', 'Reforçada'][G.equip.pick])}${statBox('Vara', G.equip.rod ? 'Sim' : 'Não')}${statBox('Escudo', G.equip.shield ? 'Sim' : 'Não')}${statBox('Joias', (G.equip.ring ? 1 : 0) + (G.equip.neck ? 1 : 0) + (G.equip.brace ? 1 : 0) + '/3')}</div>`;
     for (const at of ['forge', 'tailor']) {
-      h += `<h3>${BT[at].icon} ${at === 'forge' ? 'Ferraria · ferramentas, armas e joias' : 'Alfaiataria · roupas'}</h3><div class="grid2">`;
+      h += `<h3>${BT[at].icon} ${at === 'forge' ? 'Ferraria · ferramentas, armas e joias' : 'Alfaiataria · roupas'}</h3>`;
+      if (at === 'forge' && G.cls) h += G.cls === 'mago' ? `<p style="opacity:.8">🪄 O cajado do mago é feito e evoluído na Casa do Mago 🔮.</p>` : `<div class="grid2">${heroCard('w')}</div><p style="opacity:.8">Acima: a arma da sua classe. Abaixo: ferramentas e armas simples.</p>`;
+      h += `<div class="grid2">`;
       ITEMS.forEach((it, i) => {
         if (it.at !== at) return; const why = itemWhy(it), own = why === 'ok';
         h += `<div class="card${own ? ' own' : ''}"><div style="font-size:38px;line-height:1.1">${it.icon}</div><b>${it.name}</b><span>${it.desc}</span>${own ? '<span class="lv">✓ Pronto</span>' : `<div>${costHtml(it.cost)}</div>${why ? `<span style="color:#ff9a8a">${why}</span>` : ''}<button class="btn" data-a="craft" data-i="${i}" ${why ? 'disabled' : ''}>${at === 'forge' ? 'Forjar' : 'Costurar'}</button>`}</div>`;
