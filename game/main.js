@@ -135,7 +135,7 @@ const BT = {
   farm:    { name: 'Horta', icon: '🌾', cost: { wood: 45, stone: 5 }, time: 12, unlock: 1, limit: 3, prod: { res: 'food', rate: 28 }, desc: 'Cultivos que alimentam a aldeia.' },
   lodge:   { name: 'Cabana de Caça', icon: '🦌', cost: { wood: 55, stone: 10 }, time: 15, unlock: 1, limit: 2, prod: { res: 'hide', rate: 10 }, desc: 'Caçadores trazem peles e couro.' },
   storage: { name: 'Armazém', icon: '📦', cost: { wood: 70, stone: 30 }, time: 20, unlock: 1, limit: 2, desc: 'Aumenta o limite de recursos que a aldeia guarda.' },
-  forge:   { name: 'Casa do Ferreiro', icon: '⚒️', cost: { wood: 80, stone: 60 }, time: 25, unlock: 2, limit: 1, desc: 'Forja ferramentas, armas e escudos.' },
+  forge:   { name: 'Forja', icon: '⚒️', cost: { wood: 80, stone: 60 }, time: 25, unlock: 2, limit: 1, desc: 'Forja ferramentas, armas e escudos.' },
   tailor:  { name: 'Casa do Artesão', icon: '🧵', cost: { wood: 60, stone: 20, hide: 15 }, time: 22, unlock: 2, limit: 1, desc: 'Costura roupas de couro e chapéus.' },
   mage:    { name: 'Casa do Mago', icon: '🔮', cost: { wood: 120, stone: 120, gems: 5 }, time: 30, unlock: 2, limit: 1, desc: 'Aqui todo herói cria equipamentos mágicos: cajados de gelo e fogo, espadas flamejantes, flechas guiadas e muito mais. Traga materiais raros dos reinos mágicos.' },
   kitchen: { name: 'Cozinha', icon: '🍲', cost: { wood: 70, stone: 40 }, time: 18, unlock: 1, limit: 1, desc: 'Os cozinheiros preparam aqui a comida trazida pelo fazendeiro, pelo pescador e pelo caçador.' },
@@ -5188,7 +5188,7 @@ const UI = (() => {
   $('#quest').addEventListener('click', () => { const q = QUESTS[G.quest]; if (q && q.p() >= q.n) claimQuest(); else if (q) toast('Fale com o Chefe Aldrik para ver os detalhes da missão.'); });
 
   /* ---- aldeões e chefe ---- */
-  const ROLE_DESC = { smith: 'Forja armas e armaduras de ferro na Casa do Ferreiro. Sem ele, nada de equipamentos de ferro.', artisan: 'Costura roupas e armaduras na Casa do Artesão. Sem ele, nada de roupas novas.', builder: 'Mais um construtor: +1 obra ao mesmo tempo.', lumber: 'Corta árvores sozinho e traz madeira.', miner: 'Quebra rochas e traz pedra.', hunter: 'Caça na floresta e traz comida e couro.', farmer: 'Cuida da horta e traz comida.', fisher: 'Pesca na lagoa e traz comida (às vezes uma gema).', cook: 'Cozinha na fogueira e rende bastante comida.', guard: 'Protege a aldeia contra goblins e lobos.' };
+  const ROLE_DESC = { smith: 'Forja armas e armaduras de ferro na Forja. Sem ele, nada de equipamentos de ferro.', artisan: 'Costura roupas e armaduras na Casa do Artesão. Sem ele, nada de roupas novas.', builder: 'Mais um construtor: +1 obra ao mesmo tempo.', lumber: 'Corta árvores sozinho e traz madeira.', miner: 'Quebra rochas e traz pedra.', hunter: 'Caça na floresta e traz comida e couro.', farmer: 'Cuida da horta e traz comida.', fisher: 'Pesca na lagoa e traz comida (às vezes uma gema).', cook: 'Cozinha na fogueira e rende bastante comida.', guard: 'Protege a aldeia contra goblins e lobos.' };
   const pt = n => `<img class="pt" src="${portrait(n.look, n.role + (n.name || ''))}" alt="">`;
   const activity = n => n.state === 'work' && n.task && n.task.dur ? ['Trabalhando', clamp(1 - n.wt / n.task.dur, 0, 1)] : n.state === 'go' ? ['A caminho', .1] : n.state === 'fight' ? ['Lutando!', 1] : n.state === 'chatting' ? ['Conversando', 1] : n.state === 'flee' ? ['Fugindo', .5] : ['Descansando', 0];
   function panelNpc(n) {
