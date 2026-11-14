@@ -1691,13 +1691,25 @@ function makePerson(o) {
   g.scale.setScalar(o.scale);
   return g;
 }
+/* nível de detalhe de pessoas e monstros: 0 = longe (sai da cena), 1 = fora da tela (oculto), 2 = visível; só no mundo principal */
+const LODF = new T.Frustum(), _lodM = new T.Matrix4(), _lodS = new T.Sphere(); let _lodD2 = 0;
+function lodPrep() { camera.updateMatrixWorld(); _lodM.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); LODF.setFromProjectionMatrix(_lodM); }
+function lodLevel(g, x, y, z) {
+  const u = g.userData; if (!u.lodP && g.parent !== scene) return 2;
+  const dx = x - P.pos.x, dz = z - P.pos.z, d2 = _lodD2 = dx * dx + dz * dz, ex = x - camera.position.x, ez = z - camera.position.z, de = ex * ex + ez * ez;
+  if (d2 > 8100 && de > 8100) return 0; if (d2 < 169 || de < 169) return 2;
+  _lodS.center.set(x, y + 1, z); _lodS.radius = 3.4; return LODF.intersectsSphere(_lodS) ? 2 : 1;
+}
+function lodApply(g, lv) {
+  const u = g.userData;
+  if (lv === 0) { if (!u.lodP && g.parent) { u.lodP = g.parent; g.parent.remove(g); } return; }
+  if (u.lodP) { u.lodP.add(g); u.lodP = null; }
+  if (lv === 1) { if (g.visible) { g.visible = false; u.lodOff = true; } } else if (u.lodOff) { g.visible = true; u.lodOff = false; }
+}
 function animPerson(g, t, moving, speed = 1, act = 0, actKind = 'swing') {
   const u = g.userData; u.drawK = 0;
-  /* nível de detalhe: longe do jogador não desenha nem anima; a meia distância anima 1 a cada 3 quadros */
-  if (g !== P.mesh) { const dx = g.position.x - P.pos.x, dz = g.position.z - P.pos.z, d2 = dx * dx + dz * dz;
-    if (d2 > 12000) { if (!u.lodHid) { u.lodHid = true; u.lodVis = g.visible; g.visible = false; } return; }
-    if (u.lodHid) { u.lodHid = false; g.visible = u.lodVis !== false; }
-    if (d2 > 3200 && ((u.lodN = (u.lodN | 0) + 1) % 3)) return; }
+  /* a meia distância anima 1 quadro a cada 3; fora da tela ou muito longe não anima nem desenha */
+  if (g !== P.mesh) { const lv = lodLevel(g, g.position.x, g.position.y, g.position.z); lodApply(g, lv); if (lv < 2) return; if (_lodD2 > 3200 && ((u.lodN = (u.lodN | 0) + 1) % 3)) return; }
   if (u.real && window.ANIMS) { if (Anim.drive(u, t, moving, speed, act, actKind)) { if (actKind === 'shoot' && act > 0 || u.bowL) realBowPose(u, actKind === 'shoot' ? act : 0); if (u.shieldL) realShieldPose(u); if (u.staffL) realCastPose(u, actKind === 'cast' ? act : 0); if (u.thrustR) realThrustPose(u, actKind === 'thrust' ? act : 0); return; } }
   if (u.real) { animPersonProc(u, t, moving, speed, act, actKind); syncReal(u); return; }
   animPersonProc(u, t, moving, speed, act, actKind);
@@ -2252,7 +2264,7 @@ const MK = {
     }
     const m = new T.Mesh(mergeParts(parts), vcMat); m.castShadow = true; m.receiveShadow = true; g.add(m);
     const towers = [], doors = [];
-    const addArcher = (wx, wz, y, parent, lx, ly, lz, fire) => { const ar = makePerson({ shirt: fire ? 0x8a1c1c : 0x2e9e4a, hat: 'guard', scale: .7, hair: 0x3a2410 }); ar.position.set(lx, ly, lz); setHeld(ar, 'bow'); parent.add(ar); towers.push({ x: wx, z: wz, y: y + y0 + ly + 1.2, ar, fire, cd: Math.random() }); };
+    const addArcher = (wx, wz, y, parent, lx, ly, lz, fire) => { const ar = makePerson({ shirt: fire ? 0x8a1c1c : 0x2e9e4a, hat: 'guard', scale: .7, hair: 0x3a2410 }); ar.position.set(lx, ly, lz); setHeld(ar, 'bow'); bakeStatic(ar, true); parent.add(ar); towers.push({ x: wx, z: wz, y: y + y0 + ly + 1.2, ar, fire, cd: Math.random() }); };
     GATE_ANG.forEach((ga, gi) => {
       for (const sd of [-1, 1]) {
         const a = ga + sd * (GATE_HALF + 1.4) / WALL_R, wx = WALL_C.x + Math.cos(a) * WALL_R, wz = WALL_C.z + Math.sin(a) * WALL_R, lx = wx - GATE_PT[0].x, lz = wz - GATE_PT[0].z, y = heightAt(wx, wz) - y0;
@@ -2292,7 +2304,7 @@ const MK = {
     box(body, 4.0, .35, 4.0, 0xa9712f, 0, h, 0); for (const [x, z] of [[-1.8, 0], [1.8, 0], [0, -1.8], [0, 1.8]]) box(body, x ? .1 : 3.6, .9, z ? .1 : 3.6, 0xc98a4b, x, h + .6, z);
     for (const [x, z] of [[-1.7, -1.7], [1.7, -1.7], [-1.7, 1.7], [1.7, 1.7]]) cyl(body, .1, .1, 2.2, 0x6b3f1d, x, h + 1.4, z, 5);
     cone(body, 3.1, 1.7, 0xd94f3a, 0, h + 3.4, 0, 4).rotation.y = Math.PI / 4;
-    const ar = makePerson({ shirt: 0x2e9e4a, hat: 'cap', scale: .6, hair: 0x3a2410 }); ar.position.set(0, h + .2, .4); setHeld(ar, 'bow'); body.add(ar);
+    const ar = makePerson({ shirt: 0x2e9e4a, hat: 'cap', scale: .6, hair: 0x3a2410 }); ar.position.set(0, h + .2, .4); setHeld(ar, 'bow'); bakeStatic(ar, true); body.add(ar);
     cyl(body, .05, .05, 3, 0x3a2410, 1.9, h + 2.6, 1.9, 4); const fl = box(body, 1.1, .7, .05, 0xffd23f, 2.5, h + 3.7, 1.9);
     g.userData = { r: 2.8, top: h + 5, shootY: h + 1.4, flag: fl, archer: ar }; return g;
   },
@@ -3112,7 +3124,7 @@ function updateEnemies(dt, t) {
       if (d > 1) { stepToward(e, e.camp.x + e.hx, e.camp.z + e.hz, 2.4, dt, 6); e.moving = true; }
     }
     syncMesh(e); const kind = c.ranged ? 'shoot' : 'swing';
-    if (e.mesh.userData.animFn) { const ddx = e.pos.x - P.pos.x, ddz = e.pos.z - P.pos.z, dd2 = ddx * ddx + ddz * ddz; if (dd2 > 12000) e.mesh.visible = false; else { e.mesh.visible = true; if (dd2 < 3200 || ((e.lodN = (e.lodN | 0) + 1) % 3) === 0) e.mesh.userData.animFn(e, t + e.id); } } else animPerson(e.mesh, t + e.id, e.moving, Math.min(1.6, e.cfg.speed / 3.4), e.act > 0 ? e.act : 0, kind);
+    if (e.mesh.userData.animFn) { const lv = lodLevel(e.mesh, e.pos.x, e.pos.y, e.pos.z); lodApply(e.mesh, lv); if (lv === 2 && (_lodD2 < 3200 || ((e.lodN = (e.lodN | 0) + 1) % 3) === 0)) e.mesh.userData.animFn(e, t + e.id); } else animPerson(e.mesh, t + e.id, e.moving, Math.min(1.6, e.cfg.speed / 3.4), e.act > 0 ? e.act : 0, kind);
   }
 }
 /* ===== ÁREA DO DESENVOLVEDOR: atalhos para testar as novidades sem jogar tudo de novo ===== */
@@ -3831,10 +3843,10 @@ function evGraveExtras(m) {
 
 /* casas do castelo/aldeia (kit Medieval Village) reaproveitadas nas vilas inimigas, escurecidas e sinistras */
 /* funde as dezenas de peças de uma construção em poucas malhas (uma por material): menos chamadas de desenho = jogo bem mais fluido */
-function bakeStatic(root) {
+function bakeStatic(root, force) {
   root.updateMatrixWorld(true);
   const keep = new Set(), mark = v => { if (!v || typeof v !== 'object') return; if (v.isObject3D) v.traverse(o => keep.add(o)); else if (Array.isArray(v)) v.forEach(mark); else for (const k in v) if (v[k] && typeof v[k] === 'object' && (v[k].isObject3D || Array.isArray(v[k]))) mark(v[k]); };
-  const ud = root.userData || {}; for (const k in ud) mark(ud[k]);
+  const ud = root.userData || {}; if (!force) for (const k in ud) mark(ud[k]);
   const inv = new T.Matrix4().copy(root.matrixWorld).invert(), groups = new Map(), rm = [], mm = new T.Matrix4();
   root.traverse(o => {
     if (!o.isMesh || o.isSkinnedMesh || o.isInstancedMesh || keep.has(o) || Array.isArray(o.material) || !o.geometry || !o.geometry.attributes.position) return;
@@ -3907,7 +3919,7 @@ function evCastle(m, i) {
 }
 function evGraveFog(m) {
   const mk = (seed) => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); for (let n = 0; n < 46; n++) { const h = Math.sin(seed * 91.7 + n * 12.9) * 43758.5, u = h - Math.floor(h), h2 = Math.sin(seed * 31.3 + n * 7.7) * 24634.6, v = h2 - Math.floor(h2), r = 22 + (n % 5) * 12, px = u * 256, py = v * 256, g = x.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); } return new T.CanvasTexture(c); };
-  const fog = []; [[.5, 1], [1.1, 2], [1.8, 3]].forEach(([y, s]) => { const d = new T.Mesh(new T.CircleGeometry(25, 28), new T.MeshBasicMaterial({ map: mk(s), color: 0x7a9a88, transparent: true, opacity: .34, depthWrite: false })); d.rotation.x = -Math.PI / 2; d.position.y = y; m.add(d); fog.push(d); });
+  const fog = []; [[.5, 1], [1.4, 2]].forEach(([y, s]) => { const d = new T.Mesh(new T.CircleGeometry(25, 28), new T.MeshBasicMaterial({ map: mk(s), color: 0x7a9a88, transparent: true, opacity: .34, depthWrite: false })); d.rotation.x = -Math.PI / 2; d.position.y = y; m.add(d); fog.push(d); });
   m.userData.fog = fog;
 }
 function buildEnemyRoom(p) {
@@ -3923,6 +3935,7 @@ function initCamps() {
     else if (i === 5) { evWolfExtras(m); evHouses(m, 5, { R: 25, ring: 17, n: 6, L: [3, 2, 4], tint: 0x505870, lair: 16, occ: [[0, 3, 2], [-8, 7, 2], [-9, -9, 5.5], [11, 4, 3], [-14, 3, 3]] }); }
     else if (i === 6) { evGraveExtras(m); evGraveFog(m); }
     if (i >= 3) evCastle(m, i);
+    bakeStatic(m);
     scene.add(m);
     const camp = { x: s[0], z: s[1], mesh: m, enemies: [], cleared: false, respawn: 0, i, kind: 'camp', pos: new T.Vector3(s[0], 0, s[1]) };
     if (i >= 3) { camp.name = VSITES[i].name; camp.tag = makeTag(v => Math.hypot(P.pos.x - camp.x, P.pos.z - camp.z) > 120 ? null : v.set(camp.x, heightAt(camp.x, camp.z) + 17, camp.z), 'tag big', 130); setTag(camp.tag, `<b>☠️ ${camp.name}</b>`); }
@@ -3949,7 +3962,7 @@ function fillCamp(camp) {
 function updateCamps(dt, t) {
   const guest = Coop.on && !Coop.host;
   for (const c of Camps) {
-    c.mesh.visible = Math.hypot(c.x - P.pos.x, c.z - P.pos.z) < 190; const u = c.mesh.userData; u.flame[0].scale.y = 1 + Math.sin(t * 11 + c.i) * .15; u.flame[1].scale.y = 1 + Math.sin(t * 14) * .2; u.flag.rotation.y = Math.sin(t * 2) * .3; if (u.fog) for (let q = 0; q < u.fog.length; q++) u.fog[q].rotation.z = t * (q % 2 ? .02 : -.015) * (q + 1);
+    c.mesh.visible = Math.hypot(c.x - P.pos.x, c.z - P.pos.z) < 190; const u = c.mesh.userData; u.flame[0].scale.y = 1 + Math.sin(t * 11 + c.i) * .15; u.flame[1].scale.y = 1 + Math.sin(t * 14) * .2; u.flag.rotation.y = Math.sin(t * 2) * .3; if (u.fog) { const fv = Math.hypot(c.x - P.pos.x, c.z - P.pos.z) < 75; for (let q = 0; q < u.fog.length; q++) { u.fog[q].visible = fv; if (fv) u.fog[q].rotation.z = t * (q % 2 ? .02 : -.015) * (q + 1); } }
     if (guest) continue;
     if (!c.cleared && c.enemies.length && c.enemies.every(e => e.dead)) {
       c.cleared = true; c.respawn = c.i >= 3 ? 700 : 360; if (c.i < 3) G.stats.camps++; addRes('gems', c.i >= 3 ? 14 : 6); addRes('wood', 60); addRes('stone', 40); addRes('hide', 25);
@@ -5553,7 +5566,47 @@ function initVillages() {
 /* ---- inicialização do mundo ---- */
 window.addEventListener('resize', resize); resize();
 initFpHand(); buildPlayer(); P.pos.y = heightAt(P.pos.x, P.pos.z); P.mesh.position.copy(P.pos); P.mesh.visible = false;
-spawnChief(); initPlots(); initPlaza(); initAnimals(); initAmbient(); initCamps(); initVillages();
+/* ===== Culling de instâncias: vegetação (árvores, arbustos, grama, flores...) só é desenhada se estiver no campo de visão ou perto do jogador ===== */
+const Cull = [];
+function initCull() {
+  for (const im of scene.children.slice()) {
+    if (!im.isInstancedMesh || im.count < 60 || im.userData.noCull) continue;
+    const px = new T.InstancedMesh(im.geometry, im.material, im.count);
+    px.castShadow = im.castShadow; px.receiveShadow = im.receiveShadow; px.frustumCulled = false; px.isNat = im.isNat; px.count = 0;
+    if (im.instanceColor) px.instanceColor = new T.InstancedBufferAttribute(new Float32Array(im.count * 3), 3);
+    if (!im.geometry.boundingSphere) im.geometry.computeBoundingSphere();
+    const bs = im.geometry.boundingSphere; im.visible = false; scene.add(px);
+    Cull.push({ im, px, ver: -1, r0: bs.radius + bs.center.length(), far: bs.radius < 1.2 ? 95 : bs.radius < 3.5 ? 170 : 1e9 });
+  }
+}
+const _cf = new T.Frustum(), _cm = new T.Matrix4(), _cs = new T.Sphere(), _cp = { x: 1e9, z: 1e9, fx: 0, fz: 0, t: 0 }, _cd = new T.Vector3();
+function cullTick(now) {
+  if (!Cull.length) return;
+  camera.getWorldDirection(_cd); const cx = camera.position.x, cz = camera.position.z, fh = Math.hypot(_cd.x, _cd.z) || 1, fx = _cd.x / fh, fz = _cd.z / fh;
+  let dirty = false; for (const c of Cull) if (c.im.instanceMatrix.version !== c.ver) { dirty = true; break; }
+  const moved = (cx - _cp.x) ** 2 + (cz - _cp.z) ** 2 > 9 || fx * _cp.fx + fz * _cp.fz < .985;
+  if (!(dirty || (moved && now - _cp.t > 80))) return;
+  _cp.x = cx; _cp.z = cz; _cp.fx = fx; _cp.fz = fz; _cp.t = now;
+  camera.updateMatrixWorld(); _cm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); _cf.setFromProjectionMatrix(_cm);
+  const pl = _cf.planes, px_ = P.pos.x, pz_ = P.pos.z;
+  for (const c of Cull) {
+    const a = c.im.instanceMatrix.array, o = c.px.instanceMatrix.array, ca = c.im.instanceColor ? c.im.instanceColor.array : null, oc = ca ? c.px.instanceColor.array : null, n = c.im.count; let k = 0;
+    for (let i = 0; i < n; i++) {
+      const b = i * 16, x = a[b + 12], y = a[b + 13], z = a[b + 14], sc = Math.hypot(a[b], a[b + 1], a[b + 2]), r = c.r0 * sc + 3;
+      const dx = x - cx, dz = z - cz, d2 = dx * dx + dz * dz, nx = x - px_, nz = z - pz_;
+      if (nx * nx + nz * nz > 4900) { /* mais de 70 m do jogador: precisa estar na distância certa e dentro do campo de visão */
+        if (d2 > c.far * c.far) continue;
+        let out = false; for (let q = 0; q < 6; q++) { const p = pl[q]; if (p.normal.x * x + p.normal.y * (y + r * .5) + p.normal.z * z + p.constant < -r) { out = true; break; } }
+        if (out) continue;
+      }
+      const ob = k * 16; for (let j = 0; j < 16; j++) o[ob + j] = a[b + j];
+      if (oc) { oc[k * 3] = ca[i * 3]; oc[k * 3 + 1] = ca[i * 3 + 1]; oc[k * 3 + 2] = ca[i * 3 + 2]; }
+      k++;
+    }
+    c.px.count = k; c.px.instanceMatrix.needsUpdate = true; if (oc) c.px.instanceColor.needsUpdate = true; c.ver = c.im.instanceMatrix.version;
+  }
+}
+spawnChief(); initPlots(); initPlaza(); initAnimals(); initAmbient(); initCamps(); initVillages(); initCull();
 function addWorker(role, name, female) { const w = spawnWorker(role, name, female, rnd(-3, 3), 9 + rnd(0, 2)); setTag(w.tag, tagHtml(w)); return w; }
 
 /* ---- minimapa ---- */
@@ -5869,6 +5922,7 @@ function coopTick(dt, t) {
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; clock += dt; const t = clock; perfTick(Math.max(.001, (now - (perfTick.l || now)) / 1000)); perfTick.l = now;
+  lodPrep();
   updateSky(dt, t); realmEnv(dt, t); seasonTick(dt); festTick(dt, t); CreekFX.update(t, dt); updateNature(dt, t); updateWorld(dt, t); updateAnimals(dt, t); updateAmbient(dt, t); updateNpcs(dt, t); updateEnemies(dt, t); wallTick(dt, t); updateCamps(dt, t); updateVillages(dt, t); updateAllyGuards(dt, t); updateProj(dt); magAura(dt); rawTick(dt, t);
   if (G.started) { updatePlayer(dt, t); indoorTick(dt, t); moonCine(dt, t); updateRaids(dt); updateHordes(dt); updateRealm(dt, t); updatePet(dt, t); G.time += dt; coopTick(dt, t); }
   updatePlots(dt, t); updateCamera(dt, t);
@@ -5878,6 +5932,7 @@ function frame(now) {
     miniT -= dt; if (miniT <= 0) { miniT = .2; drawMini(); }
     saveT -= dt; if (saveT <= 0) { saveT = 8; saveGame(); }
   }
+  cullTick(now);
   renderer.render(Indoor.on ? Indoor.on.sc : scene, camera);
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
