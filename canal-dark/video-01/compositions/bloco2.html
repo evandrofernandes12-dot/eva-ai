@@ -1,0 +1,153 @@
+<template>
+  <style>
+#root { position: absolute; inset: 0; background: #05060b; font-family: "Inter", sans-serif; color: #eef0f6; overflow: hidden; }
+.shot { position: absolute; inset: 0; }
+.in { position: absolute; inset: 0; }
+.pic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.pic img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0.25) 0%, rgba(5,6,11,0) 35%, rgba(5,6,11,0.82) 100%); }
+.scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,6,11,0.88) 0%, rgba(5,6,11,0.6) 45%, rgba(5,6,11,0) 75%); }
+.dimmer { position: absolute; inset: 0; background: #05060b; }
+.txt { position: absolute; left: 192px; right: 192px; display: flex; flex-direction: column; gap: 22px; }
+.txt.low { bottom: 150px; align-items: flex-start; text-align: left; }
+.txt.center { top: 0; bottom: 0; justify-content: center; align-items: center; text-align: center; }
+.txt.left { top: 0; bottom: 0; justify-content: center; align-items: flex-start; text-align: left; gap: 34px; }
+.cap { font-size: 54px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.dim { color: #b9b4d6; font-weight: 400; }
+.serif { font-family: "Playfair Display", serif; font-weight: 700; line-height: 1.15; text-shadow: 0 2px 30px rgba(0,0,0,0.9); }
+.lg { font-size: 76px; }
+.xl { font-size: 132px; }
+.title { font-size: 104px; }
+.amb { color: #f5b453 !important; }
+.gap { margin-top: 44px; }
+.row { font-size: 64px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.row i { font-style: normal; color: #b79bff; margin: 0 22px; }
+.big { font-size: 96px; font-weight: 900; }
+.num { font-size: 120px; font-weight: 900; color: #f5b453; line-height: 1; }
+.quote { font-family: "Playfair Display", serif; font-style: italic; font-size: 60px; line-height: 1.25; color: #d9cffb; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.fine { font-size: 34px; color: #a7a3c4; max-width: 1100px; line-height: 1.4; margin-top: 30px; }
+.graph { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.kicker { font-size: 30px; font-weight: 700; letter-spacing: 0.34em; color: #b79bff; }
+.item { font-size: 64px; font-weight: 700; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.item b { color: #f5b453; font-weight: 900; margin-right: 26px; }
+.mail { position: absolute; left: 50%; top: 50%; width: 980px; margin-left: -490px; margin-top: -105px; height: 210px; border-radius: 34px;
+  background: #14121f; border: 1px solid rgba(183,155,255,0.45); box-shadow: 0 0 120px rgba(140,100,255,0.55); display: flex; align-items: center; gap: 36px; padding: 0 48px; }
+.mail-ic { width: 96px; height: 96px; border-radius: 26px; background: #7c5cff; display: flex; align-items: center; justify-content: center; flex: none; }
+.mail-ic svg { width: 56px; height: 56px; }
+.mail-a { font-size: 28px; color: #9d98bd; letter-spacing: 0.04em; }
+.mail-b { font-size: 50px; font-weight: 700; margin-top: 10px; }
+.glow { position: absolute; left: 50%; top: 50%; width: 1500px; height: 900px; margin-left: -750px; margin-top: -450px;
+  background: radial-gradient(ellipse at center, rgba(124,92,255,0.42) 0%, rgba(124,92,255,0) 65%); }
+  </style>
+  <div id="root" data-composition-id="bloco2" data-width="1920" data-height="1080">
+    <div id="bloco2-manuscrito" class="clip shot" style="z-index:1" data-start="0.00" data-duration="7.70" data-track-index="1">
+      <div class="in" id="bloco2-manuscrito-in">
+        <div class="pic" id="bloco2-manuscrito-pic" data-layout-ignore><img src="assets/img/13.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco2-manuscrito-txt"><div class="serif xl" id="bloco2-manuscrito-l0">1916</div><div class="cap" id="bloco2-manuscrito-l1">Freud escreve sobre tipos de caráter.</div></div>
+      </div>
+    </div>
+    <div id="bloco2-ensaio" class="clip shot" style="z-index:2" data-start="7.00" data-duration="7.70" data-track-index="2">
+      <div class="in" id="bloco2-ensaio-in">
+        <div class="pic" id="bloco2-ensaio-pic" data-layout-ignore><img src="assets/img/06.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="dimmer" id="bloco2-ensaio-dm" data-layout-ignore></div>
+        <div class="txt center" id="bloco2-ensaio-txt"><div class="kicker" id="bloco2-ensaio-l0">SIGMUND FREUD · 1916</div><div class="serif title" id="bloco2-ensaio-l1">“Os arruinados pelo êxito”</div></div>
+      </div>
+    </div>
+    <div id="bloco2-paradoxo" class="clip shot" style="z-index:3" data-start="14.00" data-duration="17.70" data-track-index="3">
+      <div class="in" id="bloco2-paradoxo-in">
+        <div class="glow" id="bloco2-paradoxo-glow" data-layout-ignore></div>
+        <div class="txt center" id="bloco2-paradoxo-txt"><div class="kicker" id="bloco2-paradoxo-l0">O ESPERADO</div><div class="row" id="bloco2-paradoxo-l1">Desejo frustrado <i>→</i> adoecer</div><div class="kicker amb" id="bloco2-paradoxo-l2">O QUE FREUD VIU</div><div class="row" id="bloco2-paradoxo-l3">Desejo realizado <i>→</i> adoecer</div><div class="serif lg gap" id="bloco2-paradoxo-l4">Parecia um paradoxo.</div></div>
+      </div>
+    </div>
+    <div id="bloco2-culpa" class="clip shot" style="z-index:4" data-start="31.00" data-duration="10.70" data-track-index="4">
+      <div class="in" id="bloco2-culpa-in">
+        <div class="pic" id="bloco2-culpa-pic" data-layout-ignore><img src="assets/img/05.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco2-culpa-txt"><div class="kicker" id="bloco2-culpa-l0">A EXPLICAÇÃO</div><div class="serif xl" id="bloco2-culpa-l1">Culpa.</div><div class="cap dim" id="bloco2-culpa-l2">Uma instância que julga: o Superego.</div></div>
+      </div>
+    </div>
+    <div id="bloco2-proibidos" class="clip shot" style="z-index:5" data-start="41.00" data-duration="11.70" data-track-index="5">
+      <div class="in" id="bloco2-proibidos-in">
+        <div class="glow" id="bloco2-proibidos-glow" data-layout-ignore></div>
+        <div class="txt center" id="bloco2-proibidos-txt"><div class="kicker" id="bloco2-proibidos-l0">DESEJOS PROIBIDOS</div><div class="row" id="bloco2-proibidos-l1">Superar alguém.</div><div class="row" id="bloco2-proibidos-l2">Deixar alguém para trás.</div><div class="row" id="bloco2-proibidos-l3">Ter o que um pai ou uma mãe nunca teve.</div></div>
+      </div>
+    </div>
+    <div id="bloco2-merece" class="clip shot" style="z-index:6" data-start="52.00" data-duration="10.20" data-track-index="6">
+      <div class="in" id="bloco2-merece-in">
+        <div class="pic" id="bloco2-merece-pic" data-layout-ignore><img src="assets/img/05.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="dimmer" id="bloco2-merece-dm" data-layout-ignore></div>
+        <div class="txt center" id="bloco2-merece-txt"><div class="serif title" id="bloco2-merece-l0">“Você não merece isso.”</div></div>
+      </div>
+    </div>
+    <div id="bloco2-macbeth" class="clip shot" style="z-index:7" data-start="61.50" data-duration="9.70" data-track-index="7">
+      <div class="in" id="bloco2-macbeth-in">
+        <div class="pic" id="bloco2-macbeth-pic" data-layout-ignore><img src="assets/img/15.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco2-macbeth-txt"><div class="kicker amb" id="bloco2-macbeth-l0">SHAKESPEARE</div><div class="serif lg" id="bloco2-macbeth-l1">Lady Macbeth</div><div class="cap dim" id="bloco2-macbeth-l2">Desmorona depois de conseguir o que queria.</div></div>
+      </div>
+    </div>
+    <div id="bloco2-leitura" class="clip shot" style="z-index:8" data-start="70.50" data-duration="13.00" data-track-index="8">
+      <div class="in" id="bloco2-leitura-in">
+        <div class="pic" id="bloco2-leitura-pic" data-layout-ignore><img src="assets/img/16.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco2-leitura-txt"><div class="kicker" id="bloco2-leitura-l0">IMPORTANTE</div><div class="cap" id="bloco2-leitura-l1">É uma interpretação clínica,</div><div class="cap dim" id="bloco2-leitura-l2">não um fato medido em laboratório.</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#bloco2-manuscrito-pic", { scale: 1.04, x: 0, y: 0 }, { scale: 1.16, x: -30, y: -10, duration: 7.70, ease: "none" }, 0.00);
+    tl.fromTo("#bloco2-manuscrito-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 0.60);
+    tl.fromTo("#bloco2-manuscrito-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 2.20);
+    tl.to("#bloco2-manuscrito-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 6.50);
+    tl.fromTo("#bloco2-manuscrito-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 0.00);
+    tl.fromTo("#bloco2-ensaio-pic", { scale: 1.14, x: 0, y: 0 }, { scale: 1.05, x: 20, y: 0, duration: 7.70, ease: "none" }, 7.00);
+    tl.fromTo("#bloco2-ensaio-dm", { opacity: 0.2 }, { opacity: 0.7, duration: 1.4, ease: "power2.out" }, 7.00);
+    tl.fromTo("#bloco2-ensaio-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 7.60);
+    tl.fromTo("#bloco2-ensaio-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 8.40);
+    tl.to("#bloco2-ensaio-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 13.50);
+    tl.fromTo("#bloco2-ensaio-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 7.00);
+    tl.fromTo("#bloco2-paradoxo-glow", { opacity: 0.35, scale: 0.8 }, { opacity: 0.75, scale: 1.25, duration: 17.70, ease: "sine.inOut" }, 14.00);
+    tl.fromTo("#bloco2-paradoxo-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 14.80);
+    tl.fromTo("#bloco2-paradoxo-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 15.40);
+    tl.fromTo("#bloco2-paradoxo-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 20.40);
+    tl.fromTo("#bloco2-paradoxo-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 21.00);
+    tl.fromTo("#bloco2-paradoxo-l4", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 28.00);
+    tl.to("#bloco2-paradoxo-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 30.50);
+    tl.fromTo("#bloco2-paradoxo-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 14.00);
+    tl.fromTo("#bloco2-culpa-pic", { scale: 1.03, x: 0, y: 0 }, { scale: 1.14, x: 0, y: 0, duration: 10.70, ease: "none" }, 31.00);
+    tl.fromTo("#bloco2-culpa-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 31.60);
+    tl.fromTo("#bloco2-culpa-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 32.40);
+    tl.fromTo("#bloco2-culpa-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 36.00);
+    tl.to("#bloco2-culpa-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 40.50);
+    tl.fromTo("#bloco2-culpa-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 31.00);
+    tl.fromTo("#bloco2-proibidos-glow", { opacity: 0.35, scale: 0.8 }, { opacity: 0.75, scale: 1.25, duration: 11.70, ease: "sine.inOut" }, 41.00);
+    tl.fromTo("#bloco2-proibidos-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 41.80);
+    tl.fromTo("#bloco2-proibidos-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 44.40);
+    tl.fromTo("#bloco2-proibidos-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 46.40);
+    tl.fromTo("#bloco2-proibidos-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 48.40);
+    tl.to("#bloco2-proibidos-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 51.50);
+    tl.fromTo("#bloco2-proibidos-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 41.00);
+    tl.fromTo("#bloco2-merece-pic", { scale: 1.3, x: 0, y: 0 }, { scale: 1.42, x: 0, y: 40, duration: 10.20, ease: "none" }, 52.00);
+    tl.fromTo("#bloco2-merece-dm", { opacity: 0.2 }, { opacity: 0.35, duration: 1.4, ease: "power2.out" }, 52.00);
+    tl.fromTo("#bloco2-merece-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 55.00);
+    tl.to("#bloco2-merece-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 61.00);
+    tl.fromTo("#bloco2-merece-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 52.00);
+    tl.fromTo("#bloco2-macbeth-pic", { scale: 1.04, x: 0, y: 0 }, { scale: 1.15, x: 0, y: -20, duration: 9.70, ease: "none" }, 61.50);
+    tl.fromTo("#bloco2-macbeth-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 62.10);
+    tl.fromTo("#bloco2-macbeth-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 62.70);
+    tl.fromTo("#bloco2-macbeth-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 65.70);
+    tl.to("#bloco2-macbeth-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 70.00);
+    tl.fromTo("#bloco2-macbeth-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 61.50);
+    tl.fromTo("#bloco2-leitura-pic", { scale: 1.12, x: 0, y: 0 }, { scale: 1.03, x: 0, y: 0, duration: 13.00, ease: "none" }, 70.50);
+    tl.fromTo("#bloco2-leitura-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 71.10);
+    tl.fromTo("#bloco2-leitura-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 73.50);
+    tl.fromTo("#bloco2-leitura-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 75.70);
+    tl.fromTo("#bloco2-leitura-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 70.50);
+    tl.to("#bloco2-leitura-in", { opacity: 0, duration: 0.6, ease: "power1.in" }, 82.85);
+    window.__timelines["bloco2"] = tl;
+  </script>
+</template>

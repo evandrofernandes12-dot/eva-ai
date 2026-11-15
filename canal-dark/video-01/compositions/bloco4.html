@@ -1,0 +1,136 @@
+<template>
+  <style>
+#root { position: absolute; inset: 0; background: #05060b; font-family: "Inter", sans-serif; color: #eef0f6; overflow: hidden; }
+.shot { position: absolute; inset: 0; }
+.in { position: absolute; inset: 0; }
+.pic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.pic img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0.25) 0%, rgba(5,6,11,0) 35%, rgba(5,6,11,0.82) 100%); }
+.scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,6,11,0.88) 0%, rgba(5,6,11,0.6) 45%, rgba(5,6,11,0) 75%); }
+.dimmer { position: absolute; inset: 0; background: #05060b; }
+.txt { position: absolute; left: 192px; right: 192px; display: flex; flex-direction: column; gap: 22px; }
+.txt.low { bottom: 150px; align-items: flex-start; text-align: left; }
+.txt.center { top: 0; bottom: 0; justify-content: center; align-items: center; text-align: center; }
+.txt.left { top: 0; bottom: 0; justify-content: center; align-items: flex-start; text-align: left; gap: 34px; }
+.cap { font-size: 54px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.dim { color: #b9b4d6; font-weight: 400; }
+.serif { font-family: "Playfair Display", serif; font-weight: 700; line-height: 1.15; text-shadow: 0 2px 30px rgba(0,0,0,0.9); }
+.lg { font-size: 76px; }
+.xl { font-size: 132px; }
+.title { font-size: 104px; }
+.amb { color: #f5b453 !important; }
+.gap { margin-top: 44px; }
+.row { font-size: 64px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.row i { font-style: normal; color: #b79bff; margin: 0 22px; }
+.big { font-size: 96px; font-weight: 900; }
+.num { font-size: 120px; font-weight: 900; color: #f5b453; line-height: 1; }
+.quote { font-family: "Playfair Display", serif; font-style: italic; font-size: 60px; line-height: 1.25; color: #d9cffb; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.fine { font-size: 34px; color: #a7a3c4; max-width: 1100px; line-height: 1.4; margin-top: 30px; }
+.graph { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.kicker { font-size: 30px; font-weight: 700; letter-spacing: 0.34em; color: #b79bff; }
+.item { font-size: 64px; font-weight: 700; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.item b { color: #f5b453; font-weight: 900; margin-right: 26px; }
+.mail { position: absolute; left: 50%; top: 50%; width: 980px; margin-left: -490px; margin-top: -105px; height: 210px; border-radius: 34px;
+  background: #14121f; border: 1px solid rgba(183,155,255,0.45); box-shadow: 0 0 120px rgba(140,100,255,0.55); display: flex; align-items: center; gap: 36px; padding: 0 48px; }
+.mail-ic { width: 96px; height: 96px; border-radius: 26px; background: #7c5cff; display: flex; align-items: center; justify-content: center; flex: none; }
+.mail-ic svg { width: 56px; height: 56px; }
+.mail-a { font-size: 28px; color: #9d98bd; letter-spacing: 0.04em; }
+.mail-b { font-size: 50px; font-weight: 700; margin-top: 10px; }
+.glow { position: absolute; left: 50%; top: 50%; width: 1500px; height: 900px; margin-left: -750px; margin-top: -450px;
+  background: radial-gradient(ellipse at center, rgba(124,92,255,0.42) 0%, rgba(124,92,255,0) 65%); }
+  </style>
+  <div id="root" data-composition-id="bloco4" data-width="1920" data-height="1080">
+    <div id="bloco4-abre" class="clip shot" style="z-index:1" data-start="0.00" data-duration="6.70" data-track-index="1">
+      <div class="in" id="bloco4-abre-in">
+        <div class="pic" id="bloco4-abre-pic" data-layout-ignore><img src="assets/img/23.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco4-abre-txt"><div class="kicker" id="bloco4-abre-l0">O QUE PODE AJUDAR</div><div class="serif lg" id="bloco4-abre-l1">Cinco passos<br>para se observar.</div><div class="cap dim" id="bloco4-abre-l2">Isto não é uma cura.</div></div>
+      </div>
+    </div>
+    <div id="bloco4-p1" class="clip shot" style="z-index:2" data-start="6.00" data-duration="15.20" data-track-index="2">
+      <div class="in" id="bloco4-p1-in">
+        <div class="pic" id="bloco4-p1-pic" data-layout-ignore><img src="assets/img/23.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco4-p1-txt"><div class="num" id="bloco4-p1-l0">01</div><div class="serif lg" id="bloco4-p1-l1">Dê nome ao padrão.</div><div class="quote" id="bloco4-p1-l2">“Eu estou sabotando?”</div><div class="cap dim" id="bloco4-p1-l3">Nomear já cria distância.</div></div>
+      </div>
+    </div>
+    <div id="bloco4-p2" class="clip shot" style="z-index:3" data-start="20.50" data-duration="17.20" data-track-index="3">
+      <div class="in" id="bloco4-p2-in">
+        <div class="pic" id="bloco4-p2-pic" data-layout-ignore><img src="assets/img/12.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco4-p2-txt"><div class="num" id="bloco4-p2-l0">02</div><div class="serif lg" id="bloco4-p2-l1">Faça duas perguntas.</div><div class="quote" id="bloco4-p2-l2">“Quem eu decepciono se isso der certo?”</div><div class="quote" id="bloco4-p2-l3">“O que eu perco se eu conseguir?”</div><div class="cap dim" id="bloco4-p2-l4">Às vezes o preço do sucesso é invisível.</div></div>
+      </div>
+    </div>
+    <div id="bloco4-p3" class="clip shot" style="z-index:4" data-start="37.00" data-duration="9.70" data-track-index="4">
+      <div class="in" id="bloco4-p3-in">
+        <div class="pic" id="bloco4-p3-pic" data-layout-ignore><img src="assets/img/24.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco4-p3-txt"><div class="num" id="bloco4-p3-l0">03</div><div class="serif lg" id="bloco4-p3-l1">Sucesso em doses pequenas.</div><div class="cap dim" id="bloco4-p3-l2">Dê ao cérebro o novo aos poucos.</div></div>
+      </div>
+    </div>
+    <div id="bloco4-p4" class="clip shot" style="z-index:5" data-start="46.00" data-duration="11.70" data-track-index="5">
+      <div class="in" id="bloco4-p4-in">
+        <div class="pic" id="bloco4-p4-pic" data-layout-ignore><img src="assets/img/25.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco4-p4-txt"><div class="num" id="bloco4-p4-l0">04</div><div class="serif lg" id="bloco4-p4-l1">Escreva a voz da culpa.</div><div class="quote" id="bloco4-p4-l2">“Quem você pensa que é?”</div><div class="quote" id="bloco4-p4-l3">“Isso não vai durar.”</div><div class="cap dim" id="bloco4-p4-l4">Escritas, elas perdem força.</div></div>
+      </div>
+    </div>
+    <div id="bloco4-p5" class="clip shot" style="z-index:6" data-start="57.00" data-duration="11.50" data-track-index="6">
+      <div class="in" id="bloco4-p5-in">
+        <div class="pic" id="bloco4-p5-pic" data-layout-ignore><img src="assets/img/26.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco4-p5-txt"><div class="num" id="bloco4-p5-l0">05</div><div class="serif lg" id="bloco4-p5-l1">Procure um profissional.</div><div class="cap dim" id="bloco4-p5-l2">Pedir ajuda não é fraqueza.</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#bloco4-abre-pic", { scale: 1.03, x: 0, y: 0 }, { scale: 1.1, x: 0, y: 0, duration: 6.70, ease: "none" }, 0.00);
+    tl.fromTo("#bloco4-abre-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 0.60);
+    tl.fromTo("#bloco4-abre-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 1.40);
+    tl.fromTo("#bloco4-abre-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 3.40);
+    tl.to("#bloco4-abre-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 5.50);
+    tl.fromTo("#bloco4-abre-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 0.00);
+    tl.fromTo("#bloco4-p1-pic", { scale: 1.1, x: 0, y: 0 }, { scale: 1.24, x: 40, y: 0, duration: 15.20, ease: "none" }, 6.00);
+    tl.fromTo("#bloco4-p1-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 6.50);
+    tl.fromTo("#bloco4-p1-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 7.00);
+    tl.fromTo("#bloco4-p1-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 13.60);
+    tl.fromTo("#bloco4-p1-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 17.00);
+    tl.to("#bloco4-p1-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 20.00);
+    tl.fromTo("#bloco4-p1-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 6.00);
+    tl.fromTo("#bloco4-p2-pic", { scale: 1.14, x: 0, y: 0 }, { scale: 1.26, x: 60, y: 0, duration: 17.20, ease: "none" }, 20.50);
+    tl.fromTo("#bloco4-p2-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 21.00);
+    tl.fromTo("#bloco4-p2-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 21.50);
+    tl.fromTo("#bloco4-p2-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 24.10);
+    tl.fromTo("#bloco4-p2-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 27.50);
+    tl.fromTo("#bloco4-p2-l4", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 31.10);
+    tl.to("#bloco4-p2-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 36.50);
+    tl.fromTo("#bloco4-p2-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 20.50);
+    tl.fromTo("#bloco4-p3-pic", { scale: 1.03, x: 0, y: 0 }, { scale: 1.12, x: 0, y: 0, duration: 9.70, ease: "none" }, 37.00);
+    tl.fromTo("#bloco4-p3-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 37.50);
+    tl.fromTo("#bloco4-p3-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 38.00);
+    tl.fromTo("#bloco4-p3-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 41.60);
+    tl.to("#bloco4-p3-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 45.50);
+    tl.fromTo("#bloco4-p3-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 37.00);
+    tl.fromTo("#bloco4-p4-pic", { scale: 1.12, x: 0, y: 0 }, { scale: 1.03, x: 0, y: 0, duration: 11.70, ease: "none" }, 46.00);
+    tl.fromTo("#bloco4-p4-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 46.50);
+    tl.fromTo("#bloco4-p4-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 47.00);
+    tl.fromTo("#bloco4-p4-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 50.60);
+    tl.fromTo("#bloco4-p4-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 52.40);
+    tl.fromTo("#bloco4-p4-l4", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 54.60);
+    tl.to("#bloco4-p4-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 56.50);
+    tl.fromTo("#bloco4-p4-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 46.00);
+    tl.fromTo("#bloco4-p5-pic", { scale: 1.03, x: 0, y: 0 }, { scale: 1.12, x: 0, y: 0, duration: 11.50, ease: "none" }, 57.00);
+    tl.fromTo("#bloco4-p5-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 57.50);
+    tl.fromTo("#bloco4-p5-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 58.00);
+    tl.fromTo("#bloco4-p5-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 65.40);
+    tl.fromTo("#bloco4-p5-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 57.00);
+    tl.to("#bloco4-p5-in", { opacity: 0, duration: 0.6, ease: "power1.in" }, 67.85);
+    window.__timelines["bloco4"] = tl;
+  </script>
+</template>

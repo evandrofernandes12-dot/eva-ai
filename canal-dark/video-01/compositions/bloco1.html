@@ -1,0 +1,152 @@
+<template>
+  <style>
+#root { position: absolute; inset: 0; background: #05060b; font-family: "Inter", sans-serif; color: #eef0f6; overflow: hidden; }
+.shot { position: absolute; inset: 0; }
+.in { position: absolute; inset: 0; }
+.pic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.pic img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0.25) 0%, rgba(5,6,11,0) 35%, rgba(5,6,11,0.82) 100%); }
+.scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,6,11,0.88) 0%, rgba(5,6,11,0.6) 45%, rgba(5,6,11,0) 75%); }
+.dimmer { position: absolute; inset: 0; background: #05060b; }
+.txt { position: absolute; left: 192px; right: 192px; display: flex; flex-direction: column; gap: 22px; }
+.txt.low { bottom: 150px; align-items: flex-start; text-align: left; }
+.txt.center { top: 0; bottom: 0; justify-content: center; align-items: center; text-align: center; }
+.txt.left { top: 0; bottom: 0; justify-content: center; align-items: flex-start; text-align: left; gap: 34px; }
+.cap { font-size: 54px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.dim { color: #b9b4d6; font-weight: 400; }
+.serif { font-family: "Playfair Display", serif; font-weight: 700; line-height: 1.15; text-shadow: 0 2px 30px rgba(0,0,0,0.9); }
+.lg { font-size: 76px; }
+.xl { font-size: 132px; }
+.title { font-size: 104px; }
+.amb { color: #f5b453 !important; }
+.gap { margin-top: 44px; }
+.row { font-size: 64px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.row i { font-style: normal; color: #b79bff; margin: 0 22px; }
+.big { font-size: 96px; font-weight: 900; }
+.num { font-size: 120px; font-weight: 900; color: #f5b453; line-height: 1; }
+.quote { font-family: "Playfair Display", serif; font-style: italic; font-size: 60px; line-height: 1.25; color: #d9cffb; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.fine { font-size: 34px; color: #a7a3c4; max-width: 1100px; line-height: 1.4; margin-top: 30px; }
+.graph { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.kicker { font-size: 30px; font-weight: 700; letter-spacing: 0.34em; color: #b79bff; }
+.item { font-size: 64px; font-weight: 700; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.item b { color: #f5b453; font-weight: 900; margin-right: 26px; }
+.mail { position: absolute; left: 50%; top: 50%; width: 980px; margin-left: -490px; margin-top: -105px; height: 210px; border-radius: 34px;
+  background: #14121f; border: 1px solid rgba(183,155,255,0.45); box-shadow: 0 0 120px rgba(140,100,255,0.55); display: flex; align-items: center; gap: 36px; padding: 0 48px; }
+.mail-ic { width: 96px; height: 96px; border-radius: 26px; background: #7c5cff; display: flex; align-items: center; justify-content: center; flex: none; }
+.mail-ic svg { width: 56px; height: 56px; }
+.mail-a { font-size: 28px; color: #9d98bd; letter-spacing: 0.04em; }
+.mail-b { font-size: 50px; font-weight: 700; margin-top: 10px; }
+.glow { position: absolute; left: 50%; top: 50%; width: 1500px; height: 900px; margin-left: -750px; margin-top: -450px;
+  background: radial-gradient(ellipse at center, rgba(124,92,255,0.42) 0%, rgba(124,92,255,0) 65%); }
+  </style>
+  <div id="root" data-composition-id="bloco1" data-width="1920" data-height="1080">
+    <div id="bloco1-def" class="clip shot" style="z-index:1" data-start="0.00" data-duration="10.70" data-track-index="1">
+      <div class="in" id="bloco1-def-in">
+        <div class="glow" id="bloco1-def-glow" data-layout-ignore></div>
+        <div class="txt center" id="bloco1-def-txt"><div class="kicker" id="bloco1-def-l0">AUTOSSABOTAGEM</div><div class="serif lg" id="bloco1-def-l1">Agir, sem perceber, contra um objetivo<br>que você diz querer.</div></div>
+      </div>
+    </div>
+    <div id="bloco1-trabalho" class="clip shot" style="z-index:2" data-start="10.00" data-duration="6.20" data-track-index="2">
+      <div class="in" id="bloco1-trabalho-in">
+        <div class="pic" id="bloco1-trabalho-pic" data-layout-ignore><img src="assets/img/07.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco1-trabalho-txt"><div class="kicker amb" id="bloco1-trabalho-l0">TRABALHO</div><div class="cap" id="bloco1-trabalho-l1">É promovida. E começa a faltar.</div></div>
+      </div>
+    </div>
+    <div id="bloco1-relacao" class="clip shot" style="z-index:3" data-start="15.50" data-duration="5.70" data-track-index="3">
+      <div class="in" id="bloco1-relacao-in">
+        <div class="pic" id="bloco1-relacao-pic" data-layout-ignore><img src="assets/img/08.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco1-relacao-txt"><div class="kicker amb" id="bloco1-relacao-l0">RELACIONAMENTO</div><div class="cap" id="bloco1-relacao-l1">Vai bem. E ela inventa uma briga.</div></div>
+      </div>
+    </div>
+    <div id="bloco1-corpo" class="clip shot" style="z-index:4" data-start="20.50" data-duration="5.70" data-track-index="4">
+      <div class="in" id="bloco1-corpo-in">
+        <div class="pic" id="bloco1-corpo-pic" data-layout-ignore><img src="assets/img/09.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco1-corpo-txt"><div class="kicker amb" id="bloco1-corpo-l0">CORPO</div><div class="cap" id="bloco1-corpo-l1">Perto da meta, vem o descontrole.</div></div>
+      </div>
+    </div>
+    <div id="bloco1-estudos" class="clip shot" style="z-index:5" data-start="25.50" data-duration="5.70" data-track-index="5">
+      <div class="in" id="bloco1-estudos-in">
+        <div class="pic" id="bloco1-estudos-pic" data-layout-ignore><img src="assets/img/10.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco1-estudos-txt"><div class="kicker amb" id="bloco1-estudos-l0">ESTUDOS</div><div class="cap" id="bloco1-estudos-l1">A um passo. E deixa de estudar.</div></div>
+      </div>
+    </div>
+    <div id="bloco1-escada" class="clip shot" style="z-index:6" data-start="30.50" data-duration="7.70" data-track-index="6">
+      <div class="in" id="bloco1-escada-in">
+        <div class="pic" id="bloco1-escada-pic" data-layout-ignore><img src="assets/img/11.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco1-escada-txt"><div class="serif lg" id="bloco1-escada-l0">Quanto mais perto,</div><div class="serif lg" id="bloco1-escada-l1">mais forte o impulso de estragar.</div></div>
+      </div>
+    </div>
+    <div id="bloco1-linha" class="clip shot" style="z-index:7" data-start="37.50" data-duration="10.20" data-track-index="7">
+      <div class="in" id="bloco1-linha-in">
+        <div class="glow" id="bloco1-linha-glow" data-layout-ignore></div>
+        <svg class="graph" id="bloco1-linha-g" viewBox="0 0 1920 1080" data-layout-ignore aria-hidden="true">
+          <path id="bloco1-linha-up" d="M 260 760 L 560 690 L 860 590 L 1160 450 L 1460 250" fill="none" stroke="#b79bff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1330" stroke-dashoffset="1330"/>
+          <path id="bloco1-linha-down" d="M 1460 250 L 1540 430 L 1500 560 L 1600 760" fill="none" stroke="#f5b453" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="560" stroke-dashoffset="560"/>
+          <circle id="bloco1-linha-dot" cx="1460" cy="250" r="16" fill="#f5b453"/>
+        </svg>
+        <div class="txt low" id="bloco1-linha-txt"><div class="cap" id="bloco1-linha-l0">Não é fraqueza.</div><div class="cap" id="bloco1-linha-l1">Não é falta de força de vontade.</div></div>
+      </div>
+    </div>
+    <div id="bloco1-aviso" class="clip shot" style="z-index:8" data-start="47.00" data-duration="10.50" data-track-index="8">
+      <div class="in" id="bloco1-aviso-in">
+        <div class="pic" id="bloco1-aviso-pic" data-layout-ignore><img src="assets/img/12.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco1-aviso-txt"><div class="kicker" id="bloco1-aviso-l0">UM AVISO</div><div class="serif lg" id="bloco1-aviso-l1">Nada disso é diagnóstico.</div><div class="cap dim" id="bloco1-aviso-l2">É um padrão que muita gente reconhece em si.</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#bloco1-def-glow", { opacity: 0.35, scale: 0.8 }, { opacity: 0.75, scale: 1.25, duration: 10.70, ease: "sine.inOut" }, 0.00);
+    tl.fromTo("#bloco1-def-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 0.80);
+    tl.fromTo("#bloco1-def-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 3.20);
+    tl.to("#bloco1-def-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 9.50);
+    tl.fromTo("#bloco1-def-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 0.00);
+    tl.fromTo("#bloco1-trabalho-pic", { scale: 1.03, x: 0, y: 0 }, { scale: 1.12, x: 0, y: 0, duration: 6.20, ease: "none" }, 10.00);
+    tl.fromTo("#bloco1-trabalho-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 10.60);
+    tl.fromTo("#bloco1-trabalho-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 11.00);
+    tl.to("#bloco1-trabalho-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 15.00);
+    tl.fromTo("#bloco1-trabalho-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 10.00);
+    tl.fromTo("#bloco1-relacao-pic", { scale: 1.12, x: 0, y: 0 }, { scale: 1.03, x: 20, y: 0, duration: 5.70, ease: "none" }, 15.50);
+    tl.fromTo("#bloco1-relacao-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 16.00);
+    tl.fromTo("#bloco1-relacao-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 16.40);
+    tl.to("#bloco1-relacao-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 20.00);
+    tl.fromTo("#bloco1-relacao-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 15.50);
+    tl.fromTo("#bloco1-corpo-pic", { scale: 1.03, x: 0, y: 0 }, { scale: 1.12, x: -20, y: 0, duration: 5.70, ease: "none" }, 20.50);
+    tl.fromTo("#bloco1-corpo-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 21.00);
+    tl.fromTo("#bloco1-corpo-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 21.40);
+    tl.to("#bloco1-corpo-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 25.00);
+    tl.fromTo("#bloco1-corpo-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 20.50);
+    tl.fromTo("#bloco1-estudos-pic", { scale: 1.12, x: 0, y: 0 }, { scale: 1.03, x: 0, y: 0, duration: 5.70, ease: "none" }, 25.50);
+    tl.fromTo("#bloco1-estudos-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 26.00);
+    tl.fromTo("#bloco1-estudos-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 26.40);
+    tl.to("#bloco1-estudos-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 30.00);
+    tl.fromTo("#bloco1-estudos-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 25.50);
+    tl.fromTo("#bloco1-escada-pic", { scale: 1.02, x: 0, y: 0 }, { scale: 1.16, x: -40, y: 30, duration: 7.70, ease: "none" }, 30.50);
+    tl.fromTo("#bloco1-escada-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 31.50);
+    tl.fromTo("#bloco1-escada-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 33.10);
+    tl.to("#bloco1-escada-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 37.00);
+    tl.fromTo("#bloco1-escada-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 30.50);
+    tl.fromTo("#bloco1-linha-glow", { opacity: 0.3, scale: 0.9 }, { opacity: 0.6, scale: 1.2, duration: 10.20, ease: "sine.inOut" }, 37.50);
+    tl.fromTo("#bloco1-linha-up", { strokeDashoffset: 1330 }, { strokeDashoffset: 0, duration: 3.0, ease: "power1.in" }, 38.00);
+    tl.fromTo("#bloco1-linha-dot", { opacity: 0, scale: 0.2, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1.6, duration: 0.35, ease: "back.out(3)" }, 41.00);
+    tl.fromTo("#bloco1-linha-down", { strokeDashoffset: 560 }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.in" }, 41.30);
+    tl.to("#bloco1-linha-g", { opacity: 0.45, duration: 1.2 }, 42.50);
+    tl.fromTo("#bloco1-linha-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 41.70);
+    tl.fromTo("#bloco1-linha-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 43.10);
+    tl.to("#bloco1-linha-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 46.50);
+    tl.fromTo("#bloco1-linha-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 37.50);
+    tl.fromTo("#bloco1-aviso-pic", { scale: 1.1, x: 0, y: 0 }, { scale: 1.02, x: 0, y: 0, duration: 10.50, ease: "none" }, 47.00);
+    tl.fromTo("#bloco1-aviso-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 47.60);
+    tl.fromTo("#bloco1-aviso-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 48.20);
+    tl.fromTo("#bloco1-aviso-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 51.60);
+    tl.fromTo("#bloco1-aviso-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 47.00);
+    tl.to("#bloco1-aviso-in", { opacity: 0, duration: 0.6, ease: "power1.in" }, 56.85);
+    window.__timelines["bloco1"] = tl;
+  </script>
+</template>

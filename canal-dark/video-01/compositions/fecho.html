@@ -1,0 +1,110 @@
+<template>
+  <style>
+#root { position: absolute; inset: 0; background: #05060b; font-family: "Inter", sans-serif; color: #eef0f6; overflow: hidden; }
+.shot { position: absolute; inset: 0; }
+.in { position: absolute; inset: 0; }
+.pic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.pic img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0.25) 0%, rgba(5,6,11,0) 35%, rgba(5,6,11,0.82) 100%); }
+.scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,6,11,0.88) 0%, rgba(5,6,11,0.6) 45%, rgba(5,6,11,0) 75%); }
+.dimmer { position: absolute; inset: 0; background: #05060b; }
+.txt { position: absolute; left: 192px; right: 192px; display: flex; flex-direction: column; gap: 22px; }
+.txt.low { bottom: 150px; align-items: flex-start; text-align: left; }
+.txt.center { top: 0; bottom: 0; justify-content: center; align-items: center; text-align: center; }
+.txt.left { top: 0; bottom: 0; justify-content: center; align-items: flex-start; text-align: left; gap: 34px; }
+.cap { font-size: 54px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.dim { color: #b9b4d6; font-weight: 400; }
+.serif { font-family: "Playfair Display", serif; font-weight: 700; line-height: 1.15; text-shadow: 0 2px 30px rgba(0,0,0,0.9); }
+.lg { font-size: 76px; }
+.xl { font-size: 132px; }
+.title { font-size: 104px; }
+.amb { color: #f5b453 !important; }
+.gap { margin-top: 44px; }
+.row { font-size: 64px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.row i { font-style: normal; color: #b79bff; margin: 0 22px; }
+.big { font-size: 96px; font-weight: 900; }
+.num { font-size: 120px; font-weight: 900; color: #f5b453; line-height: 1; }
+.quote { font-family: "Playfair Display", serif; font-style: italic; font-size: 60px; line-height: 1.25; color: #d9cffb; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.fine { font-size: 34px; color: #a7a3c4; max-width: 1100px; line-height: 1.4; margin-top: 30px; }
+.graph { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.kicker { font-size: 30px; font-weight: 700; letter-spacing: 0.34em; color: #b79bff; }
+.item { font-size: 64px; font-weight: 700; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.item b { color: #f5b453; font-weight: 900; margin-right: 26px; }
+.mail { position: absolute; left: 50%; top: 50%; width: 980px; margin-left: -490px; margin-top: -105px; height: 210px; border-radius: 34px;
+  background: #14121f; border: 1px solid rgba(183,155,255,0.45); box-shadow: 0 0 120px rgba(140,100,255,0.55); display: flex; align-items: center; gap: 36px; padding: 0 48px; }
+.mail-ic { width: 96px; height: 96px; border-radius: 26px; background: #7c5cff; display: flex; align-items: center; justify-content: center; flex: none; }
+.mail-ic svg { width: 56px; height: 56px; }
+.mail-a { font-size: 28px; color: #9d98bd; letter-spacing: 0.04em; }
+.mail-b { font-size: 50px; font-weight: 700; margin-top: 10px; }
+.glow { position: absolute; left: 50%; top: 50%; width: 1500px; height: 900px; margin-left: -750px; margin-top: -450px;
+  background: radial-gradient(ellipse at center, rgba(124,92,255,0.42) 0%, rgba(124,92,255,0) 65%); }
+  </style>
+  <div id="root" data-composition-id="fecho" data-width="1920" data-height="1080">
+    <div id="fecho-email" class="clip shot" style="z-index:1" data-start="0.00" data-duration="5.20" data-track-index="1">
+      <div class="in" id="fecho-email-in">
+        <div class="glow" id="fecho-email-glow" data-layout-ignore></div>
+        <div class="mail" id="fecho-email-mail">
+          <div class="mail-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5 12 13l8.5-5.5"/></svg></div>
+          <div><div class="mail-a">NOVO E-MAIL · agora</div><div class="mail-b">Parabéns, você foi aprovado.</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="fecho-pergunta" class="clip shot" style="z-index:2" data-start="4.50" data-duration="14.20" data-track-index="2">
+      <div class="in" id="fecho-pergunta-in">
+        <div class="pic" id="fecho-pergunta-pic" data-layout-ignore><img src="assets/img/21.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="dimmer" id="fecho-pergunta-dm" data-layout-ignore></div>
+        <div class="txt center" id="fecho-pergunta-txt"><div class="quote dim" id="fecho-pergunta-l0">“O que há de errado comigo?”</div><div class="serif lg" id="fecho-pergunta-l1">O que esse sucesso significa<br>para a parte de mim<br>que eu ainda não conheço?</div></div>
+      </div>
+    </div>
+    <div id="fecho-coment" class="clip shot" style="z-index:3" data-start="18.00" data-duration="8.20" data-track-index="3">
+      <div class="in" id="fecho-coment-in">
+        <div class="glow" id="fecho-coment-glow" data-layout-ignore></div>
+        <div class="txt center" id="fecho-coment-txt"><div class="serif lg" id="fecho-coment-l0">Em que área da vida<br>isso acontece com você?</div><div class="cap dim" id="fecho-coment-l1">Deixe nos comentários.</div></div>
+      </div>
+    </div>
+    <div id="fecho-proximo" class="clip shot" style="z-index:4" data-start="25.50" data-duration="8.20" data-track-index="4">
+      <div class="in" id="fecho-proximo-in">
+        <div class="pic" id="fecho-proximo-pic" data-layout-ignore><img src="assets/img/08.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="dimmer" id="fecho-proximo-dm" data-layout-ignore></div>
+        <div class="txt center" id="fecho-proximo-txt"><div class="kicker amb" id="fecho-proximo-l0">NO PRÓXIMO VÍDEO</div><div class="serif lg" id="fecho-proximo-l1">Por que você repete<br>os mesmos relacionamentos</div></div>
+      </div>
+    </div>
+    <div id="fecho-final" class="clip shot" style="z-index:5" data-start="33.00" data-duration="9.00" data-track-index="5">
+      <div class="in" id="fecho-final-in">
+        <div class="glow" id="fecho-final-glow" data-layout-ignore></div>
+        <div class="txt center" id="fecho-final-txt"><div class="serif lg" id="fecho-final-l0">Inscreva-se no canal.</div><div class="fine" id="fecho-final-l1">Este canal é educativo e não substitui acompanhamento psicológico ou médico.</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#fecho-email-mail", { opacity: 0, scale: 0.9, y: 0 }, { opacity: 1, scale: 1.06, y: 0, duration: 1.0, ease: "power2.out" }, 0.50);
+    tl.fromTo("#fecho-email-glow", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1.7, duration: 4.00, ease: "power2.out" }, 0.50);
+    tl.fromTo("#fecho-email-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 0.00);
+    tl.fromTo("#fecho-pergunta-pic", { scale: 1.2, x: 0, y: 0 }, { scale: 1.34, x: -80, y: 0, duration: 14.20, ease: "none" }, 4.50);
+    tl.fromTo("#fecho-pergunta-dm", { opacity: 0.2 }, { opacity: 0.62, duration: 1.4, ease: "power2.out" }, 4.50);
+    tl.fromTo("#fecho-pergunta-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 5.30);
+    tl.fromTo("#fecho-pergunta-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 9.10);
+    tl.to("#fecho-pergunta-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 17.50);
+    tl.fromTo("#fecho-pergunta-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 4.50);
+    tl.fromTo("#fecho-coment-glow", { opacity: 0.35, scale: 0.8 }, { opacity: 0.75, scale: 1.25, duration: 8.20, ease: "sine.inOut" }, 18.00);
+    tl.fromTo("#fecho-coment-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 18.80);
+    tl.fromTo("#fecho-coment-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 21.60);
+    tl.to("#fecho-coment-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 25.00);
+    tl.fromTo("#fecho-coment-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 18.00);
+    tl.fromTo("#fecho-proximo-pic", { scale: 1.04, x: 0, y: 0 }, { scale: 1.14, x: 0, y: 0, duration: 8.20, ease: "none" }, 25.50);
+    tl.fromTo("#fecho-proximo-dm", { opacity: 0.2 }, { opacity: 0.5, duration: 1.4, ease: "power2.out" }, 25.50);
+    tl.fromTo("#fecho-proximo-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 26.10);
+    tl.fromTo("#fecho-proximo-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 26.70);
+    tl.to("#fecho-proximo-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 32.50);
+    tl.fromTo("#fecho-proximo-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 25.50);
+    tl.fromTo("#fecho-final-glow", { opacity: 0.35, scale: 0.8 }, { opacity: 0.75, scale: 1.25, duration: 9.00, ease: "sine.inOut" }, 33.00);
+    tl.fromTo("#fecho-final-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 33.80);
+    tl.fromTo("#fecho-final-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 35.40);
+    tl.fromTo("#fecho-final-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 33.00);
+    tl.to("#fecho-final-in", { opacity: 0, duration: 0.6, ease: "power1.in" }, 41.35);
+    window.__timelines["fecho"] = tl;
+  </script>
+</template>

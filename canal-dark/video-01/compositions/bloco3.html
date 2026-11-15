@@ -1,0 +1,188 @@
+<template>
+  <style>
+#root { position: absolute; inset: 0; background: #05060b; font-family: "Inter", sans-serif; color: #eef0f6; overflow: hidden; }
+.shot { position: absolute; inset: 0; }
+.in { position: absolute; inset: 0; }
+.pic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.pic img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0.25) 0%, rgba(5,6,11,0) 35%, rgba(5,6,11,0.82) 100%); }
+.scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,6,11,0.88) 0%, rgba(5,6,11,0.6) 45%, rgba(5,6,11,0) 75%); }
+.dimmer { position: absolute; inset: 0; background: #05060b; }
+.txt { position: absolute; left: 192px; right: 192px; display: flex; flex-direction: column; gap: 22px; }
+.txt.low { bottom: 150px; align-items: flex-start; text-align: left; }
+.txt.center { top: 0; bottom: 0; justify-content: center; align-items: center; text-align: center; }
+.txt.left { top: 0; bottom: 0; justify-content: center; align-items: flex-start; text-align: left; gap: 34px; }
+.cap { font-size: 54px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.dim { color: #b9b4d6; font-weight: 400; }
+.serif { font-family: "Playfair Display", serif; font-weight: 700; line-height: 1.15; text-shadow: 0 2px 30px rgba(0,0,0,0.9); }
+.lg { font-size: 76px; }
+.xl { font-size: 132px; }
+.title { font-size: 104px; }
+.amb { color: #f5b453 !important; }
+.gap { margin-top: 44px; }
+.row { font-size: 64px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.row i { font-style: normal; color: #b79bff; margin: 0 22px; }
+.big { font-size: 96px; font-weight: 900; }
+.num { font-size: 120px; font-weight: 900; color: #f5b453; line-height: 1; }
+.quote { font-family: "Playfair Display", serif; font-style: italic; font-size: 60px; line-height: 1.25; color: #d9cffb; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.fine { font-size: 34px; color: #a7a3c4; max-width: 1100px; line-height: 1.4; margin-top: 30px; }
+.graph { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.kicker { font-size: 30px; font-weight: 700; letter-spacing: 0.34em; color: #b79bff; }
+.item { font-size: 64px; font-weight: 700; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.item b { color: #f5b453; font-weight: 900; margin-right: 26px; }
+.mail { position: absolute; left: 50%; top: 50%; width: 980px; margin-left: -490px; margin-top: -105px; height: 210px; border-radius: 34px;
+  background: #14121f; border: 1px solid rgba(183,155,255,0.45); box-shadow: 0 0 120px rgba(140,100,255,0.55); display: flex; align-items: center; gap: 36px; padding: 0 48px; }
+.mail-ic { width: 96px; height: 96px; border-radius: 26px; background: #7c5cff; display: flex; align-items: center; justify-content: center; flex: none; }
+.mail-ic svg { width: 56px; height: 56px; }
+.mail-a { font-size: 28px; color: #9d98bd; letter-spacing: 0.04em; }
+.mail-b { font-size: 50px; font-weight: 700; margin-top: 10px; }
+.glow { position: absolute; left: 50%; top: 50%; width: 1500px; height: 900px; margin-left: -750px; margin-top: -450px;
+  background: radial-gradient(ellipse at center, rgba(124,92,255,0.42) 0%, rgba(124,92,255,0) 65%); }
+  </style>
+  <div id="root" data-composition-id="bloco3" data-width="1920" data-height="1080">
+    <div id="bloco3-cerebro" class="clip shot" style="z-index:1" data-start="0.00" data-duration="9.70" data-track-index="1">
+      <div class="in" id="bloco3-cerebro-in">
+        <div class="pic" id="bloco3-cerebro-pic" data-layout-ignore><img src="assets/img/17.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco3-cerebro-txt"><div class="kicker" id="bloco3-cerebro-l0">O QUE O CÉREBRO SUGERE</div><div class="serif lg" id="bloco3-cerebro-l1">Três ideias.</div><div class="cap dim" id="bloco3-cerebro-l2">Todas são hipóteses.</div></div>
+      </div>
+    </div>
+    <div id="bloco3-c1" class="clip shot" style="z-index:2" data-start="9.00" data-duration="5.20" data-track-index="2">
+      <div class="in" id="bloco3-c1-in">
+        <div class="pic" id="bloco3-c1-pic" data-layout-ignore><img src="assets/img/18.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="dimmer" id="bloco3-c1-dm" data-layout-ignore></div>
+        <div class="txt center" id="bloco3-c1-txt"><div class="num" id="bloco3-c1-l0">01</div><div class="serif lg" id="bloco3-c1-l1">O cérebro prefere o previsível.</div></div>
+      </div>
+    </div>
+    <div id="bloco3-friston" class="clip shot" style="z-index:3" data-start="13.50" data-duration="18.70" data-track-index="3">
+      <div class="in" id="bloco3-friston-in">
+        <div class="pic" id="bloco3-friston-pic" data-layout-ignore><img src="assets/img/18.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco3-friston-txt"><div class="kicker" id="bloco3-friston-l0">KARL FRISTON · CÉREBRO PREDITIVO</div><div class="row" id="bloco3-friston-l1">Prever. Reduzir surpresas.</div><div class="kicker amb gap" id="bloco3-friston-l2">MARK SOLMS · NEUROPSICANÁLISE</div><div class="row" id="bloco3-friston-l3">Sentimentos como sinais<br>do que importa.</div></div>
+      </div>
+    </div>
+    <div id="bloco3-transito" class="clip shot" style="z-index:4" data-start="31.50" data-duration="11.20" data-track-index="4">
+      <div class="in" id="bloco3-transito-in">
+        <div class="pic" id="bloco3-transito-pic" data-layout-ignore><img src="assets/img/19.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco3-transito-txt"><div class="serif lg" id="bloco3-transito-l0">Imprevisível pode soar como risco.</div><div class="cap dim" id="bloco3-transito-l1">Mesmo quando é bom.</div></div>
+      </div>
+    </div>
+    <div id="bloco3-c2" class="clip shot" style="z-index:5" data-start="42.00" data-duration="5.20" data-track-index="5">
+      <div class="in" id="bloco3-c2-in">
+        <div class="pic" id="bloco3-c2-pic" data-layout-ignore><img src="assets/img/20.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="dimmer" id="bloco3-c2-dm" data-layout-ignore></div>
+        <div class="txt center" id="bloco3-c2-txt"><div class="num" id="bloco3-c2-l0">02</div><div class="serif lg" id="bloco3-c2-l1">Buscar não é o mesmo que ter.</div></div>
+      </div>
+    </div>
+    <div id="bloco3-querer" class="clip shot" style="z-index:6" data-start="46.50" data-duration="17.70" data-track-index="6">
+      <div class="in" id="bloco3-querer-in">
+        <div class="glow" id="bloco3-querer-glow" data-layout-ignore></div>
+        <div class="txt center" id="bloco3-querer-txt"><div class="kicker" id="bloco3-querer-l0">KENT BERRIDGE</div><div class="row big" id="bloco3-querer-l1">Querer <i>≠</i> Gostar</div><div class="cap dim" id="bloco3-querer-l2">Dopamina: mais ligada à busca do que ao prazer de ter.</div><div class="kicker amb gap" id="bloco3-querer-l3">JAAK PANKSEPP</div><div class="row big" id="bloco3-querer-l4">SEEKING</div></div>
+      </div>
+    </div>
+    <div id="bloco3-topo" class="clip shot" style="z-index:7" data-start="63.50" data-duration="17.70" data-track-index="7">
+      <div class="in" id="bloco3-topo-in">
+        <div class="pic" id="bloco3-topo-pic" data-layout-ignore><img src="assets/img/20.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="bloco3-topo-txt"><div class="cap" id="bloco3-topo-l0">Quando você chega lá, a busca termina.</div><div class="cap dim" id="bloco3-topo-l1">O vazio pode empurrar a criar um novo problema,<br>só para voltar a buscar.</div></div>
+      </div>
+    </div>
+    <div id="bloco3-c3" class="clip shot" style="z-index:8" data-start="80.50" data-duration="5.20" data-track-index="8">
+      <div class="in" id="bloco3-c3-in">
+        <div class="pic" id="bloco3-c3-pic" data-layout-ignore><img src="assets/img/21.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="dimmer" id="bloco3-c3-dm" data-layout-ignore></div>
+        <div class="txt center" id="bloco3-c3-txt"><div class="num" id="bloco3-c3-l0">03</div><div class="serif lg" id="bloco3-c3-l1">A imagem que você tem de si.</div></div>
+      </div>
+    </div>
+    <div id="bloco3-swann" class="clip shot" style="z-index:9" data-start="85.00" data-duration="21.70" data-track-index="9">
+      <div class="in" id="bloco3-swann-in">
+        <div class="pic" id="bloco3-swann-pic" data-layout-ignore><img src="assets/img/21.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco3-swann-txt"><div class="kicker" id="bloco3-swann-l0">WILLIAM SWANN</div><div class="row big" id="bloco3-swann-l1">Autoverificação</div><div class="cap dim" id="bloco3-swann-l2">Buscamos o que confirma a imagem<br>que temos de nós. Mesmo a negativa.</div><div class="cap gap" id="bloco3-swann-l3">O sucesso cria um conflito.</div><div class="cap" id="bloco3-swann-l4">A sabotagem restaura a coerência.</div></div>
+      </div>
+    </div>
+    <div id="bloco3-camadas" class="clip shot" style="z-index:10" data-start="106.00" data-duration="8.00" data-track-index="10">
+      <div class="in" id="bloco3-camadas-in">
+        <div class="pic" id="bloco3-camadas-pic" data-layout-ignore><img src="assets/img/22.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="bloco3-camadas-txt"><div class="kicker" id="bloco3-camadas-l0">CAMADAS DA MESMA HISTÓRIA</div><div class="item" id="bloco3-camadas-l1"><b>·</b>Culpa</div><div class="item" id="bloco3-camadas-l2"><b>·</b>Previsibilidade</div><div class="item" id="bloco3-camadas-l3"><b>·</b>Autoimagem</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#bloco3-cerebro-pic", { scale: 1.0, x: 340, y: 0 }, { scale: 1.1, x: 370, y: 0, duration: 9.70, ease: "none" }, 0.00);
+    tl.fromTo("#bloco3-cerebro-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 0.60);
+    tl.fromTo("#bloco3-cerebro-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 3.60);
+    tl.fromTo("#bloco3-cerebro-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 6.40);
+    tl.to("#bloco3-cerebro-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 8.50);
+    tl.fromTo("#bloco3-cerebro-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 0.00);
+    tl.fromTo("#bloco3-c1-pic", { scale: 1.04, x: 0, y: 0 }, { scale: 1.12, x: 0, y: 0, duration: 5.20, ease: "none" }, 9.00);
+    tl.fromTo("#bloco3-c1-dm", { opacity: 0.2 }, { opacity: 0.45, duration: 1.4, ease: "power2.out" }, 9.00);
+    tl.fromTo("#bloco3-c1-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 9.40);
+    tl.fromTo("#bloco3-c1-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 9.90);
+    tl.to("#bloco3-c1-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 13.00);
+    tl.fromTo("#bloco3-c1-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 9.00);
+    tl.fromTo("#bloco3-friston-pic", { scale: 1.12, x: 0, y: 0 }, { scale: 1.26, x: 40, y: 0, duration: 18.70, ease: "none" }, 13.50);
+    tl.fromTo("#bloco3-friston-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 14.10);
+    tl.fromTo("#bloco3-friston-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 16.10);
+    tl.fromTo("#bloco3-friston-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 22.50);
+    tl.fromTo("#bloco3-friston-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 24.50);
+    tl.to("#bloco3-friston-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 31.00);
+    tl.fromTo("#bloco3-friston-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 13.50);
+    tl.fromTo("#bloco3-transito-pic", { scale: 1.03, x: 0, y: 0 }, { scale: 1.14, x: -30, y: 0, duration: 11.20, ease: "none" }, 31.50);
+    tl.fromTo("#bloco3-transito-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 36.10);
+    tl.fromTo("#bloco3-transito-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 39.50);
+    tl.to("#bloco3-transito-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 41.50);
+    tl.fromTo("#bloco3-transito-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 31.50);
+    tl.fromTo("#bloco3-c2-pic", { scale: 1.04, x: 0, y: 0 }, { scale: 1.1, x: 0, y: 0, duration: 5.20, ease: "none" }, 42.00);
+    tl.fromTo("#bloco3-c2-dm", { opacity: 0.2 }, { opacity: 0.4, duration: 1.4, ease: "power2.out" }, 42.00);
+    tl.fromTo("#bloco3-c2-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 42.40);
+    tl.fromTo("#bloco3-c2-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 42.90);
+    tl.to("#bloco3-c2-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 46.00);
+    tl.fromTo("#bloco3-c2-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 42.00);
+    tl.fromTo("#bloco3-querer-glow", { opacity: 0.35, scale: 0.8 }, { opacity: 0.75, scale: 1.25, duration: 17.70, ease: "sine.inOut" }, 46.50);
+    tl.fromTo("#bloco3-querer-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 47.30);
+    tl.fromTo("#bloco3-querer-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 49.10);
+    tl.fromTo("#bloco3-querer-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 52.90);
+    tl.fromTo("#bloco3-querer-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 58.90);
+    tl.fromTo("#bloco3-querer-l4", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 59.90);
+    tl.to("#bloco3-querer-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 63.00);
+    tl.fromTo("#bloco3-querer-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 46.50);
+    tl.fromTo("#bloco3-topo-pic", { scale: 1.1, x: 0, y: 0 }, { scale: 1.26, x: 0, y: 30, duration: 17.70, ease: "none" }, 63.50);
+    tl.fromTo("#bloco3-topo-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 64.30);
+    tl.fromTo("#bloco3-topo-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 72.10);
+    tl.to("#bloco3-topo-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 80.00);
+    tl.fromTo("#bloco3-topo-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 63.50);
+    tl.fromTo("#bloco3-c3-pic", { scale: 1.04, x: 0, y: 0 }, { scale: 1.1, x: 0, y: 0, duration: 5.20, ease: "none" }, 80.50);
+    tl.fromTo("#bloco3-c3-dm", { opacity: 0.2 }, { opacity: 0.4, duration: 1.4, ease: "power2.out" }, 80.50);
+    tl.fromTo("#bloco3-c3-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 80.90);
+    tl.fromTo("#bloco3-c3-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 81.40);
+    tl.to("#bloco3-c3-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 84.50);
+    tl.fromTo("#bloco3-c3-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 80.50);
+    tl.fromTo("#bloco3-swann-pic", { scale: 1.1, x: 0, y: 0 }, { scale: 1.24, x: -60, y: 0, duration: 21.70, ease: "none" }, 85.00);
+    tl.fromTo("#bloco3-swann-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 85.60);
+    tl.fromTo("#bloco3-swann-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 87.40);
+    tl.fromTo("#bloco3-swann-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 90.00);
+    tl.fromTo("#bloco3-swann-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 98.60);
+    tl.fromTo("#bloco3-swann-l4", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 102.00);
+    tl.to("#bloco3-swann-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 105.50);
+    tl.fromTo("#bloco3-swann-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 85.00);
+    tl.fromTo("#bloco3-camadas-pic", { scale: 1.02, x: 0, y: 0 }, { scale: 1.1, x: 60, y: 0, duration: 8.00, ease: "none" }, 106.00);
+    tl.fromTo("#bloco3-camadas-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 106.60);
+    tl.fromTo("#bloco3-camadas-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 107.60);
+    tl.fromTo("#bloco3-camadas-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 108.40);
+    tl.fromTo("#bloco3-camadas-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 109.20);
+    tl.fromTo("#bloco3-camadas-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 106.00);
+    tl.to("#bloco3-camadas-in", { opacity: 0, duration: 0.6, ease: "power1.in" }, 113.35);
+    window.__timelines["bloco3"] = tl;
+  </script>
+</template>
