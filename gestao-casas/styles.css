@@ -119,3 +119,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--verde); out
 
 #toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 90px); transform: translateX(-50%) translateY(20px); background: #222; color: #fff; padding: 10px 16px; border-radius: 20px; font-size: 14px; opacity: 0; pointer-events: none; transition: .2s; z-index: 30; max-width: 90%; text-align: center; }
 #toast.on { opacity: 1; transform: translateX(-50%); }
+
+.botao.alto { padding: 16px 10px; font-size: 15px; }
+.botao.alto i { display: block; font-style: normal; font-size: 26px; line-height: 32px; }
+.fundo.centro { align-items: center; }
+.aguarde { background: var(--cartao); border-radius: 14px; padding: 22px 28px; text-align: center; font-weight: 600; }
+.aguarde i { display: block; width: 28px; height: 28px; margin: 0 auto 12px; border: 3px solid var(--linha); border-top-color: var(--verde); border-radius: 50%; animation: gira .8s linear infinite; }
+@keyframes gira { to { transform: rotate(360deg); } }

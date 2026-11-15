@@ -146,9 +146,14 @@ function telaInicio() {
         <span>saldo da verba</span><span>Gasto em ${MESES[Number(mes.slice(5)) - 1].toLowerCase()}: ${C.brl(soma(ls, 'saida'))}</span></button>`;
     }).join('')}</div>
     <div class="grade2">
-      <button class="botao" data-act="novo-lanc" data-id="saida">+ Registrar gasto</button>
+      <button class="botao alto" data-act="foto-nota"><i>📷</i>Foto da nota</button>
+      <button class="botao alto" data-act="falar"><i>🎤</i>Falar a compra</button>
+    </div>
+    <div class="grade2">
+      <button class="botao sec" data-act="novo-lanc" data-id="saida">+ Gasto manual</button>
       <button class="botao sec" data-act="novo-lanc" data-id="entrada">+ Entrada de verba</button>
     </div>
+    <input type="file" id="arq-nota" accept="image/*" capture="environment" hidden>
     <h2>Precisa de atenção ${al.length ? `<em>${al.length}</em>` : ''}</h2>
     ${al.length ? al.map(a => `<div class="alerta ${a.nivel}">
         <div><b>${esc(a.titulo)}</b><p>${esc(a.detalhe)}</p><small>${esc(casaNome(a.casa))}</small></div>
@@ -267,6 +272,7 @@ function telaMais() {
     <div class="lista">
       <button data-act="orcamento"><div><b>Orçamento mensal por categoria</b><small>${esc(casaNome(S.casaAtual))}</small></div><span>›</span></button>
       <button data-act="casas"><div><b>Nomes das casas</b><small>${S.casas.map(c => esc(c.nome)).join(' · ')}</small></div><span>›</span></button>
+      <button data-act="codigo"><div><b>Leitura automática de notas</b><small>${S.cfg.codigo ? 'Código de acesso informado' : 'Informar código de acesso'}</small></div><span>›</span></button>
       <button data-act="dae"><div><b>Lembrete da guia do eSocial</b><small>Avisar até o dia ${S.cfg.diaDAE} de cada mês</small></div><span>›</span></button>
     </div>
     <h2>Cópia de segurança</h2>
@@ -340,7 +346,8 @@ function formLanc(l) {
     ${campo('Descrição', `<input name="desc" placeholder="Ex.: compra da semana" value="${esc(l.desc)}" autocomplete="off">`)}
     ${campo('Data', `<input type="date" name="data" value="${l.data}">`)}
     ${campo('Foto da nota', `<input type="file" name="arq" accept="image/*">`)}
-    <div id="previa"></div>`, {
+    <div id="previa">${l.fotoPendente ? `<img src="${l.fotoPendente}" alt="Nota">` : ''}</div>
+    ${(l.itens || []).length ? `<h3>Itens lidos</h3>${l.itens.map(i => `<div class="item"><span>${esc(i.nome)}${i.quantidade ? ` <small>· ${esc(i.quantidade)}</small>` : ''}</span><span>${i.valor != null ? C.brl(Math.round(i.valor * 100)) : ''}</span></div>`).join('')}` : ''}`, {
     aoSalvar: async (d) => {
       const valor = C.parseValor(d.valor);
       if (!(valor > 0)) return 'Informe um valor válido.';
@@ -351,9 +358,11 @@ function formLanc(l) {
         try { dados = await reduzirFoto(d.arq); } catch (e) { return 'Não foi possível ler a foto.'; }
         if (foto) await DB.del('fotos', foto);
         foto = uid(); await DB.set('fotos', foto, dados);
-      } else if (removerFoto && foto) { await DB.del('fotos', foto); foto = null; }
+      } else if (l.fotoPendente) { foto = uid(); await DB.set('fotos', foto, l.fotoPendente); }
+      else if (removerFoto && foto) { await DB.del('fotos', foto); foto = null; }
       const reg = { id: l.id || uid(), casa: d.casa, tipo: d.tipo, valor, data: d.data, cat: d.cat, desc: d.desc.trim(), foto };
       if (l.fixaId) reg.fixaId = l.fixaId;
+      if ((l.itens || []).length) reg.itens = l.itens;
       if (novo) S.lanc.push(reg); else S.lanc[S.lanc.findIndex(x => x.id === l.id)] = reg;
       ui.mes = d.data.slice(0, 7);
     },
@@ -427,6 +436,64 @@ function formCompra(i) {
       Object.assign(i, { nome: d.nome.trim(), qtd: d.qtd.trim(), recorrente: !!d.rec });
     },
     aoExcluir: () => { S.compras = S.compras.filter(x => x.id !== i.id); }
+  });
+}
+
+/* ---------- Leitura automática (foto ou fala) ---------- */
+function ocupado(msg) {
+  $('#sheet-root').innerHTML = msg ? `<div class="fundo centro"><div class="aguarde"><i></i>${esc(msg)}</div></div>` : '';
+}
+function pedirCodigo(depois) {
+  folha('Leitura automática', `<p class="nota">Para ler notas por foto ou por fala, informe o código de acesso do aplicativo (fornecido por quem instalou).</p>
+    ${campo('Código de acesso', `<input name="codigo" value="${esc(S.cfg.codigo)}" autocomplete="off" autocapitalize="off">`)}`, {
+    aoSalvar: d => { S.cfg.codigo = d.codigo.trim(); if (depois && S.cfg.codigo) setTimeout(depois, 50); }
+  });
+}
+// Envia a foto ou a frase ao servidor e abre o lançamento já preenchido para conferência.
+async function lerNota({ imagem, texto }) {
+  if (!S.cfg.codigo) return pedirCodigo(() => lerNota({ imagem, texto }));
+  const base = { tipo: 'saida', casa: S.casaAtual, data: hoje(), desc: texto || '', fotoPendente: imagem };
+  ocupado(imagem ? 'Lendo a nota…' : 'Entendendo…');
+  let r, d = {};
+  try {
+    r = await fetch('api/ler-nota', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-codigo': S.cfg.codigo }, body: JSON.stringify({ imagem, texto, hoje: hoje() }) });
+    d = await r.json().catch(() => ({}));
+  } catch (e) { r = null; }
+  ocupado('');
+  if (r && r.status === 401) { toast('Código de acesso incorreto.'); return pedirCodigo(() => lerNota({ imagem, texto })); }
+  if (!r || !r.ok || !d.entendido) {
+    toast(!r ? 'Sem internet. Preencha manualmente.' : !r.ok ? (d.erro || 'Não foi possível ler. Preencha manualmente.') : 'Não consegui entender. Confira e preencha.');
+    return formLanc(base);
+  }
+  formLanc({ ...base,
+    valor: d.valor > 0 ? Math.round(d.valor * 100) : 0,
+    data: /^\d{4}-\d{2}-\d{2}$/.test(d.data || '') && d.data <= hoje() ? d.data : hoje(),
+    cat: CATS_SAIDA.includes(d.categoria) ? d.categoria : 'Outros',
+    desc: d.descricao || d.estabelecimento || texto || '', itens: Array.isArray(d.itens) ? d.itens : [] });
+  toast('Confira os dados e toque em Salvar.');
+}
+function falar() {
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const { form, fechar } = folha('Falar a compra', `
+    <p class="nota">Diga ou digite o que comprou, onde e quanto custou. Ex.: “fui na padaria, comprei dez pães e um leite, deu dezoito reais”.</p>
+    <textarea name="texto" rows="4" placeholder="Toque no microfone ${Rec ? 'abaixo ou no ' : 'do '}teclado e fale…"></textarea>
+    ${Rec ? `<button type="button" class="botao sec largo" id="mic">🎤 Tocar para falar</button>` : ''}
+    <button type="button" class="botao largo" id="interpretar">Lançar</button>`);
+  let rec = null;
+  if (Rec) form.querySelector('#mic').addEventListener('click', e => {
+    if (rec) { rec.stop(); return; }
+    const antes = form.texto.value ? form.texto.value.trim() + ' ' : '';
+    rec = new Rec(); rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = false;
+    rec.onresult = ev => { form.texto.value = antes + Array.from(ev.results).map(x => x[0].transcript).join(' '); };
+    rec.onend = () => { rec = null; e.target.textContent = '🎤 Tocar para falar'; };
+    rec.onerror = () => toast('Não consegui ouvir. Use o microfone do teclado.');
+    try { rec.start(); e.target.textContent = '■ Ouvindo… toque para parar'; } catch (err) { rec = null; }
+  });
+  form.querySelector('#interpretar').addEventListener('click', () => {
+    const texto = form.texto.value.trim();
+    if (!texto) return toast('Fale ou digite a compra.');
+    if (rec) rec.stop();
+    fechar(); lerNota({ texto });
   });
 }
 
@@ -526,6 +593,9 @@ const acoes = {
   'novo-lanc': tipo => formLanc({ tipo, casa: S.casaAtual, data: hoje(), desc: '' }),
   'editar-lanc': id => formLanc(S.lanc.find(l => l.id === id)),
   'pagar-fixa': id => { const f = S.fixas.find(x => x.id === id); formLanc({ tipo: 'saida', casa: f.casa, data: hoje(), desc: f.nome, cat: f.cat, valor: f.valor, fixaId: f.id }); },
+  'foto-nota': () => $('#arq-nota').click(),
+  falar: () => falar(),
+  codigo: () => pedirCodigo(),
   marcar: k => { if (S.marcas[k]) delete S.marcas[k]; else S.marcas[k] = true; salvar(); },
 
   check: id => { const i = S.compras.find(x => x.id === id); i.feito = !i.feito; salvar(); },
@@ -637,6 +707,10 @@ document.addEventListener('submit', e => {
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'arq-backup' && e.target.files[0]) importar(e.target.files[0]);
+  if (e.target.id === 'arq-nota' && e.target.files[0]) {
+    reduzirFoto(e.target.files[0]).then(imagem => lerNota({ imagem }), () => toast('Não foi possível abrir a foto.'));
+    e.target.value = '';
+  }
 });
 
 /* ---------- Início ---------- */

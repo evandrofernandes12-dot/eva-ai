@@ -1,0 +1,9 @@
+{
+  "name": "gestao-casas",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "zod": "latest"
+  }
+}
