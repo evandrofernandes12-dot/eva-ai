@@ -61,7 +61,7 @@ Subir mídia numa pasta `media-<hex aleatório>` na branch de trabalho e usar as
 - Neurociência só com linguagem cautelosa ("estudos sugerem").
 - Legenda com pergunta final, aviso "Conteúdo educativo, não substitui acompanhamento psicológico." e 8 a 10 hashtags de nicho.
 - Carrossel: 8 a 9 slides, no máximo ~30 palavras por slide. Story: no máximo ~15 palavras. Reel: 6 a 8 cenas.
-- Dias de fé: seguir as regras de `temas-fe.md` (sem substituir terapia, sem culpar falta de fé, no máximo um versículo com referência).
+- Dias de fé: seguir as regras de `temas-fe.md` (sem substituir terapia, sem culpar falta de fé, no máximo um versículo com referência). Versículos SEMPRE na tradução NVI, com o texto conferido.
 
 ## Tipos de slide (`kind`) e blocos
 `cover`, `text`, `quote`, `cta`. Blocos: `h1`, `h2`, `p`, `s`, `big`, `orn`, `box`. Destaque dourado: `<b class="g">`.

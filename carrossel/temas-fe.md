@@ -26,8 +26,10 @@
 - NUNCA sugerir que a fé substitui terapia, acompanhamento médico ou medicação.
 - NUNCA dizer ou insinuar que sofrimento mental é falta de fé, castigo ou fraqueza espiritual.
 - NUNCA dizer que Deus "cura" depressão, ansiedade ou qualquer transtorno mental.
-- No máximo UM versículo por post (carrossel, story ou reel), sempre com referência e versão
-  (ex.: "Salmos 34:18, ARA"). Conferir o texto exato em fonte confiável antes de usar.
+- No máximo UM versículo por post (carrossel, story ou reel), sempre com referência e versão.
+  A TRADUÇÃO PADRÃO É A NVI (Nova Versão Internacional), pedido do usuário em 15/11/2026
+  (ex.: "Salmos 103:12, NVI"). Conferir o texto EXATO da NVI em fonte confiável (busca na web) antes de usar,
+  sem misturar redações de outras versões. Os versículos já usados (Mateus 5:4 NAA e Salmos 103:12 ARA) foram antes dessa regra.
   Preferir versículos de acolhimento, esperança e reflexão. Não usar versículos como "prova" de cura.
 - A legenda sempre termina com: "A fé pode acompanhar o cuidado, não substitui terapia nem tratamento médico."
   e com "Conteúdo educativo, não substitui acompanhamento psicológico."
