@@ -1,0 +1,143 @@
+<template>
+  <style>
+#root { position: absolute; inset: 0; background: #05060b; font-family: "Inter", sans-serif; color: #eef0f6; overflow: hidden; }
+.shot { position: absolute; inset: 0; }
+.in { position: absolute; inset: 0; }
+.pic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.pic img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0.25) 0%, rgba(5,6,11,0) 35%, rgba(5,6,11,0.82) 100%); }
+.scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,6,11,0.88) 0%, rgba(5,6,11,0.6) 45%, rgba(5,6,11,0) 75%); }
+.dimmer { position: absolute; inset: 0; background: #05060b; }
+.txt { position: absolute; left: 192px; right: 192px; display: flex; flex-direction: column; gap: 22px; }
+.txt.low { bottom: 150px; align-items: flex-start; text-align: left; }
+.txt.center { top: 0; bottom: 0; justify-content: center; align-items: center; text-align: center; }
+.txt.left { top: 0; bottom: 0; justify-content: center; align-items: flex-start; text-align: left; gap: 34px; }
+.cap { font-size: 54px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.dim { color: #b9b4d6; font-weight: 400; }
+.serif { font-family: "Playfair Display", serif; font-weight: 700; line-height: 1.15; text-shadow: 0 2px 30px rgba(0,0,0,0.9); }
+.lg { font-size: 76px; }
+.xl { font-size: 132px; }
+.title { font-size: 104px; }
+.kicker { font-size: 30px; font-weight: 700; letter-spacing: 0.34em; color: #b79bff; }
+.item { font-size: 64px; font-weight: 700; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.item b { color: #f5b453; font-weight: 900; margin-right: 26px; }
+.mail { position: absolute; left: 50%; top: 50%; width: 980px; margin-left: -490px; margin-top: -105px; height: 210px; border-radius: 34px;
+  background: #14121f; border: 1px solid rgba(183,155,255,0.45); box-shadow: 0 0 120px rgba(140,100,255,0.55); display: flex; align-items: center; gap: 36px; padding: 0 48px; }
+.mail-ic { width: 96px; height: 96px; border-radius: 26px; background: #7c5cff; display: flex; align-items: center; justify-content: center; flex: none; }
+.mail-ic svg { width: 56px; height: 56px; }
+.mail-a { font-size: 28px; color: #9d98bd; letter-spacing: 0.04em; }
+.mail-b { font-size: 50px; font-weight: 700; margin-top: 10px; }
+.glow { position: absolute; left: 50%; top: 50%; width: 1500px; height: 900px; margin-left: -750px; margin-top: -450px;
+  background: radial-gradient(ellipse at center, rgba(124,92,255,0.42) 0%, rgba(124,92,255,0) 65%); }
+  </style>
+  <div id="root" data-composition-id="gancho" data-width="1920" data-height="1080">
+    <div id="gancho-email" class="clip shot" style="z-index:1" data-start="0.00" data-duration="5.70" data-track-index="1">
+      <div class="in" id="gancho-email-in">
+        <div class="glow" id="gancho-email-glow" data-layout-ignore></div>
+        <div class="mail" id="gancho-email-mail">
+          <div class="mail-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5 12 13l8.5-5.5"/></svg></div>
+          <div><div class="mail-a">NOVO E-MAIL · agora</div><div class="mail-b">Parabéns, você foi aprovado.</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="gancho-noite" class="clip shot" style="z-index:2" data-start="5.00" data-duration="7.20" data-track-index="2">
+      <div class="in" id="gancho-noite-in">
+        <div class="pic" id="gancho-noite-pic" data-layout-ignore><img src="assets/img/01.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="gancho-noite-txt"><div class="cap" id="gancho-noite-l0">Meses de trabalho.</div><div class="cap" id="gancho-noite-l1">Noites. Fins de semana. Paz.</div></div>
+      </div>
+    </div>
+    <div id="gancho-vitoria" class="clip shot" style="z-index:3" data-start="11.50" data-duration="5.70" data-track-index="3">
+      <div class="in" id="gancho-vitoria-in">
+        <div class="pic" id="gancho-vitoria-pic" data-layout-ignore><img src="assets/img/02.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="gancho-vitoria-txt"><div class="serif xl" id="gancho-vitoria-l0">Você conseguiu.</div></div>
+      </div>
+    </div>
+    <div id="gancho-apaga" class="clip shot" style="z-index:4" data-start="16.50" data-duration="4.50" data-track-index="4">
+      <div class="in" id="gancho-apaga-in">
+        <div class="glow" id="gancho-apaga-glow" data-layout-ignore></div>
+        <div class="mail" id="gancho-apaga-mail">
+          <div class="mail-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5 12 13l8.5-5.5"/></svg></div>
+          <div><div class="mail-a">NOVO E-MAIL · agora</div><div class="mail-b">Parabéns, você foi aprovado.</div></div>
+        </div>
+        <div class="txt center" id="gancho-apaga-txt"><div class="serif lg" id="gancho-apaga-l0">E então, algo estranho começou.</div></div>
+      </div>
+    </div>
+    <div id="gancho-mensagens" class="clip shot" style="z-index:5" data-start="20.30" data-duration="6.70" data-track-index="5">
+      <div class="in" id="gancho-mensagens-in">
+        <div class="pic" id="gancho-mensagens-pic" data-layout-ignore><img src="assets/img/03.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="gancho-mensagens-txt"><div class="cap" id="gancho-mensagens-l0">Parou de responder o que era importante.</div><div class="cap" id="gancho-mensagens-l1">Atrasou o que era simples.</div></div>
+      </div>
+    </div>
+    <div id="gancho-briga" class="clip shot" style="z-index:6" data-start="26.30" data-duration="6.30" data-track-index="6">
+      <div class="in" id="gancho-briga-in">
+        <div class="pic" id="gancho-briga-pic" data-layout-ignore><img src="assets/img/04.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="gancho-briga-txt"><div class="cap" id="gancho-briga-l0">Brigou com quem estava do seu lado.</div><div class="cap dim" id="gancho-briga-l1">Ou simplesmente… parou.</div></div>
+      </div>
+    </div>
+    <div id="gancho-pausa" class="clip shot" style="z-index:7" data-start="31.90" data-duration="2.70" data-track-index="7">
+      <div class="in" id="gancho-pausa-in">
+        
+      </div>
+    </div>
+    <div id="gancho-corredor" class="clip shot" style="z-index:8" data-start="33.90" data-duration="4.90" data-track-index="8">
+      <div class="in" id="gancho-corredor-in">
+        <div class="pic" id="gancho-corredor-pic" data-layout-ignore><img src="assets/img/05.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="gancho-corredor-txt"><div class="serif lg" id="gancho-corredor-l0">Não foi azar.</div><div class="serif lg" id="gancho-corredor-l1">E não foi preguiça.</div></div>
+      </div>
+    </div>
+    <div id="gancho-estudio" class="clip shot" style="z-index:9" data-start="38.10" data-duration="5.80" data-track-index="9">
+      <div class="in" id="gancho-estudio-in">
+        <div class="pic" id="gancho-estudio-pic" data-layout-ignore><img src="assets/img/06.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="txt low" id="gancho-estudio-txt"><div class="serif lg" id="gancho-estudio-l0">Há mais de cem anos,<br>um homem descreveu exatamente isso.</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#gancho-email-mail", { opacity: 0, y: -70, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "back.out(1.4)" }, 1.30);
+    tl.fromTo("#gancho-email-glow", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 1.6, ease: "power2.out" }, 1.30);
+    tl.to("#gancho-email-glow", { scale: 1.12, duration: 2.10, ease: "sine.inOut" }, 2.90);
+    tl.fromTo("#gancho-email-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 0.00);
+    tl.fromTo("#gancho-noite-pic", { scale: 1.04, x: 0, y: 0 }, { scale: 1.14, x: -30, y: 0, duration: 7.20, ease: "none" }, 5.00);
+    tl.fromTo("#gancho-noite-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 5.80);
+    tl.fromTo("#gancho-noite-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 8.00);
+    tl.to("#gancho-noite-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 11.00);
+    tl.fromTo("#gancho-noite-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 5.00);
+    tl.fromTo("#gancho-vitoria-pic", { scale: 1.18, x: 0, y: 0 }, { scale: 1.04, x: 0, y: 20, duration: 5.70, ease: "none" }, 11.50);
+    tl.fromTo("#gancho-vitoria-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 13.10);
+    tl.to("#gancho-vitoria-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 16.00);
+    tl.fromTo("#gancho-vitoria-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 11.50);
+    tl.fromTo("#gancho-apaga-mail", { opacity: 0.9, scale: 1, y: 0 }, { opacity: 0.12, scale: 0.9, y: -250, duration: 2.6, ease: "power2.inOut" }, 16.50);
+    tl.fromTo("#gancho-apaga-glow", { opacity: 0.8, scale: 1 }, { opacity: 0, scale: 0.7, duration: 2.6, ease: "power2.inOut" }, 16.50);
+    tl.fromTo("#gancho-apaga-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 17.00);
+    tl.to("#gancho-apaga-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 19.80);
+    tl.fromTo("#gancho-apaga-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 16.50);
+    tl.fromTo("#gancho-mensagens-pic", { scale: 1.05, x: 0, y: 0 }, { scale: 1.16, x: 40, y: 0, duration: 6.70, ease: "none" }, 20.30);
+    tl.fromTo("#gancho-mensagens-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 20.90);
+    tl.fromTo("#gancho-mensagens-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 23.50);
+    tl.to("#gancho-mensagens-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 25.80);
+    tl.fromTo("#gancho-mensagens-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 20.30);
+    tl.fromTo("#gancho-briga-pic", { scale: 1.14, x: 0, y: 0 }, { scale: 1.04, x: 0, y: 0, duration: 6.30, ease: "none" }, 26.30);
+    tl.fromTo("#gancho-briga-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 26.80);
+    tl.fromTo("#gancho-briga-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 29.30);
+    tl.to("#gancho-briga-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 31.40);
+    tl.fromTo("#gancho-briga-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 26.30);
+    tl.fromTo("#gancho-pausa-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 31.90);
+    tl.fromTo("#gancho-corredor-pic", { scale: 1.02, x: 0, y: 0 }, { scale: 1.12, x: 0, y: 0, duration: 4.90, ease: "none" }, 33.90);
+    tl.fromTo("#gancho-corredor-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 34.40);
+    tl.fromTo("#gancho-corredor-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 35.90);
+    tl.to("#gancho-corredor-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 37.60);
+    tl.fromTo("#gancho-corredor-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 33.90);
+    tl.fromTo("#gancho-estudio-pic", { scale: 1.12, x: 0, y: 0 }, { scale: 1.03, x: -20, y: 0, duration: 5.80, ease: "none" }, 38.10);
+    tl.fromTo("#gancho-estudio-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 38.90);
+    tl.fromTo("#gancho-estudio-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 38.10);
+    tl.to("#gancho-estudio-in", { opacity: 0, duration: 0.6, ease: "power1.in" }, 43.25);
+    window.__timelines["gancho"] = tl;
+  </script>
+</template>

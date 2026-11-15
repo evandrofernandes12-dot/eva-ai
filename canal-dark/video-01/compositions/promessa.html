@@ -1,0 +1,68 @@
+<template>
+  <style>
+#root { position: absolute; inset: 0; background: #05060b; font-family: "Inter", sans-serif; color: #eef0f6; overflow: hidden; }
+.shot { position: absolute; inset: 0; }
+.in { position: absolute; inset: 0; }
+.pic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.pic img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0.25) 0%, rgba(5,6,11,0) 35%, rgba(5,6,11,0.82) 100%); }
+.scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,6,11,0.88) 0%, rgba(5,6,11,0.6) 45%, rgba(5,6,11,0) 75%); }
+.dimmer { position: absolute; inset: 0; background: #05060b; }
+.txt { position: absolute; left: 192px; right: 192px; display: flex; flex-direction: column; gap: 22px; }
+.txt.low { bottom: 150px; align-items: flex-start; text-align: left; }
+.txt.center { top: 0; bottom: 0; justify-content: center; align-items: center; text-align: center; }
+.txt.left { top: 0; bottom: 0; justify-content: center; align-items: flex-start; text-align: left; gap: 34px; }
+.cap { font-size: 54px; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.dim { color: #b9b4d6; font-weight: 400; }
+.serif { font-family: "Playfair Display", serif; font-weight: 700; line-height: 1.15; text-shadow: 0 2px 30px rgba(0,0,0,0.9); }
+.lg { font-size: 76px; }
+.xl { font-size: 132px; }
+.title { font-size: 104px; }
+.kicker { font-size: 30px; font-weight: 700; letter-spacing: 0.34em; color: #b79bff; }
+.item { font-size: 64px; font-weight: 700; text-shadow: 0 2px 24px rgba(0,0,0,0.85); }
+.item b { color: #f5b453; font-weight: 900; margin-right: 26px; }
+.mail { position: absolute; left: 50%; top: 50%; width: 980px; margin-left: -490px; margin-top: -105px; height: 210px; border-radius: 34px;
+  background: #14121f; border: 1px solid rgba(183,155,255,0.45); box-shadow: 0 0 120px rgba(140,100,255,0.55); display: flex; align-items: center; gap: 36px; padding: 0 48px; }
+.mail-ic { width: 96px; height: 96px; border-radius: 26px; background: #7c5cff; display: flex; align-items: center; justify-content: center; flex: none; }
+.mail-ic svg { width: 56px; height: 56px; }
+.mail-a { font-size: 28px; color: #9d98bd; letter-spacing: 0.04em; }
+.mail-b { font-size: 50px; font-weight: 700; margin-top: 10px; }
+.glow { position: absolute; left: 50%; top: 50%; width: 1500px; height: 900px; margin-left: -750px; margin-top: -450px;
+  background: radial-gradient(ellipse at center, rgba(124,92,255,0.42) 0%, rgba(124,92,255,0) 65%); }
+  </style>
+  <div id="root" data-composition-id="promessa" data-width="1920" data-height="1080">
+    <div id="promessa-livros" class="clip shot" style="z-index:1" data-start="0.00" data-duration="14.70" data-track-index="1">
+      <div class="in" id="promessa-livros-in">
+        <div class="pic" id="promessa-livros-pic" data-layout-ignore><img src="assets/img/14.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="scrim" data-layout-ignore></div>
+        <div class="txt left" id="promessa-livros-txt"><div class="kicker" id="promessa-livros-l0">NESTE VÍDEO</div><div class="item" id="promessa-livros-l1"><b>01</b> O que Freud descobriu</div><div class="item" id="promessa-livros-l2"><b>02</b> O que a neurociência sugere</div><div class="item" id="promessa-livros-l3"><b>03</b> O que pode ajudar</div></div>
+      </div>
+    </div>
+    <div id="promessa-titulo" class="clip shot" style="z-index:2" data-start="14.00" data-duration="7.50" data-track-index="2">
+      <div class="in" id="promessa-titulo-in">
+        <div class="pic" id="promessa-titulo-pic" data-layout-ignore><img src="assets/img/16.jpg" alt="" /></div>
+        <div class="shade" data-layout-ignore></div>
+        <div class="dimmer" id="promessa-titulo-dm" data-layout-ignore></div>
+        <div class="txt center" id="promessa-titulo-txt"><div class="serif title" id="promessa-titulo-l0">Por que você se sabota<br>quando está tudo indo bem</div><div class="cap dim" id="promessa-titulo-l1">Fique até o final.</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#promessa-livros-pic", { scale: 1.04, x: 0, y: 0 }, { scale: 1.15, x: 30, y: 0, duration: 14.70, ease: "none" }, 0.00);
+    tl.fromTo("#promessa-livros-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 0.60);
+    tl.fromTo("#promessa-livros-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 5.20);
+    tl.fromTo("#promessa-livros-l2", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 7.60);
+    tl.fromTo("#promessa-livros-l3", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 10.00);
+    tl.to("#promessa-livros-txt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 13.50);
+    tl.fromTo("#promessa-livros-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 0.00);
+    tl.fromTo("#promessa-titulo-pic", { scale: 1.03, x: 0, y: 0 }, { scale: 1.1, x: 0, y: 0, duration: 7.50, ease: "none" }, 14.00);
+    tl.fromTo("#promessa-titulo-dm", { opacity: 0.2 }, { opacity: 0.72, duration: 1.4, ease: "power2.out" }, 14.00);
+    tl.fromTo("#promessa-titulo-l0", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 14.60);
+    tl.fromTo("#promessa-titulo-l1", { opacity: 0, y: 34, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out" }, 17.60);
+    tl.fromTo("#promessa-titulo-in", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 14.00);
+    tl.to("#promessa-titulo-in", { opacity: 0, duration: 0.6, ease: "power1.in" }, 20.85);
+    window.__timelines["promessa"] = tl;
+  </script>
+</template>
