@@ -75,3 +75,23 @@ static func play(ap: AnimationPlayer, anim: StringName, loop := true, speed := 1
 		a.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
 	if ap.current_animation != anim or not ap.is_playing():
 		ap.play(anim, 0.15, speed)
+
+## Tinge o modelo (multiplica a cor original de cada material).
+static func tint(root: Node, color: Color) -> void:
+	var meshes: Array = []
+	_collect(root, meshes)
+	for m: MeshInstance3D in meshes:
+		if m.mesh == null:
+			continue
+		for i in m.mesh.get_surface_count():
+			var key := "cor_%d" % i
+			if not m.has_meta(key):
+				var mat := m.get_active_material(i)
+				if not (mat is BaseMaterial3D):
+					continue
+				var dup: BaseMaterial3D = mat.duplicate()
+				m.set_surface_override_material(i, dup)
+				m.set_meta(key, dup.albedo_color)
+			var over := m.get_surface_override_material(i) as BaseMaterial3D
+			if over:
+				over.albedo_color = (m.get_meta(key) as Color) * color

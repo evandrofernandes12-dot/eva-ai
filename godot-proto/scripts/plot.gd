@@ -1,8 +1,11 @@
 extends Node3D
-## Lote de construção. Chegue perto e toque em CONSTRUIR.
+## Lote de construção. Chegue perto e toque em CONSTRUIR; depois, em MELHORAR (até o nível 3).
 ## Mude nome, modelo, custos e efeito no Inspetor.
 
 signal built(plot)
+signal upgraded(plot)
+
+const NIVEL_MAX := 3
 
 @export var nome := "Casa"
 @export var modelo: PackedScene
@@ -10,12 +13,16 @@ signal built(plot)
 @export var custo_madeira := 20
 @export var custo_pedra := 0
 @export var custo_comida := 0
-## "vida" = +25 de vida máxima · "madeira" = produz madeira · "torre" = atira nos inimigos · "descanso" = cura mais rápido
+## "vida" = +25 de vida máxima por nível · "madeira" = produz madeira · "torre" = atira nos inimigos · "descanso" = cura mais rápido
 @export_enum("nenhum", "vida", "madeira", "torre", "descanso") var efeito := "nenhum"
 
-var construido := false
+var nivel := 0
+var construido: bool:
+	get: return nivel > 0
 var _sign: Label3D
 var _ring: MeshInstance3D
+var _b: Node3D
+var _base := Vector3.ONE
 
 func _ready() -> void:
 	_ring = MeshInstance3D.new()
@@ -38,29 +45,31 @@ func _ready() -> void:
 	_sign.pixel_size = 0.012
 	_sign.position.y = 2.4
 	_sign.visibility_range_end = 32.0
-	_sign.text = "%s\n%s" % [nome, custo_texto()]
+	_sign.text = "%s\n%s" % [nome, texto(custo())]
 	add_child(_sign)
 
+## Custo para construir (nível 0) ou para o próximo nível.
 func custo() -> Dictionary:
-	return {"madeira": custo_madeira, "pedra": custo_pedra, "comida": custo_comida}
+	var k := 1.0 if nivel == 0 else 1.5 * nivel
+	return {"madeira": int(custo_madeira * k), "pedra": int(custo_pedra * k), "comida": int(custo_comida * k)}
 
-func custo_texto() -> String:
+static func texto(c: Dictionary) -> String:
 	var p: Array = []
-	if custo_madeira > 0: p.append("%d madeira" % custo_madeira)
-	if custo_pedra > 0: p.append("%d pedra" % custo_pedra)
-	if custo_comida > 0: p.append("%d comida" % custo_comida)
+	for k in c:
+		if c[k] > 0:
+			p.append("%d %s" % [c[k], k])
 	return ", ".join(p)
 
 func construir(animar := true) -> void:
 	if construido or modelo == null:
 		return
-	construido = true
-	_sign.queue_free()
+	nivel = 1
 	_ring.queue_free()
-	var b: Node3D = modelo.instantiate()
-	add_child(b)
-	Fit.to_height(b, altura)
-	var box := Fit.bounds(b)
+	_b = modelo.instantiate()
+	add_child(_b)
+	Fit.to_height(_b, altura)
+	_base = _b.scale
+	var box := Fit.bounds(_b)
 	var body := StaticBody3D.new()
 	var cs := CollisionShape3D.new()
 	var sh := BoxShape3D.new()
@@ -68,9 +77,35 @@ func construir(animar := true) -> void:
 	cs.shape = sh
 	cs.position = box.get_center()
 	body.add_child(cs)
-	b.add_child(body)
+	_b.add_child(body)
+	_sign.position.y = altura + 1.2
+	_sign.font_size = 40
+	_rotulo()
 	if animar:
-		var alvo := b.scale
-		b.scale = alvo * Vector3(1, 0.02, 1)
-		create_tween().tween_property(b, "scale", alvo, 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_b.scale = _base * Vector3(1, 0.02, 1)
+		create_tween().tween_property(_b, "scale", _base, 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	built.emit(self)
+
+func melhorar(animar := true) -> void:
+	if not construido or nivel >= NIVEL_MAX:
+		return
+	nivel += 1
+	var alvo := _base * (1.0 + 0.1 * (nivel - 1))
+	_sign.position.y = altura * (1.0 + 0.1 * (nivel - 1)) + 1.2
+	_rotulo()
+	if animar:
+		var tw := create_tween()
+		tw.tween_property(_b, "scale", alvo * 1.12, 0.2)
+		tw.tween_property(_b, "scale", alvo, 0.25)
+	else:
+		_b.scale = alvo
+	upgraded.emit(self)
+
+func definir_nivel(n: int) -> void:
+	if n >= 1:
+		construir(false)
+	while nivel < mini(n, NIVEL_MAX):
+		melhorar(false)
+
+func _rotulo() -> void:
+	_sign.text = "%s · Nv %d" % [nome, nivel]

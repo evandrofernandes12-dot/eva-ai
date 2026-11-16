@@ -3,15 +3,16 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem
+## O que tem (v4)
 - Aldeia com casas, forja, poço, fogueira (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
-- Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida.
-- Lotes de construção (nó **Lotes**, círculos amarelos): chegue perto e toque em CONSTRUIR (ou E).
-  - Casa: +25 de vida máxima · Serraria: produz madeira · Torre de Vigia: atira nos orcs · Estalagem: cura mais rápido.
-- 8 missões em sequência, com recompensa.
-- Orcs que aparecem na borda da aldeia, perseguem e batem.
-- Cura sozinho dentro da aldeia quando não há orc por perto.
+- Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
+- Lotes de construção (nó **Lotes**): CONSTRUIR e depois MELHORAR até o nível 3 (ou tecla E).
+  - Casa: +25 de vida máxima e +2 vagas de aldeão por nível · Serraria: produz madeira · Torre: atira nos orcs · Estalagem: cura mais rápido.
+- Classes (botão CLASSE): Guerreiro (de perto), Arqueiro (flechas), Mago (orbes em área). Arma evolui até o nível 3.
+- Aldeões (botão ALDEÕES): Lenhador, Pedreiro e Coletor vão até o recurso, trabalham e entregam na aldeia.
+- 12 missões em sequência, com recompensa.
+- Orcs ficam mais fortes conforme você derrota mais deles.
 - Salva sozinho a cada 10 s; botão **Novo jogo** apaga o progresso.
 
 ## Como abrir no tablet
@@ -26,6 +27,6 @@ Não substitui o jogo da web; é só uma amostra.
 - No nó **Jogador**: `speed`, `damage`, `max_hp`.
 - Para pôr outra construção: arraste um `.glb` de `models/` para dentro de **Aldeia**.
 - Em cada lote de **Lotes**: `nome`, `modelo`, custos e `efeito` ficam no Inspetor. Duplique um lote para criar outro.
-- As missões ficam na lista `QUESTS`, no começo de `scripts/main.gd`.
+- As missões ficam na lista `QUESTS` e as classes em `CLASSES`, no começo de `scripts/main.gd`.
 
 Modelos: Quaternius (CC0), os mesmos de `public/assets` deste repositório.
