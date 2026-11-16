@@ -12,7 +12,7 @@ const BUSH := preload("res://models/Bush_1.glb")
 const FLOWERS := preload("res://models/Flowers.glb")
 const ORC := preload("res://models/Orc.gltf")
 const SAVE := "user://save.json"
-const VERSAO := "v2"
+const VERSAO := "v3"
 
 @export var forest_radius := 70.0
 @export var village_radius := 24.0
@@ -63,14 +63,14 @@ func _enter_tree() -> void:
 	_action("attack", [KEY_SPACE])
 	_action("use", [KEY_E])
 
-func _action(name: String, keys: Array) -> void:
-	if InputMap.has_action(name):
+func _action(acao: String, keys: Array) -> void:
+	if InputMap.has_action(acao):
 		return
-	InputMap.add_action(name)
+	InputMap.add_action(acao)
 	for k in keys:
 		var e := InputEventKey.new()
 		e.physical_keycode = k
-		InputMap.action_add_event(name, e)
+		InputMap.action_add_event(acao, e)
 
 func _ready() -> void:
 	_rng.seed = 7
@@ -183,13 +183,13 @@ func _buildings(delta: float) -> void:
 		for p in plots:
 			if p.construido and p.efeito == "torre":
 				for e in enemies:
-					if e.global_position.distance_to(p.global_position) < 16.0:
+					if is_instance_valid(e) and e.global_position.distance_to(p.global_position) < 16.0:
 						e.hurt(6)
 						break
 	# cura na aldeia, longe de inimigos; a Estalagem dobra
 	var safe := player.global_position.length() < village_radius
 	for e in enemies:
-		if e.global_position.distance_to(player.global_position) < 12.0:
+		if is_instance_valid(e) and e.global_position.distance_to(player.global_position) < 12.0:
 			safe = false
 	if safe and player.hp > 0 and player.hp < player.max_hp:
 		_regen += delta * (4.0 if _built("descanso") > 0 else 2.0)
@@ -264,14 +264,17 @@ func _on_player_attack() -> void:
 	var p := player.global_position
 	var hit := false
 	for e in enemies:
-		if e.global_position.distance_to(p) < player.attack_range:
+		if is_instance_valid(e) and e.global_position.distance_to(p) < player.attack_range:
 			e.hurt(player.damage)
 			hit = true
 	if hit:
 		return
 	for t in nodes:
-		var n: Node3D = t.node
-		if t.hp > 0 and is_instance_valid(n) and n.global_position.distance_to(p) < 2.8:
+		# sem tipo aqui: uma árvore já removida não pode ser atribuída a uma variável Node3D
+		var n = t.node
+		if not is_instance_valid(n) or t.hp <= 0:
+			continue
+		if n.global_position.distance_to(p) < 2.8:
 			t.hp -= 1
 			res[t.tipo] += 2
 			var tw := create_tween()
@@ -279,6 +282,7 @@ func _on_player_attack() -> void:
 			tw.tween_property(n, "rotation:z", 0.0, 0.12)
 			if t.hp <= 0:
 				res[t.tipo] += 4
+				nodes.erase(t)
 				var tw2 := create_tween()
 				tw2.tween_property(n, "scale", n.scale * 0.01, 0.4)
 				tw2.tween_callback(n.queue_free)
