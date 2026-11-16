@@ -6,7 +6,7 @@
 - proximo_tema_fe: 3            (ver temas-fe.md)
 
 ## Já publicados
-- 2026-11-16 (segunda, comum, sem reel): "Inveja e comparação" (temas-psicanalise.md nº 6, adiantado para não repetir culpa logo após "culpa e perdão" de 15/11; o nº 4, culpa inconsciente, fica para depois). Pacote gerado (carrossel e 2 stories), aguardando aprovação do usuário.
+- 2026-11-16 (segunda, comum, sem reel): "Inveja e comparação" (temas-psicanalise.md nº 6, adiantado para não repetir culpa logo após "culpa e perdão" de 15/11; o nº 4, culpa inconsciente, fica para depois). Publicados em 16/11: carrossel (https://www.instagram.com/p/DfzDcQKlwR0/) e story da manhã. Story da noite guardado em media-963ec681c4155ffe/story-noite.mp4, a publicar às 19:50.
 - 2026-11-15 (domingo, fé, sem reel): "Culpa e perdão" (temas-fe.md nº 2). Publicados em 15/11: carrossel e story da manhã. Story da noite publicado às 19:53 (id 17966021064038278); mídia removida da branch. Versículo: Salmos 103:12 (ARA). A partir daqui, versículos em NVI.
 - 2026-11-14 (sábado, comum, com reel): "Ciúme e rivalidade" (temas-psicanalise.md nº 3). Publicados em 14/11: carrossel (https://www.instagram.com/p/Dft6j-lFw0E/), reel (https://www.instagram.com/reel/Dft6oKLCvuQ/) e story da manhã. Story da noite publicado às 19:55 (id 18028133231873957); mídia removida da branch.
 - 2026-11-13 (sexta, comum, sem reel): "Procrastinação e ambivalência" (temas-psicanalise.md nº 2). Publicados em 13/11: carrossel (https://www.instagram.com/p/DfrVAe4F1U_/) e story da manhã. Story da noite publicado às 19:53 (id 18144844879615663); mídia removida da branch.
