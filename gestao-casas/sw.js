@@ -1,6 +1,6 @@
 // Service worker: permite abrir o app sem internet.
 // Estratégia: tenta a rede primeiro (para receber atualizações) e cai no cache se estiver offline.
-const CACHE = 'gestao-casas-v4';
+const CACHE = 'gestao-casas-v5';
 const ARQUIVOS = [
   './', 'index.html', 'styles.css', 'calc.js', 'app.js', 'manifest.webmanifest',
   'icons/icon-180.png', 'icons/icon-512.png',

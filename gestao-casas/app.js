@@ -38,7 +38,7 @@ const DB = (() => {
 })();
 
 let S;
-const ui = { tab: 'inicio', mes: hoje().slice(0, 7), sub: null, painel: false, pCasa: 'todas', pMeses: 6, pMes: null };
+const ui = { tab: 'inicio', mes: hoje().slice(0, 7), sub: null, painel: false, pMeses: 6, pMes: null };
 
 function estadoInicial() {
   const a = uid(), b = uid();
@@ -163,8 +163,7 @@ function telaInicio() {
 }
 
 /* ---------- Painel (dashboard) ----------
-   Gráficos em SVG puro. Cores de série fixas por casa (1ª casa = --s1, 2ª = --s2), validadas
-   para contraste e daltonismo; textos sempre na cor de texto, nunca na cor da série. */
+   Gráficos em SVG puro, sempre de uma casa por vez. Cores validadas para contraste e daltonismo; textos sempre na cor de texto, nunca na cor da série. */
 const MES3 = MESES.map(m => m.slice(0, 3).toLowerCase());
 const compacto = c => { const v = c / 100; return v >= 1000 ? (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : Math.round(v).toLocaleString('pt-BR'); };
 function escala(max) {            // teto "redondo" e 4 divisões para o eixo
@@ -185,8 +184,9 @@ function ultimosMeses(n) {
 
 function telaPainel() {
   const h = hoje(), mesAtual = h.slice(0, 7), dia = Number(h.slice(8));
-  const casas = ui.pCasa === 'todas' ? S.casas : S.casas.filter(c => c.id === ui.pCasa);
-  const ids = casas.map(c => c.id), cor = id => `var(--s${S.casas.findIndex(c => c.id === id) + 1})`;
+  // Sempre uma casa por vez: as contas das duas casas nunca são somadas.
+  const casas = S.casas.filter(c => c.id === S.casaAtual);
+  const ids = casas.map(c => c.id), cor = () => 'var(--s1)';
   const meses = ultimosMeses(ui.pMeses), sel = meses.includes(ui.pMes) ? ui.pMes : mesAtual;
   const saidas = S.lanc.filter(l => l.tipo === 'saida' && ids.includes(l.casa));
   const noPeriodo = saidas.filter(l => l.data.slice(0, 7) >= meses[0] && l.data.slice(0, 7) <= mesAtual);
@@ -203,7 +203,7 @@ function telaPainel() {
   const cartoes = [
     ['Gasto em ' + MESES[Number(mesAtual.slice(5)) - 1].toLowerCase(), C.brl(esteMes),
       varia === null ? 'sem base de comparação' : `${varia > 0 ? '▲' : varia < 0 ? '▼' : '='} ${Math.abs(varia)}% vs. mesmo período de ${MESES[Number(mesAnt.slice(5)) - 1].toLowerCase()}`],
-    ['Saldo da verba', C.brl(ids.reduce((t, id) => t + saldo(id), 0)), casas.length > 1 ? 'soma das casas' : casas[0].nome],
+    ['Saldo da verba', C.brl(ids.reduce((t, id) => t + saldo(id), 0)), casas[0].nome],
     ['Média mensal', C.brl(comGasto ? Math.round(total(noPeriodo) / comGasto) : 0), `${comGasto} ${comGasto === 1 ? 'mês' : 'meses'} com gastos no período`],
     ['Folha mensal', C.brl(equipe.reduce((t, f) => t + f.salario, 0)), `${equipe.length} ${equipe.length === 1 ? 'funcionário' : 'funcionários'} · salários brutos`]
   ];
@@ -242,7 +242,7 @@ function telaPainel() {
   const seg = (act, atual, ops) => `<div class="casas">${ops.map(([v, t]) => `<button class="${String(v) === String(atual) ? 'on' : ''}" data-act="${act}" data-id="${v}">${esc(t)}</button>`).join('')}</div>`;
 
   return `<h1 class="titulo">Painel</h1>
-    <div class="filtros">${seg('p-casa', ui.pCasa, [['todas', 'Todas'], ...S.casas.map(c => [c.id, c.nome])])}
+    <div class="filtros">${seg('casa', S.casaAtual, S.casas.map(c => [c.id, c.nome]))}
       ${seg('p-meses', ui.pMeses, [[3, '3 meses'], [6, '6 meses'], [12, '12 meses']])}</div>
     <div class="grade2 kpis">${cartoes.map(([r, v, d]) => `<div class="cartao"><small>${esc(r)}</small><b>${v}</b><span>${esc(d)}</span></div>`).join('')}</div>
     ${!noPeriodo.length ? `<p class="vazio">Ainda não há gastos lançados neste período.</p>` : `
@@ -753,7 +753,6 @@ const acoes = {
   aba: id => { ui.tab = id; ui.sub = null; ui.painel = false; window.scrollTo(0, 0); },
   voltar: () => { ui.sub = null; ui.painel = false; },
   painel: () => { ui.painel = true; ui.pMes = null; window.scrollTo(0, 0); },
-  'p-casa': id => { ui.pCasa = id; },
   'p-meses': n => { ui.pMeses = Number(n); ui.pMes = null; },
   'p-mes': m => { ui.pMes = m; },
   casa: id => { S.casaAtual = id; salvar(); },
