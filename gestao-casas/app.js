@@ -1,7 +1,13 @@
 /* Gestão das Casas — app de uso pessoal. Todos os dados ficam no próprio aparelho (IndexedDB). */
 const C = Calc;
-const CATS_SAIDA = ['Supermercado', 'Feira / Hortifruti', 'Limpeza', 'Manutenção', 'Materiais', 'Funcionários',
-  'Contas (luz, água, gás)', 'Jardim / Piscina', 'Farmácia', 'Transporte', 'Outros'];
+const CATS_SAIDA = ['Supermercado', 'Feira / Hortifruti', 'Limpeza', 'Materiais', 'Funcionários', 'Contas (luz, água, gás)',
+  'Ar condicionado', 'Jardim', 'Piscina', 'Gerador', 'Elétrica', 'Hidráulica', 'Dedetização', 'Automação', 'Elevadores',
+  'Pinturas / reparos', 'Manutenção', 'Serviços específicos', 'Farmácia', 'Transporte', 'Outros'];
+// Contas mensais típicas da casa, oferecidas como atalho no cadastro de contas fixas: [nome, categoria]
+const FIXAS_SUGERIDAS = [['Luz', 'Contas (luz, água, gás)'], ['Gás', 'Contas (luz, água, gás)'], ['Água', 'Contas (luz, água, gás)'],
+  ['Elevador', 'Elevadores'], ['Automação', 'Automação'], ['Gerador', 'Gerador'], ['Serviços específicos', 'Serviços específicos'], ['Dedetização', 'Dedetização']];
+// Mantém no seletor uma categoria antiga que já esteja gravada no registro
+const comAntiga = (lista, cat) => cat && !lista.includes(cat) ? [...lista, cat] : lista;
 const CATS_ENTRADA = ['Repasse do patrão', 'Reembolso', 'Outros'];
 const TIPOS_OCORR = ['Falta', 'Folga', 'Hora extra', 'Vale / adiantamento', 'Outro'];
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -363,7 +369,10 @@ function telaMais() {
     <h2>Contas fixas — ${esc(casaNome(S.casaAtual))}</h2>
     ${fx.length ? `<div class="lista">${fx.map(f => `<button data-act="editar-fixa" data-id="${f.id}">
         <div><b>${esc(f.nome)}</b><small>Todo dia ${f.dia} · ${esc(f.cat)}</small></div><span>${f.valor ? C.brl(f.valor) : ''}</span></button>`).join('')}</div>` : ''}
-    <button class="botao sec largo" data-act="nova-fixa">+ Nova conta fixa</button>
+    ${(sug => sug.length ? `<p class="nota">Toque para cadastrar e informar o dia do vencimento:</p>
+      <div class="chips">${sug.map(([n]) => `<button data-act="sugerir-fixa" data-id="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div>` : '')(
+      FIXAS_SUGERIDAS.filter(([n]) => !fx.some(f => f.nome.toLowerCase() === n.toLowerCase())))}
+    <button class="botao sec largo" data-act="nova-fixa">+ Outra conta fixa</button>
     <h2>Configurações</h2>
     <div class="lista">
       <button data-act="orcamento"><div><b>Orçamento mensal por categoria</b><small>${esc(casaNome(S.casaAtual))}</small></div><span>›</span></button>
@@ -470,7 +479,7 @@ function formLanc(l) {
   });
   const cats = () => {
     const ent = form.tipo.value === 'entrada';
-    form.cat.innerHTML = opcoes(ent ? CATS_ENTRADA : CATS_SAIDA, l.cat);
+    form.cat.innerHTML = opcoes(ent ? CATS_ENTRADA : comAntiga(CATS_SAIDA, l.tipo !== 'entrada' ? l.cat : ''), l.cat);
   };
   form.querySelectorAll('[name=tipo]').forEach(r => r.addEventListener('change', cats));
   cats();
@@ -510,7 +519,7 @@ function formFixa(f) {
     ${selCasa(f.casa)}
     ${campo('Dia do vencimento', `<input name="dia" inputmode="numeric" placeholder="1 a 31" value="${f.dia || ''}">`)}
     ${campo('Valor aproximado (R$) — opcional', `<input name="valor" inputmode="decimal" placeholder="0,00" value="${f.valor ? valorInput(f.valor) : ''}">`)}
-    ${campo('Categoria', `<select name="cat">${opcoes(CATS_SAIDA, f.cat || 'Contas (luz, água, gás)')}</select>`)}`, {
+    ${campo('Categoria', `<select name="cat">${opcoes(comAntiga(CATS_SAIDA, f.cat), f.cat || 'Contas (luz, água, gás)')}</select>`)}`, {
     aoSalvar: d => {
       const dia = Number(d.dia), valor = d.valor.trim() ? C.parseValor(d.valor) : 0;
       if (!d.nome.trim()) return 'Informe o nome.';
@@ -812,6 +821,7 @@ const acoes = {
   'del-ocorr': id => { if (!confirm('Excluir esta ocorrência?')) return; const f = S.func.find(x => x.id === ui.sub); f.ocorr = f.ocorr.filter(x => x.id !== id); salvar(); },
 
   'nova-fixa': () => formFixa({ casa: S.casaAtual, nome: '' }),
+  'sugerir-fixa': n => formFixa({ casa: S.casaAtual, nome: n, cat: (FIXAS_SUGERIDAS.find(x => x[0] === n) || [])[1] }),
   'editar-fixa': id => formFixa(S.fixas.find(x => x.id === id)),
   orcamento: () => {
     const casa = S.casaAtual, o = S.orc[casa] || {};

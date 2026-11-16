@@ -6,8 +6,10 @@ import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
 import { timingSafeEqual } from 'node:crypto';
 
-export const CATEGORIAS = ['Supermercado', 'Feira / Hortifruti', 'Limpeza', 'Manutenção', 'Materiais', 'Funcionários',
-  'Contas (luz, água, gás)', 'Jardim / Piscina', 'Farmácia', 'Transporte', 'Outros'];
+// Mesma lista de categorias do app (app.js).
+export const CATEGORIAS = ['Supermercado', 'Feira / Hortifruti', 'Limpeza', 'Materiais', 'Funcionários', 'Contas (luz, água, gás)',
+  'Ar condicionado', 'Jardim', 'Piscina', 'Gerador', 'Elétrica', 'Hidráulica', 'Dedetização', 'Automação', 'Elevadores',
+  'Pinturas / reparos', 'Manutenção', 'Serviços específicos', 'Farmácia', 'Transporte', 'Outros'];
 
 const Nota = z.object({
   entendido: z.boolean().describe('false se a imagem não for uma nota/recibo legível ou a frase não descrever um gasto'),
