@@ -3,7 +3,7 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v6)
+## O que tem (v7)
 - Aldeia com casas, forja, poço, fogueira (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
@@ -12,8 +12,12 @@ Não substitui o jogo da web; é só uma amostra.
 - Classes (botão CLASSE): Guerreiro (de perto), Arqueiro (flechas), Mago (orbes em área). Arma evolui até o nível 3.
 - Aldeões (botão ALDEÕES): Lenhador, Pedreiro e Coletor vão até o recurso, trabalham e entregam na aldeia.
 - 13 missões em sequência, com recompensa.
-- **Minotauro Dark** (chefe): aparece depois de 6 orcs derrotados, tem barra de vida no topo e volta mais forte a cada derrota.
-  O modelo (`models/Minotauro_Dark.glb`) foi reduzido de 663 mil para 42 mil faces e ganhou esqueleto de 16 ossos e animações (Idle, Walk, Attack, Hit) feitos no Blender por script (`scripts/rig-minotauro-blender.py`, na raiz do repositório).
+- **Minotauro Dark** (chefe): aparece depois de 6 orcs derrotados, com barra de vida no topo, e volta mais forte a cada derrota.
+  - Fase 1: golpeia com o machado de duas lâminas.
+  - Quando a vida dele chega a 90% (`largar_machado_em` em `scripts/boss.gd`), o machado cai no chão.
+  - Fase 2: dois socos; depois recua raspando o pé no chão e investe com os chifres.
+  - O modelo (`models/Minotauro_Dark.glb`) foi reduzido de 663 mil para 42 mil faces, pintado por regiões e ganhou esqueleto e 10 animações
+    no Blender por script (`scripts/rig-minotauro-blender.py`, na raiz do repositório). O machado é montado por código.
 - Orcs ficam mais fortes conforme você derrota mais deles.
 - Salva sozinho a cada 10 s; botão **Novo jogo** apaga o progresso.
 

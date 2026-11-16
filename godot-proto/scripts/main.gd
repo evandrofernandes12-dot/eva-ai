@@ -16,7 +16,7 @@ const VILLAGER := preload("res://scripts/villager.gd")
 const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v6"
+const VERSAO := "v7"
 
 ## Classes: vida base, dano por nível da arma, alcance. "area" = dano em área (mago).
 const CLASSES := {
@@ -437,6 +437,7 @@ func invocar_chefe() -> void:
 	b.position = Vector3(cos(a), 0, sin(a)) * (village_radius + 18.0)
 	add_child(b)
 	b.killed.connect(_chefe_morreu.bind(b))
+	b.largou_machado.connect(func(): say("O Minotauro largou o machado! Cuidado com os socos e a chifrada.", 5.0))
 	enemies.append(b)
 	boss = b
 	say("O MINOTAURO DARK se aproxima da aldeia!", 6.0)
