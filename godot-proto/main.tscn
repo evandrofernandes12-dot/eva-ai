@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="PackedScene" path="res://models/Knight.glb" id="1"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="2"]
@@ -15,6 +15,11 @@
 [ext_resource type="PackedScene" path="res://models/MarketStand_1.glb" id="13"]
 [ext_resource type="PackedScene" path="res://models/Well.glb" id="14"]
 
+[ext_resource type="Script" path="res://scripts/plot.gd" id="p_s"]
+[ext_resource type="PackedScene" path="res://models/House_4.glb" id="p_h"]
+[ext_resource type="PackedScene" path="res://models/Sawmill.glb" id="p_w"]
+[ext_resource type="PackedScene" path="res://models/Bell_Tower.glb" id="p_t"]
+[ext_resource type="PackedScene" path="res://models/Inn.glb" id="p_i"]
 [sub_resource type="ProceduralSkyMaterial" id="sky_m"]
 sky_top_color = Color(0.3, 0.52, 0.85, 1)
 sky_horizon_color = Color(0.72, 0.82, 0.9, 1)
@@ -107,6 +112,52 @@ metadata/altura = 1.8
 transform = Transform3D(0.980067, 0, 0.198669, 0, 1, 0, -0.198669, 0, 0.980067, -3, 0, -10)
 metadata/altura = 3.2
 
+[node name="Lotes" type="Node3D" parent="."]
+
+[node name="LoteCasa" type="Node3D" parent="Lotes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 12)
+script = ExtResource("p_s")
+nome = "Casa"
+modelo = ExtResource("p_h")
+altura = 5.5
+custo_madeira = 20
+custo_pedra = 10
+custo_comida = 0
+efeito = "vida"
+
+[node name="LoteSerraria" type="Node3D" parent="Lotes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -2)
+script = ExtResource("p_s")
+nome = "Serraria"
+modelo = ExtResource("p_w")
+altura = 5
+custo_madeira = 50
+custo_pedra = 30
+custo_comida = 0
+efeito = "madeira"
+
+[node name="LoteTorre" type="Node3D" parent="Lotes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -4)
+script = ExtResource("p_s")
+nome = "Torre de Vigia"
+modelo = ExtResource("p_t")
+altura = 9
+custo_madeira = 60
+custo_pedra = 60
+custo_comida = 20
+efeito = "torre"
+
+[node name="LoteEstalagem" type="Node3D" parent="Lotes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -16)
+script = ExtResource("p_s")
+nome = "Estalagem"
+modelo = ExtResource("p_i")
+altura = 7
+custo_madeira = 90
+custo_pedra = 70
+custo_comida = 40
+efeito = "descanso"
+
 [node name="Jogador" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
 script = ExtResource("3")
@@ -127,9 +178,9 @@ far = 220.0
 [node name="Info" type="Label" parent="HUD"]
 offset_left = 24.0
 offset_top = 16.0
-offset_right = 700.0
-offset_bottom = 60.0
-theme_override_font_sizes/font_size = 30
+offset_right = 1000.0
+offset_bottom = 56.0
+theme_override_font_sizes/font_size = 26
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
 text = "..."
@@ -139,9 +190,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -500.0
-offset_top = 90.0
+offset_top = 110.0
 offset_right = 500.0
-offset_bottom = 140.0
+offset_bottom = 160.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 24
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -175,3 +226,43 @@ grow_vertical = 0
 focus_mode = 0
 theme_override_font_sizes/font_size = 30
 text = "ATACAR"
+
+[node name="Missao" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 58.0
+offset_right = 900.0
+offset_bottom = 96.0
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+text = "..."
+
+[node name="Usar" type="Button" parent="HUD"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -360.0
+offset_right = -40.0
+offset_bottom = -240.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 24
+text = "CONSTRUIR"
+
+[node name="Novo" type="Button" parent="HUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -190.0
+offset_top = 16.0
+offset_right = -24.0
+offset_bottom = 60.0
+grow_horizontal = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "Novo jogo"
