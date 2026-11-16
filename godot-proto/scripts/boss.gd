@@ -1,6 +1,6 @@
 extends CharacterBody3D
-## Minotauro Dark: o chefe. O modelo não tem esqueleto, então o movimento é feito por código
-## (balanço ao andar, investida ao atacar, queda ao morrer).
+## Minotauro Dark: o chefe. O modelo ganhou esqueleto e animações (Idle, Walk, Attack, Hit)
+## feitos no Blender por script. A queda ao morrer é feita por código.
 
 signal killed
 
@@ -21,9 +21,11 @@ var raio := 1.6            # corpo largo: o golpe do jogador alcança de mais lo
 var _preso := 0.0
 var _desvio := 0.0
 var _lado := 1.0
+var _tonto := 0.0
 var _t := 0.0
 var model: Node3D
 var _pivot: Node3D
+var _ap: AnimationPlayer
 
 func setup(scene: PackedScene, player: Node3D, main: Node, lvl: int) -> void:
 	target = player
@@ -54,20 +56,35 @@ func _ready() -> void:
 	Fit._collect(model, meshes)
 	for m: MeshInstance3D in meshes:
 		m.material_override = mat
-	# olhos vermelhos brilhantes (posições medidas no modelo original)
+	# o modelo tem 1,9 de altura e a origem no meio do corpo
+	var k := altura / 1.9
+	model.scale = Vector3.ONE * k
+	model.position.y = 0.95 * k
+	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
+	Fit.play(_ap, &"Idle")
+	_olhos.call_deferred()
+
+## Olhos vermelhos brilhantes, presos ao osso da cabeça.
+func _olhos() -> void:
+	var sk := Fit.find_node_of(model, "Skeleton3D") as Skeleton3D
+	var pai: Node3D = model
+	if sk != null and sk.find_bone("Head") >= 0:
+		var ba := BoneAttachment3D.new()
+		ba.bone_name = "Head"
+		sk.add_child(ba)
+		pai = ba
 	var olho := StandardMaterial3D.new()
 	olho.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	olho.albedo_color = Color(1.0, 0.1, 0.05)
 	for p in [Vector3(-0.047, 0.668, 0.222), Vector3(0.043, 0.672, 0.25)]:
 		var e := MeshInstance3D.new()
-		var s := SphereMesh.new()
-		s.radius = 0.013
-		s.height = 0.026
-		s.material = olho
-		e.mesh = s
-		e.position = p
-		model.add_child(e)
-	Fit.to_height(model, altura)
+		var sp := SphereMesh.new()
+		sp.radius = 0.013
+		sp.height = 0.026
+		sp.material = olho
+		e.mesh = sp
+		pai.add_child(e)
+		e.global_position = model.to_global(p)
 
 func _physics_process(delta: float) -> void:
 	if _dead or target == null:
@@ -109,30 +126,21 @@ func _physics_process(delta: float) -> void:
 	if _golpe < 0.0 and d <= 4.0 and _cd <= 0.0 and target.get("hp") > 0:
 		_golpe = 0.0
 		_bateu = false
-	# animação por código
+	# animações do esqueleto
 	if _golpe >= 0.0:
 		_golpe += delta
-		if _golpe < 0.55:      # prepara: inclina para trás
-			_pivot.rotation.x = lerpf(_pivot.rotation.x, -0.35, 10.0 * delta)
-		elif _golpe < 0.8:     # investe para a frente
-			_pivot.rotation.x = lerpf(_pivot.rotation.x, 0.55, 22.0 * delta)
-			if not _bateu:
-				_bateu = true
-				if target.global_position.distance_to(global_position) < 5.2:
-					target.call("hurt", damage)
-		else:
-			_pivot.rotation.x = lerpf(_pivot.rotation.x, 0.0, 8.0 * delta)
-			if _golpe > 1.3:
-				_golpe = -1.0
-				_cd = 2.2
-	elif moving:
-		_pivot.position.y = absf(sin(_t * 5.0)) * 0.14
-		_pivot.rotation.z = sin(_t * 5.0) * 0.06
-		_pivot.rotation.x = lerpf(_pivot.rotation.x, 0.08, 6.0 * delta)
+		Fit.play(_ap, &"Attack", false, 1.25)
+		if _golpe >= 0.62 and not _bateu:      # momento em que os braços descem
+			_bateu = true
+			if target.global_position.distance_to(global_position) < 5.4:
+				target.call("hurt", damage)
+		if _golpe > 1.3:
+			_golpe = -1.0
+			_cd = 1.6
+	elif _tonto > 0.0:
+		_tonto -= delta
 	else:
-		_pivot.position.y = lerpf(_pivot.position.y, 0.0, 6.0 * delta)
-		_pivot.rotation.z = lerpf(_pivot.rotation.z, 0.0, 6.0 * delta)
-		_pivot.rotation.x = sin(_t * 1.6) * 0.025
+		Fit.play(_ap, &"Walk" if moving else &"Idle")
 
 func hurt(amount: int) -> void:
 	if _dead:
@@ -149,7 +157,8 @@ func hurt(amount: int) -> void:
 		killed.emit()
 		await get_tree().create_timer(5.0).timeout
 		queue_free()
-	else:
-		var tw := create_tween()
-		tw.tween_property(_pivot, "scale", Vector3.ONE * 1.05, 0.05)
-		tw.tween_property(_pivot, "scale", Vector3.ONE, 0.1)
+	elif _golpe < 0.0:
+		_tonto = 0.35
+		if _ap:
+			_ap.stop()
+		Fit.play(_ap, &"Hit", false, 1.6)

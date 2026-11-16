@@ -16,7 +16,7 @@ const VILLAGER := preload("res://scripts/villager.gd")
 const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v5"
+const VERSAO := "v6"
 
 ## Classes: vida base, dano por nível da arma, alcance. "area" = dano em área (mago).
 const CLASSES := {
