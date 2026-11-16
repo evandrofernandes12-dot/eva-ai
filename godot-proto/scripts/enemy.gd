@@ -66,6 +66,23 @@ func _physics_process(delta: float) -> void:
 		desvia = dest.distance_to(target.global_position) > 0.5
 		via = dest - global_position
 		via.y = 0
+	# portão fechado no caminho: para e bate nele
+	var portao = jogo.portao_em(global_position) if (desvia and jogo != null and jogo.has_method("portao_em")) else null
+	if portao != null:
+		velocity.x = 0
+		velocity.z = 0
+		move_and_slide()
+		var pg: Vector3 = portao.pos - global_position
+		rotation.y = lerp_angle(rotation.y, atan2(pg.x, pg.z), 8.0 * delta)
+		if _cd <= 0.0:
+			_cd = 1.4
+			_busy = 0.6
+			_ap.stop()
+			Fit.play(_ap, _atk, false, 1.4)
+			jogo.bater_portao(portao, damage)
+		elif _busy <= 0.0:
+			Fit.play(_ap, _idle)
+		return
 	if (desvia or d > 1.7) and d < 90.0 and _busy <= 0.0 and via.length() > 0.2:
 		var dir := via.normalized()
 		to = via

@@ -16,8 +16,9 @@ const VILLAGER := preload("res://scripts/villager.gd")
 const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v8"
-const MURO_R := 27.0             # raio da muralha
+const VERSAO := "v9"
+const MURO_R := 40.0             # raio da muralha
+const DIRS := [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
 const CAM_NOMES := ["3ª pessoa", "1ª pessoa", "Visão de águia"]
 
 ## Classes: vida base, dano por nível da arma, alcance. "area" = dano em área (mago).
@@ -29,9 +30,9 @@ const CLASSES := {
 const ARMA_CUSTO := [{}, {"madeira": 40, "pedra": 30}, {"madeira": 90, "pedra": 70, "comida": 30}]
 const OFICIOS := ["madeira", "pedra", "comida"]
 
-@export var forest_radius := 70.0
-@export var village_radius := 30.0
-@export var tree_count := 140
+@export var forest_radius := 95.0
+@export var village_radius := 46.0
+@export var tree_count := 190
 @export var rock_count := 40
 @export var bush_count := 50
 @export var max_enemies := 4
@@ -58,6 +59,7 @@ var _tapado_t := 0.0
 var _arv_t := 0.0
 var _fixos: Array = []           # construções prontas da aldeia: {pos, r, h}
 var _muro: Node3D
+var portoes: Array = []          # {dir, pos, hp, max, quebrado, folhas, corpo, rotulo}
 var enemies: Array = []
 var plots: Array = []
 var _spawn_t := 12.0
@@ -81,7 +83,7 @@ var QUESTS := [
 	{"t": "Melhore a Casa para o nível 2", "p": func(): return _lvl("vida"), "n": 2, "r": {"madeira": 40}},
 	{"t": "Evolua sua arma para o nível 2", "p": func(): return arma, "n": 2, "r": {"pedra": 40}},
 	{"t": "Construa uma Torre de Vigia", "p": func(): return _built("torre"), "n": 1, "r": {"madeira": 40}},
-	{"t": "Erga a Muralha (lote perto do portão sul)", "p": func(): return _built("muralha"), "n": 1, "r": {"pedra": 60}},
+	{"t": "Erga a Muralha (lote perto da saída sul)", "p": func(): return _built("muralha"), "n": 1, "r": {"pedra": 60}},
 	{"t": "Construa as 4 Torres de Vigia", "p": func(): return _built("torre"), "n": 4, "r": {"madeira": 80, "pedra": 80}},
 	{"t": "Construa a Estalagem", "p": func(): return _built("descanso"), "n": 1, "r": {"comida": 40}},
 	{"t": "Derrote o Minotauro Dark", "p": func(): return boss_derrotas, "n": 1, "r": {"madeira": 100, "pedra": 100, "comida": 100}},
@@ -215,6 +217,7 @@ func _process(delta: float) -> void:
 		_spawn_t = 10.0
 		_spawn_enemy()
 	_chefe()
+	_portoes(delta)
 	_buildings(delta)
 	_tiros(delta)
 	_renascimento(delta)
@@ -241,7 +244,7 @@ func _buildings(delta: float) -> void:
 		for p in plots:
 			if p.construido and p.efeito == "torre":
 				for e in enemies:
-					if is_instance_valid(e) and e.global_position.distance_to(p.global_position) < 16.0:
+					if is_instance_valid(e) and e.global_position.distance_to(p.global_position) < 20.0:
 						e.hurt(4 + 3 * p.nivel)
 						break
 	# cura na aldeia, longe de inimigos; a Estalagem dobra
@@ -344,6 +347,7 @@ func _spawn_enemy() -> void:
 	var e := CharacterBody3D.new()
 	e.set_script(preload("res://scripts/enemy.gd"))
 	var a := _rng.randf() * TAU
+	e.collision_mask = 3
 	e.max_hp = 30 + mini(50, kills * 2)
 	e.setup(ORC, player)
 	e.position = Vector3(cos(a), 0, sin(a)) * (village_radius + 14.0)
@@ -435,10 +439,12 @@ func _seg(p: Vector3, a: Vector3, b: Vector3) -> Vector2:
 	return Vector2((ap - ab * t).length(), t)
 
 func _tapado(de: Vector3, ate: Vector3) -> bool:
-	for o in _obstaculos():
-		var s := _seg(o.pos, de, ate)
-		if s.x < o.r and s.y > 0.03 and s.y < 0.97 and lerpf(de.y, ate.y, s.y) < o.h + 0.5:
-			return true
+	var obs := _obstaculos()
+	for k in 13:
+		var pt := de.lerp(ate, 0.04 + 0.07 * k)
+		for o in obs:
+			if Vector2(pt.x - o.pos.x, pt.z - o.pos.z).length() < o.r * 1.15 and pt.y < o.h + 1.0:
+				return true
 	return false
 
 func _camera(delta: float) -> void:
@@ -458,7 +464,11 @@ func _camera(delta: float) -> void:
 			_tapado_t = 0.7
 		_tapado_t -= delta
 		if _tapado_t > 0.0:
-			alvo = Vector3(0, 19, 3.5)
+			alvo = Vector3(0, 22, 2.5)
+			# se a câmera já está presa dentro de um telhado, pula para cima na hora
+			if _tapado(cam.global_position, pp + Vector3(0, 1.2, 0)) and _cam_off.y < 15.0:
+				_cam_off = alvo
+				cam.global_position = pp + _cam_off
 	_cam_off = _cam_off.lerp(alvo, minf(1.0, 5.0 * delta))
 	cam.global_position = cam.global_position.lerp(pp + _cam_off, minf(1.0, 8.0 * delta))
 	cam.look_at(pp + Vector3(0, 1.2, 0))
@@ -484,7 +494,7 @@ func destino(de: Vector3) -> Vector3:
 		return alvo
 	var best := Vector3.ZERO
 	var bd := 1e9
-	for g in [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]:
+	for g in DIRS:
 		var gp: Vector3 = g * MURO_R
 		var dd := de.distance_to(gp) + gp.distance_to(alvo)
 		if dd < bd:
@@ -496,9 +506,127 @@ func destino(de: Vector3) -> Vector3:
 		return best * (MURO_R + (6.0 if jog_dentro else -6.0))
 	return best * (MURO_R * (0.86 if jog_dentro else 1.14))
 
+## Portão fechado (e inteiro) perto de `pos`, ou null. Os inimigos param nele e batem até quebrar.
+func portao_em(pos: Vector3):
+	for g in portoes:
+		if not g.quebrado and pos.distance_to(g.pos) < 4.2:
+			return g
+	return null
+
+func bater_portao(g: Dictionary, dano: int) -> void:
+	if g.quebrado:
+		return
+	g.hp -= dano
+	if g.hp <= 0:
+		g.hp = 0
+		g.quebrado = true
+		g.conserto = 40.0
+		g.corpo.collision_layer = 0
+		for f in g.folhas:
+			f.visible = false
+		say("Um portão foi derrubado! Ele será consertado em 40 s.", 4.0)
+	_rotulo_portao(g)
+
+func _rotulo_portao(g: Dictionary) -> void:
+	g.rotulo.text = "Portão derrubado" if g.quebrado else "Portão %d/%d" % [g.hp, g.max]
+
+## Abre as folhas para o jogador e os aldeões; conserta os portões derrubados.
+func _portoes(delta: float) -> void:
+	for g in portoes:
+		if g.quebrado:
+			g.conserto -= delta
+			if g.conserto <= 0.0:
+				g.quebrado = false
+				g.hp = g.max
+				g.corpo.collision_layer = 2
+				for f in g.folhas:
+					f.visible = true
+				_rotulo_portao(g)
+			continue
+		var perto: bool = player.global_position.distance_to(g.pos) < 8.0
+		var alvo := 1.35 if perto else 0.0
+		g.folhas[0].rotation.y = lerpf(g.folhas[0].rotation.y, alvo, 5.0 * delta)
+		g.folhas[1].rotation.y = lerpf(g.folhas[1].rotation.y, -alvo, 5.0 * delta)
+
+func _criar_portao(d: Vector3, altura: float, nivel: int) -> void:
+	var madeira := StandardMaterial3D.new()
+	madeira.albedo_color = Color(0.36, 0.22, 0.1)
+	madeira.roughness = 0.9
+	var ferro := StandardMaterial3D.new()
+	ferro.albedo_color = Color(0.2, 0.2, 0.22)
+	ferro.metallic = 0.6
+	var raiz := Node3D.new()
+	_muro.add_child(raiz)
+	raiz.position = d * MURO_R
+	raiz.rotation.y = atan2(d.x, d.z)          # o eixo Z local aponta para fora da aldeia
+	var vao := MURO_R * 0.30                    # largura da abertura deixada na paliçada
+	var h := altura + 1.2
+	# dois pilares e a viga de cima
+	for lado in [-1.0, 1.0]:
+		var pil := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(1.0, h + 0.8, 1.0)
+		bm.material = madeira
+		pil.mesh = bm
+		pil.position = Vector3(lado * vao * 0.5, (h + 0.8) * 0.5, 0)
+		raiz.add_child(pil)
+	var viga := MeshInstance3D.new()
+	var vm := BoxMesh.new()
+	vm.size = Vector3(vao + 1.6, 0.8, 1.2)
+	vm.material = madeira
+	viga.mesh = vm
+	viga.position = Vector3(0, h + 0.6, 0)
+	raiz.add_child(viga)
+	# duas folhas que giram nas dobradiças
+	var folhas: Array = []
+	for lado in [-1.0, 1.0]:
+		var dob := Node3D.new()
+		dob.position = Vector3(lado * (vao * 0.5 - 0.5), 0, 0)
+		raiz.add_child(dob)
+		var folha := MeshInstance3D.new()
+		var fm := BoxMesh.new()
+		fm.size = Vector3(vao * 0.5 - 0.55, h - 0.3, 0.3)
+		fm.material = madeira
+		folha.mesh = fm
+		folha.position = Vector3(-lado * fm.size.x * 0.5, (h - 0.3) * 0.5 + 0.1, 0)
+		dob.add_child(folha)
+		for y in [0.8, h - 1.0]:
+			var faixa := MeshInstance3D.new()
+			var xm := BoxMesh.new()
+			xm.size = Vector3(fm.size.x, 0.22, 0.36)
+			xm.material = ferro
+			faixa.mesh = xm
+			faixa.position = Vector3(folha.position.x, y, 0)
+			dob.add_child(faixa)
+		folhas.append(dob)
+	# barreira só para os inimigos (camada 2): o jogador passa, eles precisam derrubar
+	var corpo := StaticBody3D.new()
+	corpo.collision_layer = 2
+	corpo.collision_mask = 0
+	var cs := CollisionShape3D.new()
+	var sh := BoxShape3D.new()
+	sh.size = Vector3(vao, h + 2.0, 0.9)
+	cs.shape = sh
+	cs.position.y = h * 0.5
+	corpo.add_child(cs)
+	raiz.add_child(corpo)
+	var rot := Label3D.new()
+	rot.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	rot.font_size = 34
+	rot.outline_size = 10
+	rot.pixel_size = 0.012
+	rot.position.y = h + 2.0
+	rot.visibility_range_end = 40.0
+	raiz.add_child(rot)
+	var vida := 150 * nivel
+	var g := {"dir": d, "pos": d * MURO_R, "hp": vida, "max": vida, "quebrado": false, "conserto": 0.0, "folhas": folhas, "corpo": corpo, "rotulo": rot}
+	_rotulo_portao(g)
+	portoes.append(g)
+
 func _erguer_muralha(nivel: int) -> void:
 	if _muro != null:
 		_muro.queue_free()
+	portoes.clear()
 	_muro = StaticBody3D.new()
 	_muro.name = "Muralha"
 	add_child(_muro)
@@ -531,6 +659,8 @@ func _erguer_muralha(nivel: int) -> void:
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
 	_muro.add_child(mmi)
+	for d in DIRS:
+		_criar_portao(d, altura, nivel)
 	# colisão em trechos
 	var passo := 0.1
 	var a := 0.0
@@ -582,6 +712,7 @@ func _chefe() -> void:
 func invocar_chefe() -> void:
 	var b := CharacterBody3D.new()
 	b.set_script(BOSS)
+	b.collision_mask = 3
 	b.setup(MINOTAURO, player, self, boss_derrotas + 1)
 	var a := _rng.randf() * TAU
 	b.position = Vector3(cos(a), 0, sin(a)) * (village_radius + 18.0)
@@ -647,7 +778,7 @@ func custo_aldeao() -> Dictionary:
 	return {"comida": 15 + 10 * aldeoes.size(), "madeira": 10 * aldeoes.size()}
 
 func deposito() -> Vector3:
-	return Vector3(0, 0, 2)
+	return Vector3(0, 0, 4)
 
 ## Reserva para um aldeão o recurso livre mais próximo do tipo pedido.
 func reservar(tipo: String, de: Vector3, quem: Node):
@@ -811,7 +942,7 @@ func _menu_aldeoes() -> void:
 func _on_player_died() -> void:
 	say("Você caiu! Voltando para a aldeia...", 3.0)
 	await get_tree().create_timer(3.0).timeout
-	player.revive(Vector3(0, 0, 4))
+	player.revive(Vector3(0, 0, 8))
 
 # ---------- salvar / carregar ----------
 func _save() -> void:

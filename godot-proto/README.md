@@ -3,8 +3,8 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v8)
-- Aldeia com casas, forja, poço, fogueira (nó **Aldeia** da cena `main.tscn`).
+## O que tem (v9)
+- Aldeia maior e espaçada: praça no centro, Salão do Chefe ao fundo (norte), casas, forja e moinho em volta (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
 - Lotes de construção (nó **Lotes**): CONSTRUIR e depois MELHORAR até o nível 3 (ou tecla E).
@@ -12,7 +12,7 @@ Não substitui o jogo da web; é só uma amostra.
 - Classes (botão CLASSE): Guerreiro (de perto), Arqueiro (flechas), Mago (orbes em área). Arma evolui até o nível 3.
 - Aldeões (botão ALDEÕES): Lenhador, Pedreiro e Coletor vão até o recurso, trabalham e entregam na aldeia.
 - 15 missões em sequência, com recompensa.
-- 4 Torres de Vigia (uma em cada canto) e a **Muralha**: paliçada em volta da aldeia com 4 portões. Os inimigos precisam entrar pelos portões.
+- 4 Torres de Vigia (uma em cada canto) e a **Muralha**: paliçada em volta da aldeia com 4 portões de madeira. Os portões abrem para o jogador; os inimigos precisam derrubá-los a golpes (voltam consertados depois de 40 s).
 - Botão **CÂMERA**: 3ª pessoa, 1ª pessoa e visão de águia. Na 3ª pessoa a câmera sobe quando uma construção tapa o boneco, e as árvores na frente ficam escondidas.
 - **Minotauro Dark** (chefe): aparece depois de 6 orcs derrotados, com barra de vida no topo, e volta mais forte a cada derrota.
   - Fase 1: golpeia com o machado de duas lâminas em meia-lua (`models/Machado.glb`).

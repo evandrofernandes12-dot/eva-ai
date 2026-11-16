@@ -123,11 +123,11 @@ down = {'Spine': [(X, 22)], 'Chest': [(X, 24)], 'ArmA': [(X, -45)], 'ArmB': [(X,
 action('Attack', [(1, {}, 0.0), (14, up, 0.02), (20, down, -0.06), (26, down, -0.06), (40, {}, 0.0)])
 def mix(a, b):
     d = dict(a); d.update(b); return d
-HOLD = {'ArmA': [(X, -35)], 'ForeA': [(X, -60)]}          # braço da frente segura o machado erguido
-action('AxeIdle', [(1, HOLD, 0.0), (30, mix({'Spine': [(X, -2)], 'Chest': [(X, -3)], 'Head': [(X, 3)]}, {'ArmA': [(X, -38)], 'ForeA': [(X, -62)]}), -0.006), (60, HOLD, 0.0)])
+HOLD = {'ArmA': [(X, -35)], 'ForeA': [(X, -60)], 'HandA': [(X, 85)]}          # braço da frente segura o machado erguido
+action('AxeIdle', [(1, HOLD, 0.0), (30, mix({'Spine': [(X, -2)], 'Chest': [(X, -3)], 'Head': [(X, 3)]}, {'ArmA': [(X, -38)], 'ForeA': [(X, -62)], 'HandA': [(X, 88)]}), -0.006), (60, HOLD, 0.0)])
 action('AxeWalk', [(1, mix(walk(1, 1), HOLD), DZ), (9, mix(passo(-1), HOLD), 0.0), (17, mix(walk(-1, 1), HOLD), DZ), (25, mix(passo(1), HOLD), 0.0), (33, mix(walk(1, 1), HOLD), DZ)])
-a_up = {'Spine': [(X, -12)], 'Chest': [(X, -10), (Z, -12)], 'ArmA': [(X, -165)], 'ForeA': [(X, -25)], 'Head': [(X, -8)], 'ArmB': [(X, 20)]}
-a_dn = {'Spine': [(X, 24)], 'Chest': [(X, 16), (Z, 10)], 'ArmA': [(X, -42)], 'ForeA': [(X, -8)], 'Head': [(X, 6)], 'ArmB': [(X, 25)], 'ThighA': [(X, -16)], 'ShinA': [(X, 22)], 'ThighB': [(X, 8)], 'ShinB': [(X, 10)]}
+a_up = {'Spine': [(X, -14)], 'Chest': [(X, -12), (Z, -12)], 'ArmA': [(X, -150)], 'ForeA': [(X, -35)], 'HandA': [(X, 150)], 'Head': [(X, -8)], 'ArmB': [(X, 20)]}
+a_dn = {'Spine': [(X, 26)], 'Chest': [(X, 18), (Z, 10)], 'ArmA': [(X, -50)], 'ForeA': [(X, -10)], 'HandA': [(X, 195)], 'Head': [(X, 6)], 'ArmB': [(X, 25)], 'ThighA': [(X, -16)], 'ShinA': [(X, 22)], 'ThighB': [(X, 8)], 'ShinB': [(X, 10)]}
 action('AxeAttack', [(1, HOLD, 0.0), (12, a_up, 0.02), (18, a_dn, -0.05), (25, a_dn, -0.05), (38, HOLD, 0.0)])
 pB0 = {'ArmB': [(X, 30)], 'ForeB': [(X, -70)], 'Chest': [(Z, -14)], 'ArmA': [(X, -20)], 'ForeA': [(X, -70)]}
 pB1 = {'ArmB': [(X, -88)], 'ForeB': [(X, -6)], 'Chest': [(Z, 16), (X, 8)], 'Spine': [(X, 8)], 'ArmA': [(X, 10)], 'ForeA': [(X, -80)]}

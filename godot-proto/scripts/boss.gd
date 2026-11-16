@@ -124,8 +124,8 @@ func _criar_machado() -> Node3D:
 	root.name = "Machado"
 	var mat := StandardMaterial3D.new()
 	mat.vertex_color_use_as_albedo = true
-	mat.metallic = 0.55
-	mat.roughness = 0.4
+	mat.metallic = 0.25
+	mat.roughness = 0.6
 	var meshes: Array = []
 	Fit._collect(root, meshes)
 	for m: MeshInstance3D in meshes:
@@ -187,7 +187,18 @@ func _physics_process(delta: float) -> void:
 			var via: Vector3 = jogo.destino(global_position) - global_position
 			via.y = 0
 			var desvia: bool = jogo.destino(global_position).distance_to(target.global_position) > 0.5
-			if (desvia or d > 3.2) and d < 90.0 and via.length() > 0.2:
+			# portão fechado no caminho: derruba a golpes
+			var portao = jogo.portao_em(global_position) if desvia else null
+			if portao != null:
+				var pg: Vector3 = portao.pos - global_position
+				rotation.y = lerp_angle(rotation.y, atan2(pg.x, pg.z), 6.0 * delta)
+				if _cd <= 0.0:
+					_cd = 1.6
+					_ap.stop()
+					Fit.play(_ap, &"AxeAttack" if fase == 1 else &"Punch", false, 1.2)
+					_tonto = 1.2
+					jogo.bater_portao(portao, damage * 2)
+			elif (desvia or d > 2.9) and d < 90.0 and via.length() > 0.2:
 				var dir := via.normalized()
 				velocity.x = dir.x * speed
 				velocity.z = dir.z * speed
@@ -197,7 +208,7 @@ func _physics_process(delta: float) -> void:
 				rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 4.0 * delta)
 			if _cd <= 0.0 and target.get("hp") > 0:
 				if fase == 1:
-					if d <= 4.2:
+					if d <= 3.7:
 						_mudar("golpe")
 				elif _socos >= 2 or d > 7.0:
 					if d < 26.0:
@@ -209,7 +220,7 @@ func _physics_process(delta: float) -> void:
 			Fit.play(_ap, &"AxeAttack", false, 1.2)
 			if _t >= 0.6 and _bateu == 0:
 				_bateu = 1
-				_acertar(5.6, int(damage * 1.3))
+				_acertar(4.8, int(damage * 1.3))
 			if _t > 1.35:
 				_cd = 1.5
 				_mudar("segue")
