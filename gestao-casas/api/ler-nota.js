@@ -35,8 +35,10 @@ const mesmoCodigo = (a, b) => {
 };
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido.' });
   const codigo = process.env.APP_CODIGO;
+  // O app consulta por GET se a leitura automática está ligada, para mostrar ou esconder os botões.
+  if (req.method === 'GET') return res.status(200).json({ ativo: !!(codigo && process.env.ANTHROPIC_API_KEY) });
+  if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido.' });
   if (!codigo || !process.env.ANTHROPIC_API_KEY) return res.status(503).json({ erro: 'A leitura automática ainda não foi configurada no servidor.' });
   if (!mesmoCodigo(req.headers['x-codigo'] || '', codigo)) return res.status(401).json({ erro: 'Código de acesso incorreto.' });
 

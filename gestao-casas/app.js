@@ -145,12 +145,12 @@ function telaInicio() {
         <small>${esc(c.nome)}</small><b class="${saldo(c.id) < 0 ? 'neg' : ''}">${C.brl(saldo(c.id))}</b>
         <span>saldo da verba</span><span>Gasto em ${MESES[Number(mes.slice(5)) - 1].toLowerCase()}: ${C.brl(soma(ls, 'saida'))}</span></button>`;
     }).join('')}</div>
-    <div class="grade2">
+    ${S.cfg.leitura ? `<div class="grade2">
       <button class="botao alto" data-act="foto-nota"><i>📷</i>Foto da nota</button>
       <button class="botao alto" data-act="falar"><i>🎤</i>Falar a compra</button>
-    </div>
+    </div>` : ''}
     <div class="grade2">
-      <button class="botao sec" data-act="novo-lanc" data-id="saida">+ Gasto manual</button>
+      <button class="botao${S.cfg.leitura ? ' sec' : ''}" data-act="novo-lanc" data-id="saida">+ ${S.cfg.leitura ? 'Gasto manual' : 'Registrar gasto'}</button>
       <button class="botao sec" data-act="novo-lanc" data-id="entrada">+ Entrada de verba</button>
     </div>
     <input type="file" id="arq-nota" accept="image/*" capture="environment" hidden>
@@ -272,7 +272,8 @@ function telaMais() {
     <div class="lista">
       <button data-act="orcamento"><div><b>Orçamento mensal por categoria</b><small>${esc(casaNome(S.casaAtual))}</small></div><span>›</span></button>
       <button data-act="casas"><div><b>Nomes das casas</b><small>${S.casas.map(c => esc(c.nome)).join(' · ')}</small></div><span>›</span></button>
-      <button data-act="codigo"><div><b>Leitura automática de notas</b><small>${S.cfg.codigo ? 'Código de acesso informado' : 'Informar código de acesso'}</small></div><span>›</span></button>
+      <button data-act="pin"><div><b>PIN de entrada</b><small>${S.cfg.pin ? 'Ativado — toque para trocar ou remover' : 'Pedir um PIN ao abrir o aplicativo'}</small></div><span>›</span></button>
+      ${S.cfg.leitura ? `<button data-act="codigo"><div><b>Leitura automática de notas</b><small>${S.cfg.codigo ? 'Código de acesso informado' : 'Informar código de acesso'}</small></div><span>›</span></button>` : ''}
       <button data-act="dae"><div><b>Lembrete da guia do eSocial</b><small>Avisar até o dia ${S.cfg.diaDAE} de cada mês</small></div><span>›</span></button>
     </div>
     <h2>Cópia de segurança</h2>
@@ -439,6 +440,72 @@ function formCompra(i) {
   });
 }
 
+/* ---------- PIN de entrada ----------
+   É uma trava de tela: impede que alguém com o aparelho desbloqueado abra o app.
+   Só o resumo (hash) do PIN é guardado; os dados em si não são criptografados. */
+const hexa = b => Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+async function resumoPin(pin, sal) {
+  const te = new TextEncoder();
+  const k = await crypto.subtle.importKey('raw', te.encode(pin), 'PBKDF2', false, ['deriveBits']);
+  return hexa(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: te.encode(sal), iterations: 150000 }, k, 256));
+}
+const pinConfere = async pin => !!S.cfg.pin && (await resumoPin(pin, S.cfg.pin.sal)) === S.cfg.pin.hash;
+const trava = { erros: 0, ate: 0 };
+function travar() {
+  if (!S.cfg.pin || $('#trava')) return;
+  if (document.activeElement) document.activeElement.blur();
+  const el = document.createElement('div');
+  el.id = 'trava';
+  el.innerHTML = `<div><img src="icons/icon-180.png" alt=""><b>Digite o PIN</b><p class="pontos"><i></i><i></i><i></i><i></i></p><p class="msg"></p>
+    <div class="teclas">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button data-k="${n}">${n}</button>`).join('')}<span></span><button data-k="0">0</button><button data-k="x">⌫</button></div>
+    <button class="link" data-k="esqueci">Esqueci o PIN</button></div>`;
+  document.body.appendChild(el);
+  let dig = '';
+  const msg = t => { el.querySelector('.msg').textContent = t; };
+  const pinta = () => el.querySelectorAll('.pontos i').forEach((p, i) => p.classList.toggle('on', i < dig.length));
+  el.addEventListener('click', async e => {
+    const k = e.target.dataset.k;
+    if (!k) return;
+    if (k === 'esqueci') {
+      if (!confirm('Sem o PIN, a única saída é APAGAR todos os dados deste aparelho.\n\nDepois você pode restaurar a última cópia de segurança. Continuar?')) return;
+      if (!confirm('Tem certeza? Todos os lançamentos, funcionários e fotos deste aparelho serão apagados.')) return;
+      await DB.limpar('fotos'); S = estadoInicial(); await salvar(); el.remove(); ui.sub = null; ui.tab = 'inicio'; $('#sheet-root').innerHTML = ''; render();
+      return;
+    }
+    const espera = Math.ceil((trava.ate - Date.now()) / 1000);
+    if (espera > 0) return msg(`Muitas tentativas. Aguarde ${espera} s.`);
+    if (k === 'x') { dig = dig.slice(0, -1); return pinta(); }
+    if (dig.length >= 4) return;
+    dig += k; pinta(); msg('');
+    if (dig.length < 4) return;
+    const tentativa = dig;
+    if (await pinConfere(tentativa)) { trava.erros = 0; el.remove(); return; }
+    dig = ''; pinta();
+    if (++trava.erros >= 5) { trava.ate = Date.now() + 30000; trava.erros = 0; msg('Muitas tentativas. Aguarde 30 s.'); }
+    else msg('PIN incorreto.');
+  });
+}
+function formPin() {
+  const tem = !!S.cfg.pin, cp = (n, r) => campo(r, `<input name="${n}" type="password" inputmode="numeric" maxlength="4" autocomplete="off">`);
+  folha('PIN de entrada', `<p class="nota">O aplicativo pedirá o PIN ao abrir e ao voltar depois de alguns minutos. Se o PIN for esquecido, não há como recuperá-lo: será preciso apagar os dados e restaurar uma cópia de segurança.</p>
+    ${tem ? cp('atual', 'PIN atual') : ''}${cp('novo', tem ? 'Novo PIN (em branco para remover)' : 'PIN de 4 números')}${cp('rep', 'Repetir o PIN')}`, {
+    aoSalvar: async d => {
+      if (tem && !(await pinConfere(d.atual || ''))) return 'PIN atual incorreto.';
+      if (tem && !d.novo && !d.rep) { delete S.cfg.pin; toast('PIN removido.'); return; }
+      if (!/^\d{4}$/.test(d.novo)) return 'O PIN deve ter 4 números.';
+      if (d.novo !== d.rep) return 'Os dois PINs não são iguais.';
+      const sal = hexa(crypto.getRandomValues(new Uint8Array(16)));
+      S.cfg.pin = { sal, hash: await resumoPin(d.novo, sal) };
+      toast('PIN ativado.');
+    }
+  });
+}
+let saiuEm = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) saiuEm = Date.now();
+  else if (saiuEm && Date.now() - saiuEm > 120000) travar();
+});
+
 /* ---------- Leitura automática (foto ou fala) ---------- */
 function ocupado(msg) {
   $('#sheet-root').innerHTML = msg ? `<div class="fundo centro"><div class="aguarde"><i></i>${esc(msg)}</div></div>` : '';
@@ -569,7 +636,7 @@ function entregar(blob, nome, tipo, msg) {
 async function exportar() {
   const fotos = {};
   for (const k of await DB.chaves('fotos')) fotos[k] = await DB.get('fotos', k);
-  const blob = new Blob([JSON.stringify({ app: 'gestao-casas', quando: new Date().toISOString(), estado: S, fotos })], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ app: 'gestao-casas', quando: new Date().toISOString(), estado: { ...S, cfg: { ...S.cfg, pin: undefined } }, fotos })], { type: 'application/json' });
   entregar(blob, `casas-copia-${hoje()}.json`, 'application/json', 'Cópia de segurança criada com todos os lançamentos, funcionários e fotos.');
 }
 async function importar(arquivo) {
@@ -579,7 +646,9 @@ async function importar(arquivo) {
   if (!confirm(`Restaurar a cópia de ${dataBR(String(d.quando).slice(0, 10))}?\n\nTodos os dados atuais deste aparelho serão substituídos.`)) return;
   await DB.limpar('fotos');
   for (const [k, v] of Object.entries(d.fotos || {})) await DB.set('fotos', k, v);
+  const pin = S.cfg.pin;
   S = { ...estadoInicial(), ...d.estado };
+  S.cfg = { ...estadoInicial().cfg, ...S.cfg, pin };
   await salvar(); ui.sub = null; render(); toast('Cópia restaurada.');
 }
 
@@ -596,6 +665,7 @@ const acoes = {
   'foto-nota': () => $('#arq-nota').click(),
   falar: () => falar(),
   codigo: () => pedirCodigo(),
+  pin: () => formPin(),
   marcar: k => { if (S.marcas[k]) delete S.marcas[k]; else S.marcas[k] = true; salvar(); },
 
   check: id => { const i = S.compras.find(x => x.id === id); i.feito = !i.feito; salvar(); },
@@ -718,7 +788,14 @@ document.addEventListener('change', e => {
   try { S = { ...estadoInicial(), ...(await DB.get('kv', 'estado') || {}) }; }
   catch (e) { S = estadoInicial(); toast('Não foi possível abrir os dados salvos.'); }
   if (!S.casas.some(c => c.id === S.casaAtual)) S.casaAtual = S.casas[0].id;
+  S.cfg = { ...estadoInicial().cfg, ...S.cfg };
+  travar();
   render();
+  fetch('api/ler-nota').then(r => r.ok ? r.json() : null).then(d => {
+    if (!d || !!d.ativo === !!S.cfg.leitura) return;
+    S.cfg.leitura = !!d.ativo; salvar();
+    if (!$('#sheet-root').firstChild) render();
+  }).catch(() => {});
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

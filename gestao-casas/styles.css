@@ -126,3 +126,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--verde); out
 .aguarde { background: var(--cartao); border-radius: 14px; padding: 22px 28px; text-align: center; font-weight: 600; }
 .aguarde i { display: block; width: 28px; height: 28px; margin: 0 auto 12px; border: 3px solid var(--linha); border-top-color: var(--verde); border-radius: 50%; animation: gira .8s linear infinite; }
 @keyframes gira { to { transform: rotate(360deg); } }
+
+#trava { position: fixed; inset: 0; z-index: 50; background: var(--fundo); display: flex; align-items: center; justify-content: center; text-align: center; padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom); }
+#trava img { width: 64px; height: 64px; border-radius: 14px; display: block; margin: 0 auto 14px; }
+#trava b { font-size: 20px; }
+.pontos { display: flex; gap: 14px; justify-content: center; margin: 18px 0 8px; }
+.pontos i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--suave); }
+.pontos i.on { background: var(--verde); border-color: var(--verde); }
+#trava .msg { min-height: 20px; font-size: 14px; color: var(--vermelho); }
+.teclas { display: grid; grid-template-columns: repeat(3, 72px); gap: 14px; justify-content: center; margin: 14px 0 18px; }
+.teclas button { height: 72px; border-radius: 50%; background: var(--cartao); font-size: 26px; text-align: center; }
+.teclas button:active { background: var(--verde-claro); }
