@@ -12,6 +12,7 @@ const BUSH := preload("res://models/Bush_1.glb")
 const FLOWERS := preload("res://models/Flowers.glb")
 const ORC := preload("res://models/Orc.gltf")
 const SAVE := "user://save.json"
+const VERSAO := "v2"
 
 @export var forest_radius := 70.0
 @export var village_radius := 24.0
@@ -88,6 +89,7 @@ func _ready() -> void:
 	$HUD/Atacar.pressed.connect(player.attack)
 	use_b.pressed.connect(_use)
 	$HUD/Novo.pressed.connect(_new_game)
+	$HUD/Novo.text = "Novo jogo (%s)" % VERSAO
 	use_b.visible = false
 	if not _load():
 		say("Ande com o direcional. Bata em árvores, rochas e arbustos para coletar.", 7.0)
