@@ -3,7 +3,7 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v4)
+## O que tem (v5)
 - Aldeia com casas, forja, poço, fogueira (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
@@ -11,7 +11,9 @@ Não substitui o jogo da web; é só uma amostra.
   - Casa: +25 de vida máxima e +2 vagas de aldeão por nível · Serraria: produz madeira · Torre: atira nos orcs · Estalagem: cura mais rápido.
 - Classes (botão CLASSE): Guerreiro (de perto), Arqueiro (flechas), Mago (orbes em área). Arma evolui até o nível 3.
 - Aldeões (botão ALDEÕES): Lenhador, Pedreiro e Coletor vão até o recurso, trabalham e entregam na aldeia.
-- 12 missões em sequência, com recompensa.
+- 13 missões em sequência, com recompensa.
+- **Minotauro Dark** (chefe): aparece depois de 6 orcs derrotados, tem barra de vida no topo e volta mais forte a cada derrota.
+  O modelo (`models/Minotauro_Dark.glb`) foi reduzido de 663 mil para 42 mil faces. Ele não tem esqueleto, então o movimento é feito por código em `scripts/boss.gd`.
 - Orcs ficam mais fortes conforme você derrota mais deles.
 - Salva sozinho a cada 10 s; botão **Novo jogo** apaga o progresso.
 

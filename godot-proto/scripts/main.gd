@@ -13,8 +13,10 @@ const FLOWERS := preload("res://models/Flowers.glb")
 const ORC := preload("res://models/Orc.gltf")
 const KNIGHT := preload("res://models/Knight.glb")
 const VILLAGER := preload("res://scripts/villager.gd")
+const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
+const BOSS := preload("res://scripts/boss.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v4"
+const VERSAO := "v5"
 
 ## Classes: vida base, dano por nível da arma, alcance. "area" = dano em área (mago).
 const CLASSES := {
@@ -43,6 +45,11 @@ var tiros: Array = []            # projéteis: {node, alvo, dano, area}
 var _renascer: Array = []        # recursos que voltam a nascer: {t, scene, h, tipo, hp}
 var _holder: Node3D
 var _painel: Control
+var boss: Node3D                 # Minotauro Dark, quando está vivo
+var boss_derrotas := 0
+var boss_em := 6                 # aparece quando o número de orcs derrotados chega aqui
+var _boss_bar: ProgressBar
+var _boss_lbl: Label
 var enemies: Array = []
 var plots: Array = []
 var _spawn_t := 12.0
@@ -66,7 +73,8 @@ var QUESTS := [
 	{"t": "Melhore a Casa para o nível 2", "p": func(): return _lvl("vida"), "n": 2, "r": {"madeira": 40}},
 	{"t": "Evolua sua arma para o nível 2", "p": func(): return arma, "n": 2, "r": {"pedra": 40}},
 	{"t": "Construa a Torre de Vigia", "p": func(): return _built("torre"), "n": 1, "r": {"madeira": 40}},
-	{"t": "Construa a Estalagem", "p": func(): return _built("descanso"), "n": 1, "r": {}},
+	{"t": "Construa a Estalagem", "p": func(): return _built("descanso"), "n": 1, "r": {"comida": 40}},
+	{"t": "Derrote o Minotauro Dark", "p": func(): return boss_derrotas, "n": 1, "r": {"madeira": 100, "pedra": 100, "comida": 100}},
 ]
 
 @onready var player: CharacterBody3D = $Jogador
@@ -117,6 +125,7 @@ func _ready() -> void:
 	_hud_button("CLASSE", 70.0, _menu_classe)
 	_hud_button("ALDEÕES", 124.0, _menu_aldeoes)
 	_recalc()
+	_boss_hud()
 	if not _load():
 		say("Ande com o direcional. Bata em árvores, rochas e arbustos para coletar.", 7.0)
 
@@ -194,6 +203,7 @@ func _process(delta: float) -> void:
 	if _spawn_t <= 0.0 and enemies.size() < max_enemies:
 		_spawn_t = 10.0
 		_spawn_enemy()
+	_chefe()
 	_buildings(delta)
 	_tiros(delta)
 	_renascimento(delta)
@@ -346,7 +356,7 @@ func _on_player_attack() -> void:
 	else:
 		var hit := false
 		for e in enemies:
-			if is_instance_valid(e) and e.global_position.distance_to(p) < player.attack_range:
+			if is_instance_valid(e) and not e._dead and e.global_position.distance_to(p) < player.attack_range + float(e.get("raio") if e.get("raio") != null else 0.0):
 				e.hurt(player.damage)
 				hit = true
 		if hit:
@@ -385,6 +395,60 @@ func _renascimento(delta: float) -> void:
 		if r.t <= 0.0:
 			_renascer.erase(r)
 			_place(_holder, r.scene, r.h, r.tipo, r.hp)
+
+# ---------- chefe: Minotauro Dark ----------
+func _boss_hud() -> void:
+	_boss_lbl = Label.new()
+	_boss_lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_boss_lbl.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_boss_lbl.offset_top = 150
+	_boss_lbl.add_theme_font_size_override("font_size", 22)
+	_boss_lbl.add_theme_color_override("font_color", Color(1, 0.35, 0.3))
+	_boss_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
+	_boss_lbl.add_theme_constant_override("outline_size", 8)
+	$HUD.add_child(_boss_lbl)
+	_boss_bar = ProgressBar.new()
+	_boss_bar.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_boss_bar.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_boss_bar.offset_top = 182
+	_boss_bar.custom_minimum_size = Vector2(460, 22)
+	_boss_bar.show_percentage = false
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.8, 0.12, 0.1)
+	_boss_bar.add_theme_stylebox_override("fill", fill)
+	$HUD.add_child(_boss_bar)
+
+func _chefe() -> void:
+	var vivo: bool = boss != null and is_instance_valid(boss) and not boss._dead
+	_boss_bar.visible = vivo
+	_boss_lbl.visible = vivo
+	if vivo:
+		_boss_bar.max_value = boss.max_hp
+		_boss_bar.value = boss.hp
+		_boss_lbl.text = "Minotauro Dark · Nv %d · %d/%d" % [boss.nivel, boss.hp, boss.max_hp]
+	elif (boss == null or not is_instance_valid(boss)) and kills >= boss_em:
+		invocar_chefe()
+
+func invocar_chefe() -> void:
+	var b := CharacterBody3D.new()
+	b.set_script(BOSS)
+	b.setup(MINOTAURO, player, self, boss_derrotas + 1)
+	var a := _rng.randf() * TAU
+	b.position = Vector3(cos(a), 0, sin(a)) * (village_radius + 18.0)
+	add_child(b)
+	b.killed.connect(_chefe_morreu.bind(b))
+	enemies.append(b)
+	boss = b
+	say("O MINOTAURO DARK se aproxima da aldeia!", 6.0)
+
+func _chefe_morreu(b: Node) -> void:
+	boss_derrotas += 1
+	boss_em = kills + 12
+	var premio: int = 80 * b.nivel
+	for k in res:
+		res[k] += premio
+	say("Minotauro Dark derrotado! +%d de cada recurso. Ele voltará mais forte..." % premio, 7.0)
+	_save()
 
 # ---------- projéteis ----------
 func _atirar(alvo: Node3D) -> void:
@@ -608,7 +672,7 @@ func _save() -> void:
 		papeis.append(v.papel)
 	var f := FileAccess.open(SAVE, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "arma": arma, "aldeoes": papeis}))
+		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em}))
 
 func _load() -> bool:
 	if not FileAccess.file_exists(SAVE):
@@ -623,6 +687,8 @@ func _load() -> bool:
 	var c := String(d.get("classe", ""))
 	classe = c if CLASSES.has(c) else ""
 	arma = clampi(int(d.get("arma", 1)), 1, 3)
+	boss_derrotas = int(d.get("boss_derrotas", 0))
+	boss_em = int(d.get("boss_em", 6))
 	var niveis: Dictionary = d.get("lotes", {})
 	for p in plots:
 		p.built.disconnect(_on_built)

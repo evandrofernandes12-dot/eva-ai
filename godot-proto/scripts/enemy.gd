@@ -12,6 +12,9 @@ var target: Node3D
 var _cd := 1.0
 var _busy := 0.0
 var _dead := false
+var _preso := 0.0
+var _desvio := 0.0
+var _lado := 1.0
 var _ap: AnimationPlayer
 var _idle: StringName
 var _run: StringName
@@ -62,6 +65,21 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0
 	velocity.y = velocity.y - 20.0 * delta if not is_on_floor() else 0.0
 	move_and_slide()
+	# se ficar preso numa construção, contorna pelo lado
+	if moving:
+		if get_real_velocity().length() < speed * 0.35:
+			_preso += delta
+			if _preso > 0.4 and _desvio <= 0.0:
+				_desvio = 1.2
+				_lado = -_lado
+		else:
+			_preso = 0.0
+	if _desvio > 0.0:
+		_desvio -= delta
+		var dd := to.normalized()
+		velocity.x = (dd.x * 0.2 - dd.z * _lado) * speed
+		velocity.z = (dd.z * 0.2 + dd.x * _lado) * speed
+		move_and_slide()
 	if d > 0.1:
 		rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 8.0 * delta)
 	if d <= 1.9 and _cd <= 0.0 and target.get("hp") > 0:
