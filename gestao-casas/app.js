@@ -38,7 +38,7 @@ const DB = (() => {
 })();
 
 let S;
-const ui = { tab: 'inicio', mes: hoje().slice(0, 7), sub: null };
+const ui = { tab: 'inicio', mes: hoje().slice(0, 7), sub: null, painel: false, pCasa: 'todas', pMeses: 6, pMes: null };
 
 function estadoInicial() {
   const a = uid(), b = uid();
@@ -125,15 +125,15 @@ function alertas() {
 function render() {
   const abas = [['inicio', 'Início', '⌂'], ['financas', 'Finanças', '$'], ['compras', 'Compras', '✓'], ['equipe', 'Equipe', '☺'], ['mais', 'Mais', '≡']];
   const telas = { inicio: telaInicio, financas: telaFinancas, compras: telaCompras, equipe: telaEquipe, mais: telaMais };
-  const corpo = ui.sub ? telaFuncionario(ui.sub) : telas[ui.tab]();
+  const corpo = ui.painel ? telaPainel() : ui.sub ? telaFuncionario(ui.sub) : telas[ui.tab]();
   $('#app').innerHTML = `
     <header>
-      ${ui.sub ? `<button class="voltar" data-act="voltar">‹ Voltar</button>` : `<h1>${abas.find(a => a[0] === ui.tab)[1]}</h1>`}
-      ${ui.tab !== 'inicio' && !ui.sub ? `<div class="casas">${S.casas.map(c =>
+      ${ui.sub || ui.painel ? `<button class="voltar" data-act="voltar">‹ Voltar</button>` : `<h1>${abas.find(a => a[0] === ui.tab)[1]}</h1>`}
+      ${ui.tab !== 'inicio' && !ui.sub && !ui.painel ? `<div class="casas">${S.casas.map(c =>
         `<button class="${c.id === S.casaAtual ? 'on' : ''}" data-act="casa" data-id="${c.id}">${esc(c.nome)}</button>`).join('')}</div>` : ''}
     </header>
     <main>${corpo}</main>
-    <nav>${abas.map(([id, nome, ic]) => `<button class="${ui.tab === id && !ui.sub ? 'on' : ''}" data-act="aba" data-id="${id}"><i>${ic}</i>${nome}</button>`).join('')}</nav>`;
+    <nav>${abas.map(([id, nome, ic]) => `<button class="${ui.tab === id && !ui.sub && !ui.painel ? 'on' : ''}" data-act="aba" data-id="${id}"><i>${ic}</i>${nome}</button>`).join('')}</nav>`;
 }
 
 function telaInicio() {
@@ -154,11 +154,107 @@ function telaInicio() {
       <button class="botao sec" data-act="novo-lanc" data-id="entrada">+ Entrada de verba</button>
     </div>
     <input type="file" id="arq-nota" accept="image/*" capture="environment" hidden>
+    <button class="cartao atalho" data-act="painel"><i>📊</i><div><b>Painel</b><small>Gastos por mês, por categoria e comparativos</small></div><span>›</span></button>
     <h2>Precisa de atenção ${al.length ? `<em>${al.length}</em>` : ''}</h2>
     ${al.length ? al.map(a => `<div class="alerta ${a.nivel}">
         <div><b>${esc(a.titulo)}</b><p>${esc(a.detalhe)}</p><small>${esc(casaNome(a.casa))}</small></div>
         ${a.acao ? `<button data-act="${a.acao.act}" data-id="${a.acao.id}">${a.acao.rotulo}</button>` : ''}</div>`).join('')
       : `<p class="vazio">Tudo em dia. Nenhum vencimento próximo.</p>`}`;
+}
+
+/* ---------- Painel (dashboard) ----------
+   Gráficos em SVG puro. Cores de série fixas por casa (1ª casa = --s1, 2ª = --s2), validadas
+   para contraste e daltonismo; textos sempre na cor de texto, nunca na cor da série. */
+const MES3 = MESES.map(m => m.slice(0, 3).toLowerCase());
+const compacto = c => { const v = c / 100; return v >= 1000 ? (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : Math.round(v).toLocaleString('pt-BR'); };
+function escala(max) {            // teto "redondo" e 4 divisões para o eixo
+  if (max <= 0) return { teto: 100, passo: 25 };
+  const bruto = max / 4, p10 = Math.pow(10, Math.floor(Math.log10(bruto)));
+  const passo = [1, 2, 2.5, 5, 10].map(m => m * p10).find(x => x >= bruto);
+  return { teto: passo * 4, passo };
+}
+const barraSvg = (x, y, w, h, base) => {   // topo arredondado, base reta na linha de zero
+  const r = Math.min(4, h, w / 2);
+  return `M${x},${base}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${base}Z`;
+};
+function ultimosMeses(n) {
+  const d = C.parse(hoje().slice(0, 7) + '-01'), out = [];
+  for (let i = n - 1; i >= 0; i--) out.push(C.iso(new Date(d.getFullYear(), d.getMonth() - i, 1)).slice(0, 7));
+  return out;
+}
+
+function telaPainel() {
+  const h = hoje(), mesAtual = h.slice(0, 7), dia = Number(h.slice(8));
+  const casas = ui.pCasa === 'todas' ? S.casas : S.casas.filter(c => c.id === ui.pCasa);
+  const ids = casas.map(c => c.id), cor = id => `var(--s${S.casas.findIndex(c => c.id === id) + 1})`;
+  const meses = ultimosMeses(ui.pMeses), sel = meses.includes(ui.pMes) ? ui.pMes : mesAtual;
+  const saidas = S.lanc.filter(l => l.tipo === 'saida' && ids.includes(l.casa));
+  const noPeriodo = saidas.filter(l => l.data.slice(0, 7) >= meses[0] && l.data.slice(0, 7) <= mesAtual);
+  const total = ls => ls.reduce((s, l) => s + l.valor, 0);
+  const gasto = (casa, mes) => total(saidas.filter(l => l.casa === casa && l.data.startsWith(mes)));
+
+  // Indicadores
+  const mesAnt = ultimosMeses(2)[0];
+  const esteMes = total(saidas.filter(l => l.data.startsWith(mesAtual)));
+  const antAteDia = total(saidas.filter(l => l.data.startsWith(mesAnt) && Number(l.data.slice(8)) <= dia));
+  const varia = antAteDia ? Math.round((esteMes - antAteDia) / antAteDia * 100) : null;
+  const equipe = S.func.filter(f => ids.includes(f.casa));
+  const comGasto = meses.filter(m => saidas.some(l => l.data.startsWith(m))).length;
+  const cartoes = [
+    ['Gasto em ' + MESES[Number(mesAtual.slice(5)) - 1].toLowerCase(), C.brl(esteMes),
+      varia === null ? 'sem base de comparação' : `${varia > 0 ? '▲' : varia < 0 ? '▼' : '='} ${Math.abs(varia)}% vs. mesmo período de ${MESES[Number(mesAnt.slice(5)) - 1].toLowerCase()}`],
+    ['Saldo da verba', C.brl(ids.reduce((t, id) => t + saldo(id), 0)), casas.length > 1 ? 'soma das casas' : casas[0].nome],
+    ['Média mensal', C.brl(comGasto ? Math.round(total(noPeriodo) / comGasto) : 0), `${comGasto} ${comGasto === 1 ? 'mês' : 'meses'} com gastos no período`],
+    ['Folha mensal', C.brl(equipe.reduce((t, f) => t + f.salario, 0)), `${equipe.length} ${equipe.length === 1 ? 'funcionário' : 'funcionários'} · salários brutos`]
+  ];
+
+  // Gastos por mês (barras agrupadas por casa)
+  const W = 340, H = 176, ml = 46, mr = 4, mt = 8, mb = 22, iw = W - ml - mr, ih = H - mt - mb, base = mt + ih;
+  const e1 = escala(Math.max(0, ...meses.flatMap(m => ids.map(id => gasto(id, m)))));
+  const faixa = iw / meses.length, k = ids.length, lb = Math.min(20, (faixa * 0.72 - 2 * (k - 1)) / k);
+  const grade = (e, fy) => [0, 1, 2, 3, 4].map(i => { const v = e.passo * i, y = fy(v);
+    return `<line x1="${ml}" x2="${W - mr}" y1="${y}" y2="${y}" class="grade${i ? '' : ' zero'}"/><text x="${ml - 6}" y="${y + 3.5}" text-anchor="end">${compacto(v)}</text>`; }).join('');
+  const y1 = v => base - v / e1.teto * ih;
+  const barras = `<svg viewBox="0 0 ${W} ${H}" class="graf" role="img" aria-label="Gastos por mês">${grade(e1, y1)}
+    ${meses.map((m, i) => { const x0 = ml + faixa * i, ini = x0 + (faixa - (lb * k + 2 * (k - 1))) / 2;
+      return `<g data-act="p-mes" data-id="${m}">${m === sel ? `<rect x="${x0 + 1}" y="${mt}" width="${faixa - 2}" height="${ih}" class="sel"/>` : ''}
+        <rect x="${x0}" y="0" width="${faixa}" height="${H}" fill="transparent"/>
+        ${ids.map((id, j) => { const v = gasto(id, m); return v ? `<path d="${barraSvg(ini + j * (lb + 2), y1(v), lb, base - y1(v), base)}" fill="${cor(id)}"/>` : ''; }).join('')}
+        <text x="${x0 + faixa / 2}" y="${H - 6}" text-anchor="middle" class="${m === sel ? 'forte' : ''}">${MES3[Number(m.slice(5)) - 1]}</text></g>`; }).join('')}</svg>`;
+  const legenda = itens => `<div class="legenda">${itens.map(([c, t, tr]) => `<span><i class="${tr ? 'trac' : ''}" style="--c:${c}"></i>${esc(t)}</span>`).join('')}</div>`;
+  const leitura = `<div class="leitura"><b>${mesLabel(sel)}</b>${casas.map(c => `<span><i style="--c:${cor(c.id)}"></i>${esc(c.nome)} <b>${C.brl(gasto(c.id, sel))}</b></span>`).join('')}
+    ${k > 1 ? `<span>Total <b>${C.brl(ids.reduce((t, id) => t + gasto(id, sel), 0))}</b></span>` : ''}</div>`;
+
+  // Gasto acumulado: este mês x mês passado
+  const acum = mes => { const dias = new Date(Number(mes.slice(0, 4)), Number(mes.slice(5)), 0).getDate(), fim = mes === mesAtual ? dia : dias, a = []; let t = 0;
+    for (let d = 1; d <= fim; d++) { t += total(saidas.filter(l => l.data === `${mes}-${C.pad(d)}`)); a.push(t); } return a; };
+  const aAtual = acum(mesAtual), aAnt = acum(mesAnt), e2 = escala(Math.max(0, ...aAtual, ...aAnt));
+  const x2 = d => ml + (d - 1) / 30 * iw, y2 = v => base - v / e2.teto * ih;
+  const linha = a => a.map((v, i) => `${i ? 'L' : 'M'}${x2(i + 1).toFixed(1)},${y2(v).toFixed(1)}`).join('');
+  const ponta = (a, c) => `<circle cx="${x2(a.length)}" cy="${y2(a[a.length - 1])}" r="4.5" fill="${c}" class="ponta"/>`;
+  const linhas = `<svg viewBox="0 0 ${W} ${H}" class="graf" role="img" aria-label="Gasto acumulado no mês">${grade(e2, y2)}
+    ${[1, 10, 20, 30].map(d => `<text x="${x2(d)}" y="${H - 6}" text-anchor="middle">dia ${d}</text>`).join('')}
+    <path d="${linha(aAnt)}" class="lin ant"/><path d="${linha(aAtual)}" class="lin"/>${ponta(aAnt, 'var(--suave)')}${ponta(aAtual, 'var(--s1)')}</svg>`;
+
+  // Categorias e maiores gastos do período
+  const cats = porCategoria(noPeriodo), tot = total(noPeriodo), maiorCat = cats.length ? cats[0][1] : 1;
+  const maiores = noPeriodo.slice().sort((a, b) => b.valor - a.valor).slice(0, 5);
+  const seg = (act, atual, ops) => `<div class="casas">${ops.map(([v, t]) => `<button class="${String(v) === String(atual) ? 'on' : ''}" data-act="${act}" data-id="${v}">${esc(t)}</button>`).join('')}</div>`;
+
+  return `<h1 class="titulo">Painel</h1>
+    <div class="filtros">${seg('p-casa', ui.pCasa, [['todas', 'Todas'], ...S.casas.map(c => [c.id, c.nome])])}
+      ${seg('p-meses', ui.pMeses, [[3, '3 meses'], [6, '6 meses'], [12, '12 meses']])}</div>
+    <div class="grade2 kpis">${cartoes.map(([r, v, d]) => `<div class="cartao"><small>${esc(r)}</small><b>${v}</b><span>${esc(d)}</span></div>`).join('')}</div>
+    ${!noPeriodo.length ? `<p class="vazio">Ainda não há gastos lançados neste período.</p>` : `
+    <h2>Gastos por mês</h2>
+    <div class="cartao">${k > 1 ? legenda(casas.map(c => [cor(c.id), c.nome])) : ''}${barras}${leitura}<p class="nota">Toque em um mês para ver os valores.</p></div>
+    <h2>Gasto acumulado no mês</h2>
+    <div class="cartao">${legenda([['var(--s1)', 'Este mês'], ['var(--suave)', 'Mês passado', true]])}${linhas}
+      <div class="leitura"><span>Até o dia ${dia}: <b>${C.brl(esteMes)}</b> este mês</span><span><b>${C.brl(antAteDia)}</b> no mês passado</span></div></div>
+    <h2>Por categoria <small>últimos ${ui.pMeses} meses</small></h2>
+    <div class="cartao">${cats.map(([c, v]) => `<div class="barra p"><div><span>${esc(c)}</span><span>${C.brl(v)} <small>${Math.round(v / tot * 100)}%</small></span></div><i><u style="width:${Math.max(1, Math.round(v / maiorCat * 100))}%"></u></i></div>`).join('')}</div>
+    <h2>Maiores gastos <small>últimos ${ui.pMeses} meses</small></h2>
+    <div class="lista">${maiores.map(l => `<button data-act="editar-lanc" data-id="${l.id}"><div><b>${esc(l.desc || l.cat)}</b><small>${dataBR(l.data)} · ${esc(l.cat)} · ${esc(casaNome(l.casa))}</small></div><span>${C.brl(l.valor)}</span></button>`).join('')}</div>`}`;
 }
 
 function navMes() {
@@ -654,8 +750,12 @@ async function importar(arquivo) {
 
 /* ---------- Ações ---------- */
 const acoes = {
-  aba: id => { ui.tab = id; ui.sub = null; window.scrollTo(0, 0); },
-  voltar: () => { ui.sub = null; },
+  aba: id => { ui.tab = id; ui.sub = null; ui.painel = false; window.scrollTo(0, 0); },
+  voltar: () => { ui.sub = null; ui.painel = false; },
+  painel: () => { ui.painel = true; ui.pMes = null; window.scrollTo(0, 0); },
+  'p-casa': id => { ui.pCasa = id; },
+  'p-meses': n => { ui.pMeses = Number(n); ui.pMes = null; },
+  'p-mes': m => { ui.pMes = m; },
   casa: id => { S.casaAtual = id; salvar(); },
   'ir-casa': id => { S.casaAtual = id; ui.tab = 'financas'; ui.mes = hoje().slice(0, 7); salvar(); },
   mes: d => { const x = C.parse(ui.mes + '-01'); x.setMonth(x.getMonth() + Number(d)); ui.mes = C.iso(x).slice(0, 7); },
@@ -681,7 +781,7 @@ const acoes = {
   },
 
   'novo-func': () => formFunc({ casa: S.casaAtual, nome: '', funcao: '', obs: '' }),
-  'abrir-func': id => { const f = S.func.find(x => x.id === id); S.casaAtual = f.casa; ui.tab = 'equipe'; ui.sub = id; window.scrollTo(0, 0); },
+  'abrir-func': id => { const f = S.func.find(x => x.id === id); S.casaAtual = f.casa; ui.tab = 'equipe'; ui.painel = false; ui.sub = id; window.scrollTo(0, 0); },
   'editar-func': id => formFunc(S.func.find(x => x.id === id)),
   'add-ferias': () => {
     const f = S.func.find(x => x.id === ui.sub);
