@@ -5,19 +5,29 @@ var value := Vector2.ZERO
 var _id := -1
 
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-func _gui_input(e: InputEvent) -> void:
+# Usa _input (e não _gui_input) para o dedo continuar valendo mesmo fora do círculo.
+func _input(e: InputEvent) -> void:
 	if e is InputEventScreenTouch:
-		if e.pressed and _id == -1:
+		if e.pressed and _id == -1 and get_global_rect().grow(30).has_point(e.position):
 			_id = e.index
-			_move(e.position)
+			_move(e.position - global_position)
+			get_viewport().set_input_as_handled()
 		elif not e.pressed and e.index == _id:
-			_id = -1
-			value = Vector2.ZERO
-			queue_redraw()
+			_release()
 	elif e is InputEventScreenDrag and e.index == _id:
-		_move(e.position)
+		_move(e.position - global_position)
+
+func _notification(what: int) -> void:
+	# se o app perder o foco ou o direcional sumir, solta o direcional
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_VISIBILITY_CHANGED:
+		_release()
+
+func _release() -> void:
+	_id = -1
+	value = Vector2.ZERO
+	queue_redraw()
 
 func _move(p: Vector2) -> void:
 	var r := size.x * 0.5
