@@ -107,11 +107,17 @@ def action(name, frames):
     return act
 # X negativo = balança para a frente
 def walk(s, k):   # s = fase (-1..1), k = quanto dobra
-    return {'ThighA': [(X, -26*s)], 'ShinA': [(X, 30*max(0.0, s) + 6)], 'ThighB': [(X, 26*s)], 'ShinB': [(X, 30*max(0.0, -s) + 6)],
+    return {'ThighA': [(X, -32*s)], 'ShinA': [(X, 26*max(0.0, s) + 4)], 'ThighB': [(X, 32*s)], 'ShinB': [(X, 26*max(0.0, -s) + 4)],
             'ArmA': [(X, 20*s)], 'ArmB': [(X, -20*s)], 'ForeA': [(X, -10)], 'ForeB': [(X, -10)],
             'Spine': [(Z, 5*s), (X, 5)], 'Chest': [(Z, 4*s)], 'Head': [(Z, -6*s)]}
 action('Idle', [(1, {}, 0.0), (30, {'Spine': [(X, -2)], 'Chest': [(X, -3)], 'ArmA': [(Y, 3)], 'ArmB': [(Y, -3)], 'Head': [(X, 3)]}, -0.006), (60, {}, 0.0)])
-action('Walk', [(1, walk(1, 1), 0.0), (9, walk(0, 1), 0.03), (17, walk(-1, 1), 0.0), (25, walk(0, 1), 0.03), (33, walk(1, 1), 0.0)])
+def passo(lado):   # meio da passada: a perna que vem para a frente dobra o joelho e sai do chão
+    d = walk(0, 1)
+    if lado > 0: d.update({'ThighA': [(X, -22)], 'ShinA': [(X, 48)]})
+    else: d.update({'ThighB': [(X, -22)], 'ShinB': [(X, 48)]})
+    return d
+DZ = -0.075          # quanto o quadril desce com as pernas abertas
+action('Walk', [(1, walk(1, 1), DZ), (9, passo(-1), 0.0), (17, walk(-1, 1), DZ), (25, passo(1), 0.0), (33, walk(1, 1), DZ)])
 up = {'Spine': [(X, -12)], 'Chest': [(X, -14)], 'ArmA': [(X, -120)], 'ArmB': [(X, -120)], 'ForeA': [(X, -30)], 'ForeB': [(X, -30)], 'Head': [(X, -10)]}
 down = {'Spine': [(X, 22)], 'Chest': [(X, 24)], 'ArmA': [(X, -45)], 'ArmB': [(X, -45)], 'ForeA': [(X, -20)], 'ForeB': [(X, -20)], 'Head': [(X, 8)], 'ThighA': [(X, -18)], 'ShinA': [(X, 26)], 'ThighB': [(X, -18)], 'ShinB': [(X, 26)]}
 action('Attack', [(1, {}, 0.0), (14, up, 0.02), (20, down, -0.06), (26, down, -0.06), (40, {}, 0.0)])
@@ -119,7 +125,7 @@ def mix(a, b):
     d = dict(a); d.update(b); return d
 HOLD = {'ArmA': [(X, -35)], 'ForeA': [(X, -60)]}          # braço da frente segura o machado erguido
 action('AxeIdle', [(1, HOLD, 0.0), (30, mix({'Spine': [(X, -2)], 'Chest': [(X, -3)], 'Head': [(X, 3)]}, {'ArmA': [(X, -38)], 'ForeA': [(X, -62)]}), -0.006), (60, HOLD, 0.0)])
-action('AxeWalk', [(1, mix(walk(1, 1), HOLD), 0.0), (9, mix(walk(0, 1), HOLD), 0.03), (17, mix(walk(-1, 1), HOLD), 0.0), (25, mix(walk(0, 1), HOLD), 0.03), (33, mix(walk(1, 1), HOLD), 0.0)])
+action('AxeWalk', [(1, mix(walk(1, 1), HOLD), DZ), (9, mix(passo(-1), HOLD), 0.0), (17, mix(walk(-1, 1), HOLD), DZ), (25, mix(passo(1), HOLD), 0.0), (33, mix(walk(1, 1), HOLD), DZ)])
 a_up = {'Spine': [(X, -12)], 'Chest': [(X, -10), (Z, -12)], 'ArmA': [(X, -165)], 'ForeA': [(X, -25)], 'Head': [(X, -8)], 'ArmB': [(X, 20)]}
 a_dn = {'Spine': [(X, 24)], 'Chest': [(X, 16), (Z, 10)], 'ArmA': [(X, -42)], 'ForeA': [(X, -8)], 'Head': [(X, 6)], 'ArmB': [(X, 25)], 'ThighA': [(X, -16)], 'ShinA': [(X, 22)], 'ThighB': [(X, 8)], 'ShinB': [(X, 10)]}
 action('AxeAttack', [(1, HOLD, 0.0), (12, a_up, 0.02), (18, a_dn, -0.05), (25, a_dn, -0.05), (38, HOLD, 0.0)])
@@ -135,7 +141,7 @@ action('Paw', [(1, {}, 0.0), (6, fwd, -0.03), (11, back, -0.03), (16, fwd, -0.03
 def run(s):
     return {'ThighA': [(X, -38*s)], 'ShinA': [(X, 44*max(0.0, s) + 8)], 'ThighB': [(X, 38*s)], 'ShinB': [(X, 44*max(0.0, -s) + 8)],
             'Spine': [(X, 30)], 'Chest': [(X, 14)], 'Head': [(X, 26)], 'ArmA': [(X, 30 + 12*s)], 'ArmB': [(X, 30 - 12*s)], 'ForeA': [(X, -30)], 'ForeB': [(X, -30)]}
-action('Charge', [(1, run(1), -0.04), (5, run(0), 0.0), (9, run(-1), -0.04), (13, run(0), 0.0), (17, run(1), -0.04)])
+action('Charge', [(1, run(1), -0.11), (5, run(0), -0.02), (9, run(-1), -0.11), (13, run(0), -0.02), (17, run(1), -0.11)])
 action('Hit', [(1, {}, 0.0), (5, {'Spine': [(X, -14)], 'Chest': [(X, -10)], 'Head': [(X, -14)]}, 0.0), (14, {}, 0.0)])
 pose({}); bpy.ops.object.mode_set(mode='OBJECT')
 # material escuro

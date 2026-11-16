@@ -1,16 +1,20 @@
 extends CharacterBody3D
 ## Minotauro Dark: o chefe.
-## Fase 1: luta com o machado. Quando a vida cai até `largar_machado_em`, o machado cai no chão.
+## Fase 1: luta com o machado. Quando a vida cai até `largar_machado_em`, o machado se despedaça e some.
 ## Fase 2: dá dois socos; depois raspa o pé no chão (patada) e investe com os chifres.
 ## Esqueleto e animações foram feitos no Blender por script.
 
 signal killed
 signal largou_machado
 
+const MACHADO := preload("res://models/Machado.glb")
+## Velocidade em que a animação de andar foi feita (m/s), para os pés não deslizarem.
+const PASSO := 2.1
+
 @export var altura := 4.6
 @export var speed := 2.8
-## Fração da vida em que ele larga o machado (0.9 = quando a vida chega a 90%).
-@export_range(0.05, 0.95) var largar_machado_em := 0.9
+## Fração da vida em que o machado se despedaça (0.5 = quando ele fica com metade da vida).
+@export_range(0.05, 0.95) var largar_machado_em := 0.5
 
 var max_hp := 500
 var hp := 500
@@ -114,67 +118,18 @@ func _no_osso(sk: Skeleton3D, osso: String, no_modelo: Transform3D) -> Transform
 	var no_esqueleto: Transform3D = sk.global_transform.affine_inverse() * model.global_transform * no_modelo
 	return sk.get_bone_global_rest(sk.find_bone(osso)).affine_inverse() * no_esqueleto
 
-## Machado de duas lâminas, feito de formas simples (unidades do modelo: ele tem 1,9 de altura).
+## Machado de duas lâminas em meia-lua (modelo feito no Blender: models/Machado.glb).
 func _criar_machado() -> Node3D:
-	var root := Node3D.new()
+	var root: Node3D = MACHADO.instantiate()
 	root.name = "Machado"
-	var madeira := StandardMaterial3D.new()
-	madeira.albedo_color = Color(0.3, 0.17, 0.08)
-	madeira.roughness = 0.85
-	var aco := StandardMaterial3D.new()
-	aco.albedo_color = Color(0.62, 0.66, 0.72)
-	aco.metallic = 0.75
-	aco.roughness = 0.35
-	var ferro := StandardMaterial3D.new()
-	ferro.albedo_color = Color(0.2, 0.2, 0.23)
-	ferro.metallic = 0.6
-	ferro.roughness = 0.5
-	# cabo ao longo do eixo Y local; a mão segura perto de y = 0
-	var cabo := MeshInstance3D.new()
-	var c := CylinderMesh.new()
-	c.top_radius = 0.022
-	c.bottom_radius = 0.026
-	c.height = 1.25
-	c.radial_segments = 8
-	c.material = madeira
-	cabo.mesh = c
-	cabo.position.y = 0.38
-	root.add_child(cabo)
-	# cabeça de ferro que prende as lâminas
-	var cab := MeshInstance3D.new()
-	var cb := BoxMesh.new()
-	cb.size = Vector3(0.09, 0.2, 0.07)
-	cb.material = ferro
-	cab.mesh = cb
-	cab.position.y = 0.9
-	root.add_child(cab)
-	# duas lâminas em meia-lua (discos finos, um de cada lado)
-	for lado in [-1.0, 1.0]:
-		var lam := MeshInstance3D.new()
-		var d := CylinderMesh.new()
-		d.top_radius = 0.19
-		d.bottom_radius = 0.19
-		d.height = 0.022
-		d.radial_segments = 14
-		d.material = aco
-		lam.mesh = d
-		lam.rotation.x = PI * 0.5                # disco "em pé", no plano do corte
-		lam.scale = Vector3(0.75, 1.0, 1.0)
-		lam.position = Vector3(lado * 0.13, 0.9, 0.0)
-		root.add_child(lam)
-	# ponta de lança em cima e pino embaixo
-	for item in [[1.08, 0.2, 0.0], [-0.3, 0.12, PI]]:
-		var p := MeshInstance3D.new()
-		var cone := CylinderMesh.new()
-		cone.top_radius = 0.0
-		cone.bottom_radius = 0.04
-		cone.height = item[1]
-		cone.radial_segments = 6
-		cone.material = aco
-		p.mesh = cone
-		p.position.y = item[0]
-		p.rotation.x = item[2]
-		root.add_child(p)
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.metallic = 0.55
+	mat.roughness = 0.4
+	var meshes: Array = []
+	Fit._collect(root, meshes)
+	for m: MeshInstance3D in meshes:
+		m.material_override = mat
 	return root
 
 func _mudar(novo: String) -> void:
@@ -186,20 +141,33 @@ func _acertar(alcance: float, dano: int) -> void:
 	if target.get("hp") > 0 and target.global_position.distance_to(global_position) < alcance:
 		target.call("hurt", dano)
 
+## O machado se despedaça na mão dele e some.
 func _largar_machado() -> void:
 	fase = 2
 	if machado == null or not is_instance_valid(machado):
 		return
-	var m := machado
+	var centro: Vector3 = machado.global_transform * Vector3(0, 0.7, 0)
+	machado.queue_free()
 	machado = null
-	var gt := m.global_transform
-	m.get_parent().remove_child(m)
-	jogo.add_child(m)
-	m.global_transform = gt
-	var chao := Vector3(gt.origin.x, 0.12, gt.origin.z) + global_basis.x * 1.2
-	var tw := m.create_tween()
-	tw.tween_property(m, "global_position", chao, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(m, "global_rotation", Vector3(PI * 0.5, rotation.y + 0.6, 0.0), 0.45)
+	var cores := [Color(0.62, 0.66, 0.72), Color(0.3, 0.33, 0.38), Color(0.3, 0.17, 0.08)]
+	for i in 14:
+		var p := MeshInstance3D.new()
+		var b := BoxMesh.new()
+		b.size = Vector3(randf_range(0.12, 0.38), randf_range(0.05, 0.14), randf_range(0.12, 0.3))
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = cores[i % cores.size()]
+		mat.metallic = 0.5
+		b.material = mat
+		p.mesh = b
+		jogo.add_child(p)
+		p.global_position = centro + Vector3(randf_range(-0.4, 0.4), randf_range(-0.6, 0.6), randf_range(-0.4, 0.4))
+		var alvo := Vector3(centro.x + randf_range(-3.0, 3.0), 0.08, centro.z + randf_range(-3.0, 3.0))
+		var tw := p.create_tween()
+		tw.tween_property(p, "global_position", alvo, randf_range(0.45, 0.8)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(p, "rotation", Vector3(randf() * 6.0, randf() * 6.0, randf() * 6.0), 0.7)
+		tw.tween_interval(1.2)
+		tw.tween_property(p, "scale", Vector3.ONE * 0.01, 0.5)
+		tw.tween_callback(p.queue_free)
 	largou_machado.emit()
 
 func _physics_process(delta: float) -> void:
@@ -215,12 +183,17 @@ func _physics_process(delta: float) -> void:
 	velocity.z = 0
 	match estado:
 		"segue":
-			if d > 3.2 and d < 80.0:
-				var dir := to / d
+			# com a muralha de pé, ele dá a volta até um portão
+			var via: Vector3 = jogo.destino(global_position) - global_position
+			via.y = 0
+			var desvia: bool = jogo.destino(global_position).distance_to(target.global_position) > 0.5
+			if (desvia or d > 3.2) and d < 90.0 and via.length() > 0.2:
+				var dir := via.normalized()
 				velocity.x = dir.x * speed
 				velocity.z = dir.z * speed
 				moving = true
-			if d > 0.1:
+				rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), 4.0 * delta)
+			elif d > 0.1:
 				rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 4.0 * delta)
 			if _cd <= 0.0 and target.get("hp") > 0:
 				if fase == 1:
@@ -295,9 +268,9 @@ func _physics_process(delta: float) -> void:
 		if _tonto > 0.0:
 			_tonto -= delta
 		elif fase == 1:
-			Fit.play(_ap, &"AxeWalk" if moving else &"AxeIdle")
+			Fit.play(_ap, &"AxeWalk" if moving else &"AxeIdle", true, speed / PASSO if moving else 1.0)
 		else:
-			Fit.play(_ap, &"Walk" if moving else &"Idle")
+			Fit.play(_ap, &"Walk" if moving else &"Idle", true, speed / PASSO if moving else 1.0)
 
 func hurt(amount: int) -> void:
 	if _dead:

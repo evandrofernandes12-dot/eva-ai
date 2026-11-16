@@ -22,6 +22,7 @@ var _atk: StringName
 var _hit: StringName
 var _death: StringName
 var model: Node3D
+var jogo: Node
 
 func setup(scene: PackedScene, player: Node3D) -> void:
 	target = player
@@ -55,8 +56,19 @@ func _physics_process(delta: float) -> void:
 	to.y = 0
 	var d := to.length()
 	var moving := false
-	if d > 1.7 and d < 40.0 and _busy <= 0.0:
-		var dir := to / d
+	# com a muralha de pé, dá a volta até um portão
+	var via := to
+	var desvia := false
+	if jogo == null:
+		jogo = get_parent()
+	if jogo != null and jogo.has_method("destino"):
+		var dest: Vector3 = jogo.destino(global_position)
+		desvia = dest.distance_to(target.global_position) > 0.5
+		via = dest - global_position
+		via.y = 0
+	if (desvia or d > 1.7) and d < 90.0 and _busy <= 0.0 and via.length() > 0.2:
+		var dir := via.normalized()
+		to = via
 		velocity.x = dir.x * speed
 		velocity.z = dir.z * speed
 		moving = true

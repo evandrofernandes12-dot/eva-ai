@@ -11,6 +11,7 @@ signal died
 
 var hp := 100
 var joy := Vector2.ZERO          # preenchido pelo direcional da tela
+var primeira_pessoa := false     # na 1ª pessoa o direcional gira e anda para a frente
 var _cd := 0.0
 var _busy := 0.0
 var _ap: AnimationPlayer
@@ -40,11 +41,14 @@ func _physics_process(delta: float) -> void:
 		v = v.normalized()
 	# a câmera olha de trás e de cima, então "para cima" na tela é -Z no mundo
 	var dir := Vector3(v.x, 0, v.y)
+	if primeira_pessoa:
+		rotation.y -= v.x * 2.4 * delta
+		dir = global_basis.z * (-v.y)
 	velocity.x = dir.x * speed
 	velocity.z = dir.z * speed
 	velocity.y = velocity.y - 20.0 * delta if not is_on_floor() else 0.0
 	move_and_slide()
-	if dir.length() > 0.1:
+	if dir.length() > 0.1 and not primeira_pessoa:
 		rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), 12.0 * delta)
 	if Input.is_action_just_pressed("attack"):
 		attack()

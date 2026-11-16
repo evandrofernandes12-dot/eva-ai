@@ -14,7 +14,7 @@ const NIVEL_MAX := 3
 @export var custo_pedra := 0
 @export var custo_comida := 0
 ## "vida" = +25 de vida máxima por nível · "madeira" = produz madeira · "torre" = atira nos inimigos · "descanso" = cura mais rápido
-@export_enum("nenhum", "vida", "madeira", "torre", "descanso") var efeito := "nenhum"
+@export_enum("nenhum", "vida", "madeira", "torre", "descanso", "muralha") var efeito := "nenhum"
 
 var nivel := 0
 var construido: bool:
@@ -61,10 +61,15 @@ static func texto(c: Dictionary) -> String:
 	return ", ".join(p)
 
 func construir(animar := true) -> void:
-	if construido or modelo == null:
+	if construido:
 		return
 	nivel = 1
 	_ring.queue_free()
+	if modelo == null:        # ex.: muralha, que o jogo monta em volta da aldeia
+		_sign.font_size = 40
+		_rotulo()
+		built.emit(self)
+		return
 	_b = modelo.instantiate()
 	add_child(_b)
 	Fit.to_height(_b, altura)
@@ -90,6 +95,10 @@ func melhorar(animar := true) -> void:
 	if not construido or nivel >= NIVEL_MAX:
 		return
 	nivel += 1
+	if _b == null:
+		_rotulo()
+		upgraded.emit(self)
+		return
 	var alvo := _base * (1.0 + 0.1 * (nivel - 1))
 	_sign.position.y = altura * (1.0 + 0.1 * (nivel - 1)) + 1.2
 	_rotulo()

@@ -16,7 +16,9 @@ const VILLAGER := preload("res://scripts/villager.gd")
 const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v7"
+const VERSAO := "v8"
+const MURO_R := 27.0             # raio da muralha
+const CAM_NOMES := ["3ª pessoa", "1ª pessoa", "Visão de águia"]
 
 ## Classes: vida base, dano por nível da arma, alcance. "area" = dano em área (mago).
 const CLASSES := {
@@ -28,7 +30,7 @@ const ARMA_CUSTO := [{}, {"madeira": 40, "pedra": 30}, {"madeira": 90, "pedra": 
 const OFICIOS := ["madeira", "pedra", "comida"]
 
 @export var forest_radius := 70.0
-@export var village_radius := 24.0
+@export var village_radius := 30.0
 @export var tree_count := 140
 @export var rock_count := 40
 @export var bush_count := 50
@@ -50,6 +52,12 @@ var boss_derrotas := 0
 var boss_em := 6                 # aparece quando o número de orcs derrotados chega aqui
 var _boss_bar: ProgressBar
 var _boss_lbl: Label
+var cam_modo := 0                # 0 = terceira pessoa, 1 = primeira, 2 = águia
+var _cam_off := Vector3(0, 9, 10)
+var _tapado_t := 0.0
+var _arv_t := 0.0
+var _fixos: Array = []           # construções prontas da aldeia: {pos, r, h}
+var _muro: Node3D
 var enemies: Array = []
 var plots: Array = []
 var _spawn_t := 12.0
@@ -72,7 +80,9 @@ var QUESTS := [
 	{"t": "Colha arbustos: junte 30 de comida", "p": func(): return res.comida, "n": 30, "r": {"pedra": 30}},
 	{"t": "Melhore a Casa para o nível 2", "p": func(): return _lvl("vida"), "n": 2, "r": {"madeira": 40}},
 	{"t": "Evolua sua arma para o nível 2", "p": func(): return arma, "n": 2, "r": {"pedra": 40}},
-	{"t": "Construa a Torre de Vigia", "p": func(): return _built("torre"), "n": 1, "r": {"madeira": 40}},
+	{"t": "Construa uma Torre de Vigia", "p": func(): return _built("torre"), "n": 1, "r": {"madeira": 40}},
+	{"t": "Erga a Muralha (lote perto do portão sul)", "p": func(): return _built("muralha"), "n": 1, "r": {"pedra": 60}},
+	{"t": "Construa as 4 Torres de Vigia", "p": func(): return _built("torre"), "n": 4, "r": {"madeira": 80, "pedra": 80}},
 	{"t": "Construa a Estalagem", "p": func(): return _built("descanso"), "n": 1, "r": {"comida": 40}},
 	{"t": "Derrote o Minotauro Dark", "p": func(): return boss_derrotas, "n": 1, "r": {"madeira": 100, "pedra": 100, "comida": 100}},
 ]
@@ -110,6 +120,9 @@ func _ready() -> void:
 			if b.has_meta("altura"):
 				Fit.to_height(b, float(b.get_meta("altura")))
 			_add_collision(b)
+			var bx := Fit.bounds(b)
+			var centro: Vector3 = b.global_transform * bx.get_center()
+			_fixos.append({"pos": centro, "r": maxf(bx.size.x, bx.size.z) * 0.5 * b.scale.x, "h": bx.size.y * b.scale.y})
 	for p in $Lotes.get_children():
 		plots.append(p)
 		p.built.connect(_on_built)
@@ -124,6 +137,7 @@ func _ready() -> void:
 	use_b.visible = false
 	_hud_button("CLASSE", 70.0, _menu_classe)
 	_hud_button("ALDEÕES", 124.0, _menu_aldeoes)
+	_hud_button("CÂMERA", 178.0, _trocar_camera)
 	_recalc()
 	_boss_hud()
 	if not _load():
@@ -194,10 +208,7 @@ func _place(holder: Node3D, scene: PackedScene, h: float, tipo: String, hp: int)
 
 func _process(delta: float) -> void:
 	player.joy = joy.value
-	# câmera em terceira pessoa, seguindo o jogador
-	var want := player.global_position + Vector3(0, 9.0, 10.0)
-	cam.global_position = cam.global_position.lerp(want, minf(1.0, 6.0 * delta))
-	cam.look_at(player.global_position + Vector3(0, 1.2, 0))
+	_camera(delta)
 	enemies = enemies.filter(func(e): return is_instance_valid(e))
 	_spawn_t -= delta
 	if _spawn_t <= 0.0 and enemies.size() < max_enemies:
@@ -234,7 +245,7 @@ func _buildings(delta: float) -> void:
 						e.hurt(4 + 3 * p.nivel)
 						break
 	# cura na aldeia, longe de inimigos; a Estalagem dobra
-	var safe := player.global_position.length() < village_radius
+	var safe := player.global_position.length() < MURO_R
 	for e in enemies:
 		if is_instance_valid(e) and e.global_position.distance_to(player.global_position) < 12.0:
 			safe = false
@@ -285,6 +296,8 @@ func _use() -> void:
 
 func _on_upgraded(p) -> void:
 	_recalc()
+	if p.efeito == "muralha":
+		_erguer_muralha(p.nivel)
 	say("%s agora é nível %d!" % [p.nome, p.nivel])
 	_save()
 
@@ -303,6 +316,8 @@ func _recalc() -> void:
 
 func _on_built(p) -> void:
 	_recalc()
+	if p.efeito == "muralha":
+		_erguer_muralha(p.nivel)
 	# tira o jogador de dentro da construção nova
 	if player.global_position.distance_to(p.global_position) < 6.0:
 		player.global_position = p.global_position + Vector3(0, 0, 7.0)
@@ -396,6 +411,141 @@ func _renascimento(delta: float) -> void:
 			_renascer.erase(r)
 			_place(_holder, r.scene, r.h, r.tipo, r.hp)
 
+# ---------- câmera ----------
+func _trocar_camera() -> void:
+	cam_modo = (cam_modo + 1) % 3
+	player.primeira_pessoa = cam_modo == 1
+	player.model.visible = cam_modo != 1
+	say("Câmera: " + CAM_NOMES[cam_modo], 2.5)
+
+## Construções que podem tapar a visão: as fixas da aldeia e as dos lotes.
+func _obstaculos() -> Array:
+	var out: Array = _fixos.duplicate()
+	for p in plots:
+		if p.construido and p.modelo != null:
+			var h: float = p.altura * (1.0 + 0.1 * (p.nivel - 1))
+			out.append({"pos": p.global_position + Vector3(0, h * 0.5, 0), "r": h * 0.55, "h": h})
+	return out
+
+## Distância (no plano do chão) de um ponto ao segmento a-b, e a posição ao longo dele (0..1).
+func _seg(p: Vector3, a: Vector3, b: Vector3) -> Vector2:
+	var ab := Vector2(b.x - a.x, b.z - a.z)
+	var ap := Vector2(p.x - a.x, p.z - a.z)
+	var t := clampf(ap.dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+	return Vector2((ap - ab * t).length(), t)
+
+func _tapado(de: Vector3, ate: Vector3) -> bool:
+	for o in _obstaculos():
+		var s := _seg(o.pos, de, ate)
+		if s.x < o.r and s.y > 0.03 and s.y < 0.97 and lerpf(de.y, ate.y, s.y) < o.h + 0.5:
+			return true
+	return false
+
+func _camera(delta: float) -> void:
+	var pp := player.global_position
+	if cam_modo == 1:        # primeira pessoa: olhos do personagem
+		var olhos := pp + Vector3(0, 1.65, 0)
+		var frente := player.global_basis.z
+		cam.global_position = olhos + frente * 0.2
+		cam.look_at(olhos + frente * 10.0 - Vector3(0, 0.8, 0))
+		return
+	var alvo := Vector3(0, 9, 10)
+	if cam_modo == 2:        # visão de águia
+		alvo = Vector3(0, 40, 8)
+	else:
+		# se uma construção fica entre a câmera e o boneco, a câmera sobe e olha por cima do telhado
+		if _tapado(pp + Vector3(0, 9, 10), pp + Vector3(0, 1.2, 0)):
+			_tapado_t = 0.7
+		_tapado_t -= delta
+		if _tapado_t > 0.0:
+			alvo = Vector3(0, 19, 3.5)
+	_cam_off = _cam_off.lerp(alvo, minf(1.0, 5.0 * delta))
+	cam.global_position = cam.global_position.lerp(pp + _cam_off, minf(1.0, 8.0 * delta))
+	cam.look_at(pp + Vector3(0, 1.2, 0))
+	# árvores na frente do boneco ficam escondidas enquanto atrapalham
+	_arv_t -= delta
+	if _arv_t <= 0.0:
+		_arv_t = 0.15
+		var c := cam.global_position
+		for t in nodes:
+			if t.tipo == "madeira" and is_instance_valid(t.node):
+				var s := _seg(t.node.global_position, c, pp)
+				t.node.visible = not (cam_modo == 0 and s.x < 2.6 and s.y > 0.12 and s.y < 0.97)
+
+# ---------- muralha ----------
+## Com a muralha de pé, quem está de um lado e quer chegar ao outro precisa passar por um portão.
+func destino(de: Vector3) -> Vector3:
+	var alvo := player.global_position
+	if _muro == null:
+		return alvo
+	var dentro := Vector2(de.x, de.z).length() < MURO_R
+	var jog_dentro := Vector2(alvo.x, alvo.z).length() < MURO_R
+	if dentro == jog_dentro:
+		return alvo
+	var best := Vector3.ZERO
+	var bd := 1e9
+	for g in [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]:
+		var gp: Vector3 = g * MURO_R
+		var dd := de.distance_to(gp) + gp.distance_to(alvo)
+		if dd < bd:
+			bd = dd
+			best = g
+	# primeiro se alinha com o portão (do lado em que está), depois atravessa
+	var alinhado := absf(angle_difference(atan2(de.z, de.x), atan2(best.z, best.x))) < 0.07
+	if not alinhado:
+		return best * (MURO_R + (6.0 if jog_dentro else -6.0))
+	return best * (MURO_R * (0.86 if jog_dentro else 1.14))
+
+func _erguer_muralha(nivel: int) -> void:
+	if _muro != null:
+		_muro.queue_free()
+	_muro = StaticBody3D.new()
+	_muro.name = "Muralha"
+	add_child(_muro)
+	var altura := 3.0 + 0.9 * (nivel - 1)
+	var tora := CylinderMesh.new()
+	tora.top_radius = 0.2
+	tora.bottom_radius = 0.3
+	tora.height = altura
+	tora.radial_segments = 6
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.42, 0.27, 0.14) if nivel < 3 else Color(0.5, 0.5, 0.52)
+	mat.roughness = 0.9
+	tora.material = mat
+	var angs: Array = []
+	var n := int(TAU * MURO_R / 0.56)
+	for i in n:
+		var a := TAU * i / n
+		# deixa 4 portões abertos (leste, oeste, norte, sul)
+		var perto := absf(fposmod(a + PI * 0.25, PI * 0.5) - PI * 0.25)
+		if perto > 0.15:
+			angs.append(a)
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = tora
+	mm.instance_count = angs.size()
+	for i in angs.size():
+		var a: float = angs[i]
+		var hh := 1.0 + 0.08 * sin(i * 1.7)
+		mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(1, hh, 1)), Vector3(cos(a) * MURO_R, altura * 0.5 * hh, sin(a) * MURO_R)))
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	_muro.add_child(mmi)
+	# colisão em trechos
+	var passo := 0.1
+	var a := 0.0
+	while a < TAU:
+		var perto := absf(fposmod(a + PI * 0.25, PI * 0.5) - PI * 0.25)
+		if perto > 0.15 + passo * 0.5:
+			var cs := CollisionShape3D.new()
+			var sh := BoxShape3D.new()
+			sh.size = Vector3(0.8, altura + 2.0, MURO_R * passo * 1.05)
+			cs.shape = sh
+			cs.position = Vector3(cos(a) * MURO_R, altura * 0.5, sin(a) * MURO_R)
+			cs.rotation.y = -a
+			_muro.add_child(cs)
+		a += passo
+
 # ---------- chefe: Minotauro Dark ----------
 func _boss_hud() -> void:
 	_boss_lbl = Label.new()
@@ -437,7 +587,7 @@ func invocar_chefe() -> void:
 	b.position = Vector3(cos(a), 0, sin(a)) * (village_radius + 18.0)
 	add_child(b)
 	b.killed.connect(_chefe_morreu.bind(b))
-	b.largou_machado.connect(func(): say("O Minotauro largou o machado! Cuidado com os socos e a chifrada.", 5.0))
+	b.largou_machado.connect(func(): say("O machado do Minotauro se despedaçou! Cuidado com os socos e a chifrada.", 5.0))
 	enemies.append(b)
 	boss = b
 	say("O MINOTAURO DARK se aproxima da aldeia!", 6.0)
@@ -695,6 +845,8 @@ func _load() -> bool:
 		p.built.disconnect(_on_built)
 		p.upgraded.disconnect(_on_upgraded)
 		p.definir_nivel(int(niveis.get(String(p.name), 0)))
+		if p.efeito == "muralha" and p.nivel > 0:
+			_erguer_muralha(p.nivel)
 		p.built.connect(_on_built)
 		p.upgraded.connect(_on_upgraded)
 	for papel in d.get("aldeoes", []):

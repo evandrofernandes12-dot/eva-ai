@@ -75,6 +75,8 @@ static func play(ap: AnimationPlayer, anim: StringName, loop := true, speed := 1
 		a.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
 	if ap.current_animation != anim or not ap.is_playing():
 		ap.play(anim, 0.15, speed)
+	elif not is_equal_approx(ap.speed_scale * ap.get_playing_speed(), speed):
+		ap.play(anim, 0.15, speed)
 
 ## Tinge o modelo (multiplica a cor original de cada material).
 static func tint(root: Node, color: Color) -> void:
