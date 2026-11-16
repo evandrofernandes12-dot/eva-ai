@@ -245,6 +245,48 @@ body.cine #hud{opacity:0;transition:opacity .8s}
 #bUI.on{filter:brightness(.7)}
 #hud.ui-off #lcol,#hud.ui-off #top,#hud.ui-off #mini{display:none}#hud.ui-off #clock:not(.alert){display:none}
 @media (max-width:760px){#bUI{right:54px;top:max(10px,env(safe-area-inset-top,0px))}#hud.c-r #top{max-width:calc(100vw - 230px)}}
+
+/* ===== Celular deitado (altura pequena): layout próprio, sem sobreposição ===== */
+@media (max-height:520px){
+  #hud{--sl:max(8px,env(safe-area-inset-left,0px));--sr:max(8px,env(safe-area-inset-right,0px));--sb:max(8px,env(safe-area-inset-bottom,0px));--st:max(6px,env(safe-area-inset-top,0px))}
+  /* esquerda: jogador, missão, construtores */
+  #hud #lcol{left:var(--sl);top:var(--st);width:176px;gap:5px}
+  #hud #pl{height:52px;padding-left:54px;gap:4px}#hud .port{width:56px;height:56px}#hud .lvb{left:30px;top:38px;transform:scale(.8)}
+  #hud .pname{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#hud .bar{height:12px;margin-top:3px}#hud .bar em{font-size:8px;line-height:12px}#hud .bar .ico{transform:scale(.75)}
+  #hud #quest{padding:4px 8px 5px}#hud #quest h4{margin:0 0 3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#hud #quest p,#hud #quest .rw{display:none}
+  #hud #builds{gap:4px}#hud #builds .bj:not(:first-child){display:none}#hud #builds .bj{font-size:10px;padding:3px 8px;min-height:0}
+  /* topo: relógio ao lado do jogador */
+  #hud #clock{left:auto;right:calc(var(--sr) + 130px);top:calc(var(--st) + 34px);bottom:auto;transform:none;min-width:0;width:auto;max-width:calc(100vw - var(--sl) - var(--sr) - 184px - 134px);padding:2px 10px 3px;box-sizing:border-box;border-radius:9px}
+  #hud #clock b{font-size:10px;letter-spacing:.3px;line-height:1.25}#hud #clock span{font-size:9px;line-height:1.2}
+  /* direita: recursos compactos · menu · mapa */
+  #hud #rcol{right:var(--sr);top:var(--st);width:auto;flex-direction:row;align-items:flex-start;gap:6px}
+  #hud #rcol #top{order:1;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;width:auto;max-width:calc(100vw - var(--sl) - var(--sr) - 184px - 134px);gap:3px;padding:3px 4px;border-radius:14px;box-sizing:border-box}
+  #hud #top .res{height:22px;padding:0 6px 0 2px;gap:3px;border-radius:12px}#hud #top .res .ic{width:18px;height:18px;font-size:11px;box-shadow:0 0 0 1px var(--gold2)}#hud #top .res b{flex:none;min-width:18px;font-size:11px}#hud #top .res small,#hud #top .res .plus{display:none}
+  #hud #gear{order:2;width:36px;height:36px;font-size:17px}
+  #hud #mini,#hud.c-m #mini{order:3;display:block;width:76px;height:76px;flex:none;box-shadow:0 0 0 2px #140c06,0 0 0 4px var(--gold),0 0 0 5px #140c06,0 4px 8px #000a}
+  #hud #bUI{right:calc(var(--sr) + 82px);top:calc(var(--st) + 42px);bottom:auto;width:36px;height:36px;font-size:16px}
+  /* botões de ação */
+  #hud .rb{touch-action:manipulation}#hud .rb.sm{width:40px;height:40px;font-size:17px}#hud .rb.mid{width:52px;height:52px;font-size:23px}#hud .rb.big{width:72px;height:72px;font-size:31px;right:var(--sr);bottom:var(--sb)}
+  #hud #bBag{right:calc(var(--sr) + 16px);bottom:calc(var(--sb) + 80px);top:auto}
+  #hud #bVill{right:calc(var(--sr) + 16px);bottom:calc(var(--sb) + 126px);top:auto}
+  #hud #bHero{right:calc(var(--sr) + 16px);bottom:calc(var(--sb) + 172px);top:auto}
+  #hud #bAct{right:calc(var(--sr) + 80px);bottom:calc(var(--sb) + 2px)}
+  #hud #bCam{right:calc(var(--sr) + 86px);bottom:calc(var(--sb) + 62px);top:auto}
+  #hud #bRun{right:calc(var(--sr) + 140px);bottom:calc(var(--sb) + 2px)}
+  #hud #bDis,#hud #bOut{right:calc(var(--sr) + 140px);bottom:calc(var(--sb) + 50px)}
+  #hud #bAer{display:none}
+  /* barra de armas e direcional */
+  #hud #bottom{bottom:var(--sb)}#hud #hotbar{gap:4px}#hud .slot{width:38px;height:38px;font-size:18px;border-radius:8px}#hud .slot kbd{display:none}#hud .slot small{font-size:8px}
+  #joy{left:max(14px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));width:104px;height:104px}#joy i{left:29px;top:29px;width:46px;height:46px}
+  #toasts{top:26%}.toast{font-size:12px;padding:5px 14px}
+  #moonMsg{font-size:clamp(20px,9vh,40px)}
+  /* painéis e tela inicial */
+  #panel{padding:18px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px))}.pn{width:min(720px,100%);padding:22px 12px 12px}.pn .tt span{font-size:14px;padding:6px 18px 5px}
+  .grid2{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  #title{padding:6px}.tbox{padding:6px 4px;width:min(640px,100%)}.sign{padding:6px 28px 8px}.sign small{font-size:12px;letter-spacing:3px}.sign h1{font-size:clamp(28px,15vh,64px)}
+  .tagl{margin-top:8px;padding:3px 14px;font-size:10px}.tcard{margin-top:8px;padding:8px 12px}.tcard h3{margin-bottom:6px;font-size:12px}.pk img{width:64px;height:100px}.pk{font-size:12px;padding:5px}#nm{margin:8px 0;padding:6px 10px;font-size:14px}.hint{margin-top:6px;font-size:10px}
+}
+@media (max-height:520px) and (max-width:740px){#hud #clock{top:calc(var(--st) + 70px)}#hud .slot{width:34px;height:34px;font-size:16px}}
 </style>
 <div id="app">
   <canvas id="c" tabindex="0"></canvas>
