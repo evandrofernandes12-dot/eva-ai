@@ -16,7 +16,7 @@ const VILLAGER := preload("res://scripts/villager.gd")
 const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v11"
+const VERSAO := "v12"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -88,6 +88,7 @@ var _dentro := ""                # nome do prédio em que o jogador está ("" = 
 var _perto := ""                 # prédio da aldeia ao alcance da porta
 var _saida := Vector3(0, 0, 8)
 var _trans := false
+var _cam_antes := 0
 var _interiores := {}
 var rei_q := 0                   # próxima missão do Rei
 var rei_ativa := false
@@ -489,6 +490,9 @@ func _renascimento(delta: float) -> void:
 
 # ---------- câmera ----------
 func _trocar_camera() -> void:
+	if _dentro != "":
+		say("Dentro dos prédios a câmera fica em 1ª pessoa.", 2.5)
+		return
 	cam_modo = (cam_modo + 1) % 3
 	player.primeira_pessoa = cam_modo == 1
 	player.model.visible = cam_modo != 1
@@ -613,7 +617,7 @@ func _contexto() -> void:
 		_ent_b.visible = not _trans
 		_ent_b.text = "SAIR"
 		var rei = _interiores[_dentro].get_meta("rei", null)
-		_rei_b.visible = rei != null and player.global_position.distance_to(rei.global_position) < 7.0
+		_rei_b.visible = rei != null and player.global_position.distance_to(rei.global_position) < 8.5
 
 func _porta() -> void:
 	if _trans:
@@ -623,6 +627,11 @@ func _porta() -> void:
 			_entrar(_perto)
 	else:
 		_sair()
+
+func _cam_fora() -> void:
+	cam_modo = _cam_antes
+	player.primeira_pessoa = cam_modo == 1
+	player.model.visible = cam_modo != 1
 
 func _fade(a: float) -> void:
 	var tw := create_tween()
@@ -648,8 +657,10 @@ func _entrar(id: String) -> void:
 	for e in enemies:
 		if is_instance_valid(e):
 			e.process_mode = Node.PROCESS_MODE_DISABLED
-	cam.global_position = player.global_position + Vector3(0, 9, 10) * _zoom
-	_cam_off = Vector3(0, 9, 10) * _zoom
+	_cam_antes = cam_modo       # dentro dos prédios: 1ª pessoa, para enxergar a sala
+	cam_modo = 1
+	player.primeira_pessoa = true
+	player.model.visible = false
 	await _fade(0.0)
 	_trans = false
 	if id == "SalaoDoChefe":
@@ -667,6 +678,7 @@ func _sair() -> void:
 	for e in enemies:
 		if is_instance_valid(e):
 			e.process_mode = Node.PROCESS_MODE_INHERIT
+	_cam_fora()
 	cam.global_position = player.global_position + Vector3(0, 9, 10) * _zoom
 	await _fade(0.0)
 	_trans = false
@@ -1345,6 +1357,7 @@ func _on_player_died() -> void:
 	await get_tree().create_timer(3.0).timeout
 	if _dentro != "":
 		_dentro = ""
+		_cam_fora()
 		for e in enemies:
 			if is_instance_valid(e):
 				e.process_mode = Node.PROCESS_MODE_INHERIT

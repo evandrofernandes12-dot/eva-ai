@@ -28,6 +28,9 @@ var _lunge := 0.0
 var _def: StringName = &""
 var _corre: StringName = &""
 var _bolha: MeshInstance3D
+var _lanca: Node3D               # BoneAttachment da lança (estocada com a ponta)
+var _lanca_t := 0.0
+var _lanca_tr := Transform3D()
 
 @onready var model: Node3D = $Model
 
@@ -66,6 +69,8 @@ func trocar_modelo(novo: Node3D, anims: Dictionary) -> void:
 	_run = anims.run
 	_atk = anims.atk
 	_morte = anims.morte
+	_lanca = novo.find_child("Lanca", true, false) as Node3D
+	_lanca_t = 0.0
 	_def = anims.get("def", &"")
 	_corre = anims.get("corre", &"")
 	Fit.play(_ap, _idle)
@@ -112,6 +117,9 @@ func attack() -> void:
 		return
 	defendendo = false   # atacar baixa a guarda
 	_lunge = 0.16 if avanco > 0.0 else 0.0
+	if _lanca != null and _lanca_t <= 0.0:
+		_lanca_t = 0.5
+		_lanca_tr = (_lanca.get_child(0) as Node3D).transform
 	_cd = 0.55
 	_busy = 0.45
 	if _atk != &"":
@@ -135,3 +143,22 @@ func revive(at: Vector3) -> void:
 	hp = max_hp
 	global_position = at
 	Fit.play(_ap, _idle)
+
+## Estocada: durante o golpe a lança deixa a mão do osso e aponta a PONTA para a frente,
+## avançando e voltando junto com a mão (o braço faz o soco da animação).
+func _process(delta: float) -> void:
+	if _lanca == null or _lanca_t <= 0.0:
+		return
+	var piv := _lanca.get_child(0) as Node3D
+	_lanca_t -= delta
+	if _lanca_t <= 0.0:
+		piv.top_level = false
+		piv.transform = _lanca_tr
+		return
+	var k := 1.0 - _lanca_t / 0.5
+	var f := Vector3(global_basis.z.x, 0, global_basis.z.z).normalized()
+	var y := (f + Vector3(0, 0.04, 0)).normalized()   # a ponta (+Y do cabo) aponta para a frente
+	var x := y.cross(Vector3.UP).normalized()
+	var z := x.cross(y)
+	piv.top_level = true
+	piv.global_transform = Transform3D(Basis(x, y, z), _lanca.global_position + f * (1.0 * sin(k * PI)) + Vector3(0, 0.05, 0))

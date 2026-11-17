@@ -8,6 +8,7 @@ signal killed
 signal largou_machado
 
 const MACHADO := preload("res://models/Machado.glb")
+const DUAS_MAOS := preload("res://scripts/duas_maos.gd")
 ## Velocidade em que a animação de andar foi feita (m/s), para os pés não deslizarem.
 const PASSO := 2.1
 
@@ -41,6 +42,10 @@ var model: Node3D
 var _pivot: Node3D
 var _ap: AnimationPlayer
 var machado: Node3D
+var _mod                       # IK: as duas mãos seguram o cabo (duas_maos.gd)
+var _k := 1.0
+var _alvo_local := Vector3(0, 1.1, 3.0)   # onde o machado vai cair (peito do alvo, no espaço do Minotauro)
+var _capt := false
 
 func setup(scene: PackedScene, player: Node3D, main: Node, lvl: int) -> void:
 	target = player
@@ -73,6 +78,7 @@ func _ready() -> void:
 		m.material_override = mat
 	# o modelo tem 1,9 de altura e a origem no meio do corpo
 	var k := altura / 1.9
+	_k = k
 	model.scale = Vector3.ONE * k
 	model.position.y = 0.95 * k
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
@@ -82,16 +88,12 @@ func _ready() -> void:
 func _montar() -> void:
 	var sk := Fit.find_node_of(model, "Skeleton3D") as Skeleton3D
 	var cabeca: Node3D = model
-	var mao: Node3D = model
 	if sk != null:
 		if sk.find_bone("Head") >= 0:
 			cabeca = BoneAttachment3D.new()
 			cabeca.bone_name = "Head"
 			sk.add_child(cabeca)
-		if sk.find_bone("HandA") >= 0:
-			mao = BoneAttachment3D.new()
-			mao.bone_name = "HandA"
-			sk.add_child(mao)
+
 	var olho := StandardMaterial3D.new()
 	olho.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	olho.albedo_color = Color(1.0, 0.25, 0.05)
@@ -104,13 +106,13 @@ func _montar() -> void:
 		e.mesh = sp
 		cabeca.add_child(e)
 		e.transform = _no_osso(sk, "Head", Transform3D(Basis(), p))
+	# o machado não fica preso a um osso: é posto por código (_process) e as duas mãos o seguram por IK
 	machado = _criar_machado()
-	mao.add_child(machado)
-	# na pose de descanso: cabo para cima e um pouco para a frente, lâminas no plano frente-trás, passando pela mão
-	var y := Vector3(0.0, 0.92, 0.38).normalized()
-	var z := Vector3(1.0, 0.0, 0.0)
-	var x := y.cross(z).normalized()
-	machado.transform = _no_osso(sk, "HandA", Transform3D(Basis(x, y, z), Vector3(-0.445, -0.25, 0.19)))
+	machado.scale = Vector3.ONE * _k
+	add_child(machado)
+	if sk != null:
+		_mod = DUAS_MAOS.new()
+		sk.add_child(_mod)
 	Fit.play(_ap, &"AxeIdle")
 
 ## Converte uma posição dada no espaço do modelo (pose de descanso) para o espaço local do osso.
@@ -134,10 +136,54 @@ func _criar_machado() -> Node3D:
 		m.material_override = mat
 	return root
 
+## Pose do machado em duas mãos (espaço do Minotauro, em metros): posição da mão da frente `g` e
+## ângulo `fi` do cabo no plano frente/cima (0° = para a frente, 90° = para cima, 180° = para trás).
+func _process(_delta: float) -> void:
+	if machado == null or not is_instance_valid(machado):
+		return
+	var carga_g := Vector3(0, 2.7, 1.1)
+	var carga_fi := deg_to_rad(70.0)
+	var alto_g := Vector3(0, 4.4, -0.2)
+	var alto_fi := deg_to_rad(160.0)
+	var imp_g := Vector3(0, 2.4, 1.4)
+	var dd := (_alvo_local - imp_g).normalized()
+	var imp_fi := atan2(dd.y, dd.z)
+	var g := carga_g
+	var fi := carga_fi
+	if estado == "golpe":
+		if _t < 0.35:
+			var k := _t / 0.35
+			k = k * k * (3.0 - 2.0 * k)
+			g = carga_g.lerp(alto_g, k)
+			fi = lerpf(carga_fi, alto_fi, k)
+		elif _t < 0.6:
+			var k := (_t - 0.35) / 0.25
+			k *= k   # desce acelerando
+			g = alto_g.lerp(imp_g, k)
+			fi = lerpf(alto_fi, imp_fi, k)
+		elif _t < 1.1:
+			g = imp_g
+			fi = imp_fi
+		else:
+			var k := clampf((_t - 1.1) / 0.25, 0.0, 1.0)
+			g = imp_g.lerp(carga_g, k)
+			fi = lerpf(imp_fi, carga_fi, k)
+	else:
+		g.y += sin(Time.get_ticks_msec() * 0.003) * 0.05
+	var d := Vector3(0, sin(fi), cos(fi))
+	var z := Vector3.RIGHT
+	var x := d.cross(z)
+	machado.transform = Transform3D(Basis(x, d, z).scaled(Vector3.ONE * _k), g)
+	if _mod != null:
+		_mod.ativo = true
+		_mod.ponto_a = to_global(g)
+		_mod.ponto_b = to_global(g - d * 0.85)
+
 func _mudar(novo: String) -> void:
 	estado = novo
 	_t = 0.0
 	_bateu = 0
+	_capt = false
 
 func _acertar(alcance: float, dano: int) -> void:
 	if target.get("hp") > 0 and target.global_position.distance_to(global_position) < alcance:
@@ -149,6 +195,8 @@ func _largar_machado() -> void:
 	if machado == null or not is_instance_valid(machado):
 		return
 	var centro: Vector3 = machado.global_transform * Vector3(0, 0.7, 0)
+	if _mod != null:
+		_mod.ativo = false
 	machado.queue_free()
 	machado = null
 	var cores := [Color(0.62, 0.66, 0.72), Color(0.3, 0.33, 0.38), Color(0.3, 0.17, 0.08)]
@@ -222,6 +270,11 @@ func _physics_process(delta: float) -> void:
 			Fit.play(_ap, &"AxeAttack", false, 1.2)
 			# até o golpe cair, acompanha o alvo e avança/recua até ficar a `alcance_machado` dele:
 			# assim a lâmina desce NO adversário e não no chão
+			if _t >= 0.45 and not _capt:
+				_capt = true
+				_alvo_local = to_local(target.global_position + Vector3(0, 1.1, 0))
+				_alvo_local.x = clampf(_alvo_local.x, -0.5, 0.5)
+				_alvo_local.z = clampf(_alvo_local.z, 1.8, 3.6)
 			if _t < 0.6 and d > 0.1:
 				rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 10.0 * delta)
 				var falta := d - alcance_machado
