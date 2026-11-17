@@ -10,11 +10,10 @@ const ESPADAO := ["Sword_Big.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.4, 0.5]
 const LANCA := ["Spear.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 2.3, 0.0]
 const BESTA := ["Besta.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 0.75, 0.0]
 const ALJAVA := ["Aljava.glb", "spine_03", Vector3(0.12, 0, -0.15), Vector3(0, 0, 0), 0.8, 0.0]
-const ESC_GOTICO := ["Shield_Heater.glb", "lowerarm_l", Vector3(-0.12, 0.13, 0), Vector3(0, -90, 0), 0.75, 0.0, "escudo"]
+# o escudo gótico tem a ponta em -Y no modelo; o eixo Y do osso aponta para a mão, então gira 180° (Z) para a ponta ficar para baixo
+const ESC_GOTICO := ["Shield_Heater.glb", "lowerarm_l", Vector3(-0.12, 0.13, 0), Vector3(0, -90, 180), 0.75, 0.0, "escudo"]
 const ESC_REDONDO := ["Shield_Round.glb", "lowerarm_l", Vector3(-0.12, 0.13, 0), Vector3(0, -90, 0), 0.7, 0.0, "escudo"]
 static func CAJADO(cor: String) -> Array: return ["Cajado_%s.glb" % cor, "hand_r", MAO_D, Vector3(90, 0, 0), 1.9, 0.25]
-static func ORBE(cor: String) -> Array: return ["Orbe_%s.glb" % cor, "hand_l", Vector3(0.1, 0.08, 0.12), Vector3.ZERO, 0.0, 0.0, "orbe"]
-static func LIVRO(cor: String) -> Array: return ["Livro_%s.glb" % cor, "hand_l", Vector3(0.05, 0.09, 0.0), Vector3(0, 0, 90), 0.0, 0.0, "livro"]
 
 static func lista() -> Dictionary:
 	return {
@@ -22,10 +21,10 @@ static func lista() -> Dictionary:
 		"G2": {"classe": "guerreiro", "sexo": "m", "nome": "Armadura sem elmo, espadão", "armas": [ESPADAO]},
 		"G3": {"classe": "guerreiro", "sexo": "f", "nome": "Armadura de bronze, espada e escudo", "armas": [ESPADA, ESC_REDONDO]},
 		"G4": {"classe": "guerreiro", "sexo": "f", "nome": "Armadura sem elmo, espadão", "armas": [ESPADAO]},
-		"M1": {"classe": "mago", "sexo": "m", "nome": "Robe azul com capuz", "armas": [CAJADO("Azul"), ORBE("Azul"), LIVRO("Azul")]},
-		"M2": {"classe": "mago", "sexo": "m", "nome": "Robe roxo, capuz e ombreiras", "armas": [CAJADO("Roxo"), ORBE("Roxo"), LIVRO("Azul")]},
-		"M3": {"classe": "mago", "sexo": "f", "nome": "Robe vermelho, sem capuz", "armas": [CAJADO("Rubi"), ORBE("Rubi"), LIVRO("Vermelho")]},
-		"M4": {"classe": "mago", "sexo": "f", "nome": "Robe verde, capuz e ombreiras", "armas": [CAJADO("Azul"), ORBE("Verde"), LIVRO("Vermelho")]},
+		"M1": {"classe": "mago", "sexo": "m", "nome": "Robe azul com capuz", "armas": [CAJADO("Azul")]},
+		"M2": {"classe": "mago", "sexo": "m", "nome": "Robe roxo, capuz e ombreiras", "armas": [CAJADO("Roxo")]},
+		"M3": {"classe": "mago", "sexo": "f", "nome": "Robe vermelho, sem capuz", "armas": [CAJADO("Rubi")]},
+		"M4": {"classe": "mago", "sexo": "f", "nome": "Robe verde, capuz e ombreiras", "armas": [CAJADO("Azul")]},
 		"A1": {"classe": "arqueiro", "sexo": "m", "nome": "Toda de verde, com capuz e capa", "armas": [BESTA, ALJAVA]},
 		"A2": {"classe": "arqueiro", "sexo": "m", "nome": "Couro marrom, sem capuz", "armas": [BESTA, ALJAVA]},
 		"A4": {"classe": "arqueiro", "sexo": "f", "nome": "Toda de verde, com capuz e capa", "armas": [BESTA, ALJAVA]},
@@ -38,10 +37,10 @@ static func lista() -> Dictionary:
 
 ## Animações de cada classe (nomes da Universal Animation Library).
 const ANIMS := {
-	"guerreiro": {"idle": "Sword_Idle", "run": "Jog_Fwd", "atk": "Sword_Regular_A", "hit": "Hit_Chest", "morte": "Death01"},
-	"lanceiro": {"idle": "Sword_Idle", "run": "Jog_Fwd", "atk": "Sword_Regular_B", "hit": "Hit_Chest", "morte": "Death01"},
-	"arqueiro": {"idle": "Pistol_Idle", "run": "Jog_Fwd", "atk": "Pistol_Shoot", "hit": "Hit_Chest", "morte": "Death01"},
-	"mago": {"idle": "Idle", "run": "Jog_Fwd", "atk": "Spell_Simple_Shoot", "hit": "Hit_Chest", "morte": "Death01"},
+	"guerreiro": {"idle": "Sword_Idle", "run": "Jog_Fwd", "atk": "Sword_Regular_A", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
+	"lanceiro": {"idle": "Sword_Idle", "run": "Jog_Fwd", "atk": "Punch_Jab", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
+	"arqueiro": {"idle": "Pistol_Idle", "run": "Jog_Fwd", "atk": "Pistol_Shoot", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
+	"mago": {"idle": "Idle", "run": "Jog_Fwd", "atk": "Sword_Attack", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
 }
 
 static var _lib: AnimationLibrary
@@ -109,6 +108,11 @@ static func _prender(sk: Skeleton3D, x: Array) -> void:
 		w.position = -(bb.get_center() * s) + Vector3(0, x[5], 0)
 	piv.position = x[2]
 	piv.rotation_degrees = x[3]
+	if String(x[0]).begins_with("Cajado"):   # ponta do cajado (cristal em +Y): de onde sai a magia
+		var mk := Marker3D.new()
+		mk.name = "Ponta"
+		piv.add_child(mk)
+		mk.position = Vector3(0, x[5] + x[4] * 0.5, 0)
 	var tipo: String = x[6] if x.size() > 6 else ""
 	if tipo != "":
 		ba.name = tipo.capitalize()
@@ -134,11 +138,3 @@ static func _prender(sk: Skeleton3D, x: Array) -> void:
 			tira.mesh = bx
 			ba.add_child(tira)
 			tira.position = Vector3(-0.08, yy, 0)
-
-## Mostra o orbe ou o livro, conforme a magia escolhida.
-static func magia(m: Node3D, qual: String) -> void:
-	for n in m.find_children("*", "BoneAttachment3D", true, false):
-		if n.name == "Orbe":
-			n.visible = qual == "orbe"
-		elif n.name == "Livro":
-			n.visible = qual == "livro"

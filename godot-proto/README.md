@@ -3,7 +3,7 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v10)
+## O que tem (v11)
 - Aldeia maior e espaçada: praça no centro, Salão do Chefe ao fundo (norte), casas, forja e moinho em volta (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
@@ -11,7 +11,11 @@ Não substitui o jogo da web; é só uma amostra.
   - Casa: +25 de vida máxima e +2 vagas de aldeão por nível · Serraria: produz madeira · Torre: atira nos orcs · Estalagem: cura mais rápido.
 - **16 personagens realistas** (botão CLASSE): escolha a classe (Guerreiro, Lanceiro, Arqueiro, Mago) e depois um dos 4 personagens dela, 2 masculinos e 2 femininos.
   Corpo e ~90 animações da Quaternius (CC0); roupas geradas no Blender (`scripts/personagens/` na raiz do repositório); armas presas nos ossos da mão (`scripts/hero.gd`).
-  O escudo fica preso no antebraço por duas alças de couro. O mago escolhe a magia do orbe (explode em área) ou do livro (raio mais forte num alvo).
+  O escudo fica preso no antebraço por duas alças de couro. O mago golpeia com o **cajado** (a magia sai da ponta dele): explosão em área ou raio forte num alvo. O escudo gótico agora tem a ponta para baixo.
+- **Combate v11**: arqueiro dispara flechas de verdade; lanceiro dá estocadas que avançam e atravessam inimigos em linha; botões **DEFESA** (recebe 1/4 do dano, anda devagar; atacar baixa a guarda; tecla Q) e **CORRER** (1,7× mais rápido; Shift) para todas as classes.
+- **Pinça**: dois dedos na tela aproximam/afastam a câmera (bem de perto para ver o personagem); roda do mouse no computador.
+- **Interiores**: perto de Casas, Forja e Salão do Rei aparece **ENTRAR** (e **SAIR** lá dentro). No Salão fale com o **Rei** para pegar as 8 missões do reino (`REI_QUESTS` em `scripts/main.gd`; salas em `scripts/interior.gd`). Os inimigos congelam enquanto você está dentro.
+- Minotauro: o machado agora desce no adversário (ele se aproxima até `alcance_machado` do alvo, em `scripts/boss.gd`; ajuste no Inspetor se a lâmina cair antes/depois).
 - Aldeões (botão ALDEÕES): Lenhador, Pedreiro e Coletor vão até o recurso, trabalham e entregam na aldeia.
 - 15 missões em sequência, com recompensa.
 - 4 Torres de Vigia (uma em cada canto) e a **Muralha**: paliçada em volta da aldeia com 4 portões de madeira. Os portões abrem para o jogador; os inimigos precisam derrubá-los a golpes (voltam consertados depois de 40 s).

@@ -16,7 +16,9 @@ const VILLAGER := preload("res://scripts/villager.gd")
 const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v10"
+const VERSAO := "v11"
+const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
+const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
 const DIRS := [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
 const CAM_NOMES := ["3ª pessoa", "1ª pessoa", "Visão de águia"]
@@ -24,9 +26,9 @@ const CAM_NOMES := ["3ª pessoa", "1ª pessoa", "Visão de águia"]
 ## Classes: vida base, dano por nível da arma, alcance. "area" = dano em área (mago).
 const CLASSES := {
 	"guerreiro": {"nome": "Guerreiro", "desc": "Corpo a corpo, forte e resistente", "hp": 140, "dano": [14, 20, 28], "alcance": 2.8, "longe": false, "area": 0.0, "cor": Color(1, 1, 1), "tiro": Color(1, 1, 1)},
-	"arqueiro": {"nome": "Arqueiro", "desc": "Flechas de longe", "hp": 100, "dano": [10, 15, 21], "alcance": 15.0, "longe": true, "area": 0.0, "cor": Color(0.65, 1.0, 0.6), "tiro": Color(0.95, 0.85, 0.5)},
-	"lanceiro": {"nome": "Lanceiro", "desc": "Lança longa: alcança mais longe que a espada", "hp": 120, "dano": [12, 18, 25], "alcance": 3.8, "longe": false, "area": 0.0, "cor": Color(1, 1, 1), "tiro": Color(1, 1, 1)},
-	"mago": {"nome": "Mago", "desc": "Magia do orbe (explode em área) ou do livro (raio forte num alvo)", "hp": 90, "dano": [9, 13, 18], "alcance": 13.0, "longe": true, "area": 3.2, "cor": Color(0.8, 0.65, 1.0), "tiro": Color(0.7, 0.4, 1.0)},
+	"arqueiro": {"nome": "Arqueiro", "desc": "Dispara flechas de longe", "hp": 100, "dano": [10, 15, 21], "alcance": 15.0, "longe": true, "area": 0.0, "cor": Color(0.65, 1.0, 0.6), "tiro": Color(0.95, 0.85, 0.5)},
+	"lanceiro": {"nome": "Lanceiro", "desc": "Estocada longa que atravessa vários inimigos em linha", "hp": 120, "dano": [12, 18, 25], "alcance": 4.2, "avanco": 9.0, "longe": false, "area": 0.0, "cor": Color(1, 1, 1), "tiro": Color(1, 1, 1)},
+	"mago": {"nome": "Mago", "desc": "Magia pelo cajado: explosão em área ou raio forte num alvo", "hp": 90, "dano": [9, 13, 18], "alcance": 13.0, "longe": true, "area": 3.2, "cor": Color(0.8, 0.65, 1.0), "tiro": Color(0.7, 0.4, 1.0)},
 }
 const ARMA_CUSTO := [{}, {"madeira": 40, "pedra": 30}, {"madeira": 90, "pedra": 70, "comida": 30}]
 const OFICIOS := ["madeira", "pedra", "comida"]
@@ -72,6 +74,36 @@ var _tower_t := 0.0
 var _regen := 0.0
 var _rng := RandomNumberGenerator.new()
 var _near: Node3D
+var _zoom := 1.0                 # pinça (dois dedos) aproxima/afasta a câmera
+var _toques := {}
+var _pinca_d := 0.0
+var _mag_t := 0.0
+var _def_b: Button
+var _corre_b: Button
+var _ent_b: Button
+var _rei_b: Button
+var _fade_r: ColorRect
+var _rei_l: Label
+var _dentro := ""                # nome do prédio em que o jogador está ("" = fora)
+var _perto := ""                 # prédio da aldeia ao alcance da porta
+var _saida := Vector3(0, 0, 8)
+var _trans := false
+var _interiores := {}
+var rei_q := 0                   # próxima missão do Rei
+var rei_ativa := false
+var rei_base := 0
+
+## Missões do Rei: tipo "kills" (orcs derrotados), "chefe" (Minotauro) ou "entrega" (recurso entregue ao Rei).
+const REI_QUESTS := [
+	{"t": "Derrote 5 orcs que rondam a aldeia", "tipo": "kills", "n": 5, "r": {"madeira": 40, "comida": 30}},
+	{"t": "Entregue 50 de madeira para a guarnição", "tipo": "entrega", "k": "madeira", "n": 50, "r": {"pedra": 60, "comida": 20}},
+	{"t": "Derrote 12 orcs: o Rei quer a estrada limpa", "tipo": "kills", "n": 12, "r": {"madeira": 60, "pedra": 60}},
+	{"t": "Entregue 60 de pedra para reforçar o castelo", "tipo": "entrega", "k": "pedra", "n": 60, "r": {"madeira": 80, "comida": 40}},
+	{"t": "Derrote o Minotauro Dark mais uma vez", "tipo": "chefe", "n": 1, "r": {"madeira": 120, "pedra": 120, "comida": 120}},
+	{"t": "Derrote 25 orcs: a aldeia precisa de paz", "tipo": "kills", "n": 25, "r": {"madeira": 100, "pedra": 100, "comida": 60}},
+	{"t": "Entregue 80 de comida para o banquete real", "tipo": "entrega", "k": "comida", "n": 80, "r": {"madeira": 120, "pedra": 120}},
+	{"t": "Derrote o Minotauro Dark duas vezes", "tipo": "chefe", "n": 2, "r": {"madeira": 250, "pedra": 250, "comida": 250}},
+]
 
 ## Missões: texto, progresso atual, meta e recompensa.
 var QUESTS := [
@@ -107,6 +139,8 @@ func _enter_tree() -> void:
 	_action("move_down", [KEY_S, KEY_DOWN])
 	_action("attack", [KEY_SPACE])
 	_action("use", [KEY_E])
+	_action("run", [KEY_SHIFT])
+	_action("block", [KEY_Q])
 
 func _action(acao: String, keys: Array) -> void:
 	if InputMap.has_action(acao):
@@ -127,7 +161,7 @@ func _ready() -> void:
 			_add_collision(b)
 			var bx := Fit.bounds(b)
 			var centro: Vector3 = b.global_transform * bx.get_center()
-			_fixos.append({"pos": centro, "r": maxf(bx.size.x, bx.size.z) * 0.5 * b.scale.x, "h": bx.size.y * b.scale.y})
+			_fixos.append({"pos": centro, "r": maxf(bx.size.x, bx.size.z) * 0.5 * b.scale.x, "h": bx.size.y * b.scale.y, "nome": String(b.name)})
 	for p in $Lotes.get_children():
 		plots.append(p)
 		p.built.connect(_on_built)
@@ -143,6 +177,29 @@ func _ready() -> void:
 	_hud_button("CLASSE", 70.0, _menu_classe)
 	_hud_button("ALDEÕES", 124.0, _menu_aldeoes)
 	_hud_button("CÂMERA", 178.0, _trocar_camera)
+	_def_b = _botao_acao("DEFESA", -400.0, -230.0, true)
+	_def_b.toggled.connect(func(v): player.defendendo = v)
+	_corre_b = _botao_acao("CORRER", -400.0, -130.0, true)
+	_corre_b.toggled.connect(func(v): player.correndo = v)
+	_ent_b = _botao_acao("ENTRAR", -260.0, -440.0, false, 70.0)
+	_ent_b.pressed.connect(_porta)
+	_ent_b.visible = false
+	_rei_b = _botao_acao("FALAR COM O REI", -260.0, -520.0, false, 70.0)
+	_rei_b.pressed.connect(_menu_rei)
+	_rei_b.visible = false
+	_rei_l = Label.new()
+	_rei_l.offset_left = 24.0
+	_rei_l.offset_top = 96.0
+	_rei_l.add_theme_font_size_override("font_size", 20)
+	_rei_l.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
+	_rei_l.add_theme_color_override("font_outline_color", Color.BLACK)
+	_rei_l.add_theme_constant_override("outline_size", 8)
+	$HUD.add_child(_rei_l)
+	_fade_r = ColorRect.new()
+	_fade_r.color = Color(0, 0, 0, 0)
+	_fade_r.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fade_r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$HUD.add_child(_fade_r)
 	_recalc()
 	_boss_hud()
 	if not _load():
@@ -215,11 +272,17 @@ func _process(delta: float) -> void:
 	player.joy = joy.value
 	_camera(delta)
 	enemies = enemies.filter(func(e): return is_instance_valid(e))
-	_spawn_t -= delta
-	if _spawn_t <= 0.0 and enemies.size() < max_enemies:
-		_spawn_t = 10.0
-		_spawn_enemy()
-	_chefe()
+	_mag_t = maxf(0.0, _mag_t - delta)
+	if _dentro == "":
+		_spawn_t -= delta
+		if _spawn_t <= 0.0 and enemies.size() < max_enemies:
+			_spawn_t = 10.0
+			_spawn_enemy()
+		_chefe()
+	_contexto()
+	_check_rei()
+	if _def_b.button_pressed != player.defendendo:
+		_def_b.set_pressed_no_signal(player.defendendo)
 	_portoes(delta)
 	_buildings(delta)
 	_tiros(delta)
@@ -318,6 +381,7 @@ func _recalc() -> void:
 		if classe == "mago" and magia == "livro":
 			player.damage = int(player.damage * 1.35)
 		player.attack_range = 2.6 if CLASSES[classe].longe else CLASSES[classe].alcance
+		player.avanco = CLASSES[classe].get("avanco", 0.0)
 	player.max_hp = base + 25 * _lvl("vida")
 	if player.hp > 0:
 		player.hp = clampi(player.hp + maxi(0, player.max_hp - antes), 1, player.max_hp)
@@ -376,6 +440,9 @@ func _on_player_attack() -> void:
 			var to: Vector3 = alvo.global_position - p
 			player.rotation.y = atan2(to.x, to.z)
 			_atirar(alvo)
+			return
+	elif classe == "lanceiro":
+		if _estocada(p):
 			return
 	else:
 		var hit := false
@@ -460,18 +527,18 @@ func _camera(delta: float) -> void:
 		cam.global_position = olhos + frente * 0.2
 		cam.look_at(olhos + frente * 10.0 - Vector3(0, 0.8, 0))
 		return
-	var alvo := Vector3(0, 9, 10)
+	var alvo := Vector3(0, 9, 10) * _zoom
 	if cam_modo == 2:        # visão de águia
-		alvo = Vector3(0, 40, 8)
+		alvo = Vector3(0, 40, 8) * _zoom
 	else:
 		# se uma construção fica entre a câmera e o boneco, a câmera sobe e olha por cima do telhado
-		if _tapado(pp + Vector3(0, 9, 10), pp + Vector3(0, 1.2, 0)):
+		if _dentro == "" and _tapado(pp + Vector3(0, 9, 10) * _zoom, pp + Vector3(0, 1.2, 0)):
 			_tapado_t = 0.7
 		_tapado_t -= delta
 		if _tapado_t > 0.0:
 			alvo = Vector3(0, 22, 2.5)
 			# se a câmera já está presa dentro de um telhado, pula para cima na hora
-			if _tapado(cam.global_position, pp + Vector3(0, 1.2, 0)) and _cam_off.y < 15.0:
+			if _dentro == "" and _tapado(cam.global_position, pp + Vector3(0, 1.2, 0)) and _cam_off.y < 15.0:
 				_cam_off = alvo
 				cam.global_position = pp + _cam_off
 	_cam_off = _cam_off.lerp(alvo, minf(1.0, 5.0 * delta))
@@ -486,6 +553,181 @@ func _camera(delta: float) -> void:
 			if t.tipo == "madeira" and is_instance_valid(t.node):
 				var s := _seg(t.node.global_position, c, pp)
 				t.node.visible = not (cam_modo == 0 and s.x < 2.6 and s.y > 0.12 and s.y < 0.97)
+
+# ---------- pinça (zoom) ----------
+func _input(e: InputEvent) -> void:
+	if e is InputEventMagnifyGesture:        # pinça reconhecida pelo sistema
+		_mag_t = 0.5
+		_zoom = clampf(_zoom / maxf(e.factor, 0.01), ZOOM_MIN, ZOOM_MAX)
+	elif e is InputEventScreenTouch:         # pinça com dois dedos (fora do direcional)
+		if e.pressed and not joy.get_global_rect().grow(30).has_point(e.position):
+			_toques[e.index] = e.position
+		else:
+			_toques.erase(e.index)
+		_pinca_d = 0.0
+	elif e is InputEventScreenDrag and _toques.has(e.index):
+		_toques[e.index] = e.position
+		if _toques.size() == 2 and _mag_t <= 0.0:
+			var k: Array = _toques.keys()
+			var d: float = (_toques[k[0]] - _toques[k[1]]).length()
+			if _pinca_d > 0.0 and d > 1.0:
+				_zoom = clampf(_zoom * _pinca_d / d, ZOOM_MIN, ZOOM_MAX)
+			_pinca_d = d
+	elif e is InputEventMouseButton and e.pressed:   # roda do mouse (computador)
+		if e.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_zoom = clampf(_zoom * 0.9, ZOOM_MIN, ZOOM_MAX)
+		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_zoom = clampf(_zoom / 0.9, ZOOM_MIN, ZOOM_MAX)
+
+# ---------- interiores e o Rei ----------
+func _botao_acao(texto: String, esq: float, topo: float, alterna: bool, alt := 80.0) -> Button:
+	var b := Button.new()
+	b.text = texto
+	b.toggle_mode = alterna
+	b.focus_mode = Control.FOCUS_NONE
+	b.add_theme_font_size_override("font_size", 22)
+	b.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	b.offset_left = esq
+	b.offset_right = esq + (140.0 if alterna else 220.0)
+	b.offset_top = topo
+	b.offset_bottom = topo + alt
+	$HUD.add_child(b)
+	return b
+
+## Mostra ENTRAR perto de uma construção com interior, SAIR lá dentro e FALAR COM O REI perto do trono.
+func _contexto() -> void:
+	if _dentro == "":
+		_perto = ""
+		var best := 1e9
+		for f in _fixos:
+			if Interior.SALAS.has(f.nome):
+				var d: float = Vector2(player.global_position.x - f.pos.x, player.global_position.z - f.pos.z).length()
+				if d < float(f.r) + 3.2 and d < best:
+					best = d
+					_perto = f.nome
+		_ent_b.visible = _perto != "" and not _trans
+		if _perto != "":
+			_ent_b.text = "ENTRAR\n" + Interior.SALAS[_perto].nome
+		_rei_b.visible = false
+	else:
+		_ent_b.visible = not _trans
+		_ent_b.text = "SAIR"
+		var rei = _interiores[_dentro].get_meta("rei", null)
+		_rei_b.visible = rei != null and player.global_position.distance_to(rei.global_position) < 7.0
+
+func _porta() -> void:
+	if _trans:
+		return
+	if _dentro == "":
+		if _perto != "":
+			_entrar(_perto)
+	else:
+		_sair()
+
+func _fade(a: float) -> void:
+	var tw := create_tween()
+	tw.tween_property(_fade_r, "color:a", a, 0.25)
+	await tw.finished
+
+func _entrar(id: String) -> void:
+	_trans = true
+	_fechar()
+	await _fade(1.0)
+	_saida = player.global_position
+	if not _interiores.has(id):
+		var sala := Interior.construir(id)
+		sala.position = Vector3(600.0 + 60.0 * _interiores.size(), 0, 600.0)
+		add_child(sala)
+		_interiores[id] = sala
+	_dentro = id
+	var raiz: Node3D = _interiores[id]
+	var fundo: float = Interior.SALAS[id].d
+	player.global_position = raiz.global_position + Vector3(0, 0.1, fundo * 0.5 - 2.4)
+	player.rotation.y = PI
+	player.velocity = Vector3.ZERO
+	for e in enemies:
+		if is_instance_valid(e):
+			e.process_mode = Node.PROCESS_MODE_DISABLED
+	cam.global_position = player.global_position + Vector3(0, 9, 10) * _zoom
+	_cam_off = Vector3(0, 9, 10) * _zoom
+	await _fade(0.0)
+	_trans = false
+	if id == "SalaoDoChefe":
+		say("Salão do Rei: chegue perto do trono e toque em FALAR COM O REI.", 5.0)
+
+func _sair() -> void:
+	if _dentro == "" or _trans:
+		return
+	_trans = true
+	_fechar()
+	await _fade(1.0)
+	_dentro = ""
+	player.global_position = _saida
+	player.velocity = Vector3.ZERO
+	for e in enemies:
+		if is_instance_valid(e):
+			e.process_mode = Node.PROCESS_MODE_INHERIT
+	cam.global_position = player.global_position + Vector3(0, 9, 10) * _zoom
+	await _fade(0.0)
+	_trans = false
+
+## Quanto da missão ativa do Rei já foi cumprido.
+func _rei_prog() -> int:
+	var q: Dictionary = REI_QUESTS[rei_q]
+	match q.tipo:
+		"kills":
+			return kills - rei_base
+		"chefe":
+			return boss_derrotas - rei_base
+	return mini(res[q.k], q.n)
+
+func _check_rei() -> void:
+	if rei_q >= REI_QUESTS.size():
+		_rei_l.text = "Missões do Rei: todas cumpridas!"
+	elif not rei_ativa:
+		_rei_l.text = "Missões do Rei: fale com o Rei no Salão (nova missão disponível)"
+	else:
+		var q: Dictionary = REI_QUESTS[rei_q]
+		var p := mini(_rei_prog(), q.n)
+		_rei_l.text = "Rei %d/%d: %s (%d/%d)%s" % [rei_q + 1, REI_QUESTS.size(), q.t, p, q.n, "  ← volte ao Rei" if p >= q.n else ""]
+
+func _menu_rei() -> void:
+	var rows: Array = []
+	if rei_q >= REI_QUESTS.size():
+		_abrir("O Rei", "Você cumpriu todas as missões do reino. A aldeia é grata, herói!", rows)
+		return
+	var q: Dictionary = REI_QUESTS[rei_q]
+	var premio: String = plots[0].texto(q.r)
+	if not rei_ativa:
+		rows.append({"t": "Aceitar a missão", "cb": func(): _aceitar_rei()})
+		_abrir("O Rei", "%s\n\nRecompensa: %s" % [q.t, premio], rows)
+		return
+	var p := mini(_rei_prog(), q.n)
+	var pronto: bool = p >= q.n
+	rows.append({"t": "Entregar e receber a recompensa" if pronto else "Ainda não cumpriu (%d/%d)" % [p, q.n], "off": not pronto, "cb": func(): _entregar_rei()})
+	_abrir("O Rei", "%s\n\nProgresso: %d/%d · Recompensa: %s" % [q.t, p, q.n, premio], rows)
+
+func _aceitar_rei() -> void:
+	var q: Dictionary = REI_QUESTS[rei_q]
+	rei_ativa = true
+	rei_base = kills if q.tipo == "kills" else boss_derrotas
+	_fechar()
+	say("Missão do Rei aceita!", 3.0)
+	_save()
+
+func _entregar_rei() -> void:
+	var q: Dictionary = REI_QUESTS[rei_q]
+	if _rei_prog() < q.n:
+		return
+	if q.tipo == "entrega":
+		res[q.k] -= q.n
+	for k in q.r:
+		res[k] += q.r[k]
+	rei_q += 1
+	rei_ativa = false
+	_fechar()
+	say("O Rei agradece! +" + plots[0].texto(q.r), 5.0)
+	_save()
 
 # ---------- muralha ----------
 ## Com a muralha de pé, quem está de um lado e quer chegar ao outro precisa passar por um portão.
@@ -737,46 +979,162 @@ func _chefe_morreu(b: Node) -> void:
 	say("Minotauro Dark derrotado! +%d de cada recurso. Ele voltará mais forte..." % premio, 7.0)
 	_save()
 
-# ---------- projéteis ----------
+# ---------- projéteis e golpes ----------
+## Ponta do cajado (de onde sai a magia) ou, se não houver, a altura do peito.
+func _ponta() -> Vector3:
+	var mk := player.model.find_child("Ponta", true, false) as Node3D
+	if mk != null:
+		return mk.global_position
+	return player.global_position + Vector3(0, 1.4, 0) + player.global_basis.z * 0.6
+
+## Flecha: haste, ponta de metal e penas. Aponta o -Z para o alvo (look_at).
+func _flecha() -> Node3D:
+	var r := Node3D.new()
+	Interior.caixa(r, Vector3(0, 0, 0), Vector3(0.035, 0.035, 0.9), Color(0.55, 0.38, 0.2))
+	var tip := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.0
+	cm.bottom_radius = 0.06
+	cm.height = 0.2
+	var tm := StandardMaterial3D.new()
+	tm.albedo_color = Color(0.75, 0.78, 0.82)
+	tm.metallic = 0.7
+	cm.material = tm
+	tip.mesh = cm
+	tip.rotation_degrees.x = -90.0   # ápice (+Y) vira -Z
+	tip.position = Vector3(0, 0, -0.52)
+	r.add_child(tip)
+	Interior.caixa(r, Vector3(0, 0, 0.38), Vector3(0.2, 0.012, 0.18), Color(0.95, 0.95, 0.9))
+	Interior.caixa(r, Vector3(0, 0, 0.38), Vector3(0.012, 0.2, 0.18), Color(0.85, 0.2, 0.15))
+	return r
+
 func _atirar(alvo: Node3D) -> void:
 	var c: Dictionary = CLASSES[classe]
-	var m := MeshInstance3D.new()
-	var sph := SphereMesh.new()
-	sph.radius = 0.22 if c.area > 0.0 else 0.12
-	sph.height = sph.radius * 2.0
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = c.tiro
-	sph.material = mat
-	m.mesh = sph
+	var m: Node3D
+	var mago: bool = classe == "mago"
+	var area: float = c.area if not (mago and magia == "livro") else 0.0
+	if mago:    # bola de energia sai da ponta do cajado
+		var mi := MeshInstance3D.new()
+		var sph := SphereMesh.new()
+		sph.radius = 0.22 if area > 0.0 else 0.13
+		sph.height = sph.radius * 2.0
+		var mat := StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.albedo_color = c.tiro if area > 0.0 else Color(1.0, 0.85, 0.4)
+		sph.material = mat
+		mi.mesh = sph
+		m = mi
+	else:
+		m = _flecha()
+	await get_tree().create_timer(0.28).timeout   # espera o golpe do cajado / o disparo
+	if not is_instance_valid(alvo) or not is_instance_valid(player):
+		m.free()
+		return
 	add_child(m)
-	m.global_position = player.global_position + Vector3(0, 1.3, 0)
-	var area: float = c.area if not (classe == "mago" and magia == "livro") else 0.0
-	if classe == "mago" and magia == "livro":
-		mat.albedo_color = Color(1.0, 0.85, 0.4)
-	tiros.append({"node": m, "alvo": alvo, "dano": player.damage, "area": area})
+	m.global_position = _ponta() if mago else player.global_position + Vector3(0, 1.3, 0) + player.global_basis.z * 0.6
+	if mago:
+		flash(m.global_position, c.tiro, 0.7, 0.25)
+	tiros.append({"node": m, "alvo": alvo, "dano": player.damage, "area": area, "cor": c.tiro, "flecha": not mago})
 
 func _tiros(delta: float) -> void:
 	for t in tiros.duplicate():
-		var m: MeshInstance3D = t.node
-		if not is_instance_valid(t.alvo):
+		var m: Node3D = t.node
+		if not is_instance_valid(t.alvo) or not is_instance_valid(m):
 			tiros.erase(t)
-			m.queue_free()
+			if is_instance_valid(m):
+				m.queue_free()
 			continue
 		var dest: Vector3 = t.alvo.global_position + Vector3(0, 1.1, 0)
 		var to := dest - m.global_position
 		var d := to.length()
 		if d < 0.7:
 			if t.area > 0.0:
+				flash(dest, t.cor, t.area, 0.4)
 				for e in enemies:
 					if is_instance_valid(e) and e.global_position.distance_to(t.alvo.global_position) < t.area:
 						e.hurt(t.dano)
 			else:
+				if not t.flecha:
+					flash(dest, Color(1.0, 0.85, 0.4), 0.8, 0.25)
 				t.alvo.hurt(t.dano)
 			tiros.erase(t)
 			m.queue_free()
 		else:
-			m.global_position += to / d * minf(d, 24.0 * delta)
+			if t.flecha:
+				m.look_at(dest)
+			m.global_position += to / d * minf(d, (34.0 if t.flecha else 24.0) * delta)
+
+## Faixa branca da lança, no instante da estocada.
+func _rastro(fwd: Vector3, alc: float) -> void:
+	await get_tree().create_timer(0.12).timeout
+	var pf := player.global_position + Vector3(0, 1.1, 0)
+	var rast := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.09, 0.09, alc)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(1.0, 0.95, 0.75, 0.8)
+	bm.material = mat
+	rast.mesh = bm
+	add_child(rast)
+	rast.global_position = pf + fwd * (alc * 0.5)
+	rast.look_at(pf + fwd * alc)
+	var tw := rast.create_tween()
+	tw.tween_property(mat, "albedo_color:a", 0.0, 0.2)
+	tw.tween_callback(rast.queue_free)
+
+## Clarão que cresce e some (impactos, explosões, brilho do cajado).
+func flash(pos: Vector3, cor: Color, raio: float, dur: float) -> void:
+	var mi := MeshInstance3D.new()
+	var sph := SphereMesh.new()
+	sph.radius = 0.5
+	sph.height = 1.0
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(cor.r, cor.g, cor.b, 0.6)
+	sph.material = mat
+	mi.mesh = sph
+	add_child(mi)
+	mi.global_position = pos
+	mi.scale = Vector3.ONE * 0.2
+	var tw := mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE * raio * 2.0, dur)
+	tw.parallel().tween_property(mat, "albedo_color:a", 0.0, dur)
+	tw.tween_callback(mi.queue_free)
+
+## Estocada do lanceiro: mira no inimigo mais perto, avança e fura todos em linha à frente.
+func _estocada(p: Vector3) -> bool:
+	var alvo = null
+	var best: float = player.attack_range + 2.0
+	for e in enemies:
+		if is_instance_valid(e) and not e._dead:
+			var dd: float = e.global_position.distance_to(p)
+			if dd < best:
+				best = dd
+				alvo = e
+	if alvo != null:
+		var to: Vector3 = alvo.global_position - p
+		player.rotation.y = atan2(to.x, to.z)
+	var f: Vector3 = player.global_basis.z
+	var fwd := Vector3(f.x, 0, f.z).normalized()
+	var alc: float = player.attack_range
+	_rastro(fwd, alc)
+	var hit := false
+	for e in enemies:
+		if not is_instance_valid(e) or e._dead:
+			continue
+		var raio: float = float(e.get("raio") if e.get("raio") != null else 0.0)
+		var v: Vector3 = e.global_position - player.global_position
+		v.y = 0
+		var along := v.dot(fwd)
+		var lado := (v - fwd * along).length()
+		if along > -0.3 and along < alc + raio and lado < 0.9 + raio * 0.6:
+			e.hurt(player.damage)
+			flash(e.global_position + Vector3(0, 1.0, 0), Color(1.0, 0.9, 0.6), 0.6, 0.2)
+			hit = true
+	return hit
 
 # ---------- aldeões ----------
 func max_aldeoes() -> int:
@@ -839,7 +1197,6 @@ func vestir(id: String, salvar := true) -> void:
 	heroi = id
 	classe = info.classe
 	var m := Heroi.montar(id)
-	Heroi.magia(m, magia)
 	player.trocar_modelo(m, Heroi.ANIMS[classe])
 	player.model.visible = cam_modo != 1
 	_recalc()
@@ -849,10 +1206,8 @@ func vestir(id: String, salvar := true) -> void:
 
 func trocar_magia(qual: String) -> void:
 	magia = qual
-	if heroi != "":
-		Heroi.magia(player.model, magia)
 	_recalc()
-	say("Magia do %s!" % qual, 2.5)
+	say("Cajado: %s!" % ("explosão em área" if qual == "orbe" else "raio forte"), 2.5)
 	_save()
 
 func evoluir_arma() -> void:
@@ -949,8 +1304,8 @@ func _menu_classe() -> void:
 		var cu: Dictionary = ARMA_CUSTO[arma]
 		rows.append({"t": "Evoluir arma para nível %d (dano %d) — %s" % [arma + 1, c.dano[arma], plots[0].texto(cu)], "off": not _can_pay(cu), "cb": func(): evoluir_arma(); _menu_classe()})
 	if classe == "mago":
-		rows.append({"t": ("✔ " if magia == "orbe" else "") + "Magia do orbe: explode e acerta vários", "cb": func(): trocar_magia("orbe"); _menu_classe()})
-		rows.append({"t": ("✔ " if magia == "livro" else "") + "Magia do livro: raio mais forte num alvo só", "cb": func(): trocar_magia("livro"); _menu_classe()})
+		rows.append({"t": ("✔ " if magia == "orbe" else "") + "Cajado: explosão em área (acerta vários)", "cb": func(): trocar_magia("orbe"); _menu_classe()})
+		rows.append({"t": ("✔ " if magia == "livro" else "") + "Cajado: raio mais forte num alvo só", "cb": func(): trocar_magia("livro"); _menu_classe()})
 	rows.append({"t": "Trocar de personagem ou de classe", "cb": func(): _menu_escolha()})
 	_abrir("Classe e arma", txt, rows)
 
@@ -988,6 +1343,11 @@ func _menu_aldeoes() -> void:
 func _on_player_died() -> void:
 	say("Você caiu! Voltando para a aldeia...", 3.0)
 	await get_tree().create_timer(3.0).timeout
+	if _dentro != "":
+		_dentro = ""
+		for e in enemies:
+			if is_instance_valid(e):
+				e.process_mode = Node.PROCESS_MODE_INHERIT
 	player.revive(Vector3(0, 0, 8))
 
 # ---------- salvar / carregar ----------
@@ -1000,7 +1360,7 @@ func _save() -> void:
 		papeis.append(v.papel)
 	var f := FileAccess.open(SAVE, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em}))
+		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base}))
 
 func _load() -> bool:
 	if not FileAccess.file_exists(SAVE):
@@ -1021,6 +1381,9 @@ func _load() -> bool:
 	arma = clampi(int(d.get("arma", 1)), 1, 3)
 	boss_derrotas = int(d.get("boss_derrotas", 0))
 	boss_em = int(d.get("boss_em", 6))
+	rei_q = int(d.get("rei_q", 0))
+	rei_ativa = bool(d.get("rei_ativa", false))
+	rei_base = int(d.get("rei_base", 0))
 	var niveis: Dictionary = d.get("lotes", {})
 	for p in plots:
 		p.built.disconnect(_on_built)

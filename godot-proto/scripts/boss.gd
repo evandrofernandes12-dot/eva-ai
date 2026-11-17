@@ -15,6 +15,8 @@ const PASSO := 2.1
 @export var speed := 2.8
 ## Fração da vida em que o machado se despedaça (0.5 = quando ele fica com metade da vida).
 @export_range(0.05, 0.95) var largar_machado_em := 0.5
+## Distância (m) entre o Minotauro e o alvo quando o machado desce: ajuste se a lâmina cair antes ou depois dele.
+@export var alcance_machado := 3.2
 
 var max_hp := 500
 var hp := 500
@@ -218,9 +220,21 @@ func _physics_process(delta: float) -> void:
 					_mudar("soco")
 		"golpe":      # machado: sobe e desce
 			Fit.play(_ap, &"AxeAttack", false, 1.2)
+			# até o golpe cair, acompanha o alvo e avança/recua até ficar a `alcance_machado` dele:
+			# assim a lâmina desce NO adversário e não no chão
+			if _t < 0.6 and d > 0.1:
+				rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 10.0 * delta)
+				var falta := d - alcance_machado
+				if absf(falta) > 0.1:
+					var dir := to / d
+					var v := clampf(falta * 6.0, -4.0, 9.0)
+					velocity.x = dir.x * v
+					velocity.z = dir.z * v
 			if _t >= 0.6 and _bateu == 0:
 				_bateu = 1
-				_acertar(4.8, int(damage * 1.3))
+				_acertar(alcance_machado + 1.6, int(damage * 1.3))
+				if target.get("hp") > 0:   # o machado fica fincado nele por um instante: clarão no ponto do impacto
+					jogo.flash(target.global_position + Vector3(0, 1.1, 0), Color(1.0, 0.3, 0.15), 1.4, 0.4)
 			if _t > 1.35:
 				_cd = 1.5
 				_mudar("segue")
