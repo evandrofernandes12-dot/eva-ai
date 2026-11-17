@@ -19,6 +19,10 @@ Godot 4.3, renderizador Compatibilidade, testado em tablet Android. Idioma do c�
 - Ao mudar comportamento visível, atualize a lista "O que tem" do `README.md` e a `VERSAO` em `main.gd`.
 - Salvamento: `user://save_v4.json`. Campos novos precisam de valor padrão no `_load()`.
 
+## Ferramentas (opcional, mas recomendado)
+- `pip install -r requirements-dev.txt` instala o `gdtoolkit`. O hook `.claude/hooks/gdparse.sh` roda `gdparse` a cada edição de `.gd` e devolve erros de sintaxe na hora (não pega erros de tipo/API do Godot).
+- `/zip vXX` gera e envia o zip de teste.
+
 ## Fluxo
 - Branch de trabalho: `claude/godot-character-creator-fixes-hf5ksp`. Não criar PR sem pedido.
 - Zip para teste: `cd godot-proto && zip -qr dist/godot-proto-vXX.zip . -x "dist/*" ".godot/*"` (a pasta `dist/` não é versionada).

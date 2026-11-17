@@ -6,5 +6,25 @@
   },
   "enabledPlugins": {
     "claude-code-setup@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(zip:*)",
+      "Bash(unzip -l:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(gdparse:*)",
+      "Bash(gdlint:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gdparse.sh" }]
+      }
+    ]
   }
 }
