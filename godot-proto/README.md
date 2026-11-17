@@ -3,13 +3,15 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v9)
+## O que tem (v10)
 - Aldeia maior e espaçada: praça no centro, Salão do Chefe ao fundo (norte), casas, forja e moinho em volta (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
 - Lotes de construção (nó **Lotes**): CONSTRUIR e depois MELHORAR até o nível 3 (ou tecla E).
   - Casa: +25 de vida máxima e +2 vagas de aldeão por nível · Serraria: produz madeira · Torre: atira nos orcs · Estalagem: cura mais rápido.
-- Classes (botão CLASSE): Guerreiro (de perto), Arqueiro (flechas), Mago (orbes em área). Arma evolui até o nível 3.
+- **16 personagens realistas** (botão CLASSE): escolha a classe (Guerreiro, Lanceiro, Arqueiro, Mago) e depois um dos 4 personagens dela, 2 masculinos e 2 femininos.
+  Corpo e ~90 animações da Quaternius (CC0); roupas geradas no Blender (`scripts/personagens/` na raiz do repositório); armas presas nos ossos da mão (`scripts/hero.gd`).
+  O escudo fica preso no antebraço por duas alças de couro. O mago escolhe a magia do orbe (explode em área) ou do livro (raio mais forte num alvo).
 - Aldeões (botão ALDEÕES): Lenhador, Pedreiro e Coletor vão até o recurso, trabalham e entregam na aldeia.
 - 15 missões em sequência, com recompensa.
 - 4 Torres de Vigia (uma em cada canto) e a **Muralha**: paliçada em volta da aldeia com 4 portões de madeira. Os portões abrem para o jogador; os inimigos precisam derrubá-los a golpes (voltam consertados depois de 40 s).

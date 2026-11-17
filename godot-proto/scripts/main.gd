@@ -16,7 +16,7 @@ const VILLAGER := preload("res://scripts/villager.gd")
 const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v9"
+const VERSAO := "v10"
 const MURO_R := 40.0             # raio da muralha
 const DIRS := [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
 const CAM_NOMES := ["3ª pessoa", "1ª pessoa", "Visão de águia"]
@@ -25,7 +25,8 @@ const CAM_NOMES := ["3ª pessoa", "1ª pessoa", "Visão de águia"]
 const CLASSES := {
 	"guerreiro": {"nome": "Guerreiro", "desc": "Corpo a corpo, forte e resistente", "hp": 140, "dano": [14, 20, 28], "alcance": 2.8, "longe": false, "area": 0.0, "cor": Color(1, 1, 1), "tiro": Color(1, 1, 1)},
 	"arqueiro": {"nome": "Arqueiro", "desc": "Flechas de longe", "hp": 100, "dano": [10, 15, 21], "alcance": 15.0, "longe": true, "area": 0.0, "cor": Color(0.65, 1.0, 0.6), "tiro": Color(0.95, 0.85, 0.5)},
-	"mago": {"nome": "Mago", "desc": "Orbes que explodem em área", "hp": 90, "dano": [9, 13, 18], "alcance": 13.0, "longe": true, "area": 3.2, "cor": Color(0.8, 0.65, 1.0), "tiro": Color(0.7, 0.4, 1.0)},
+	"lanceiro": {"nome": "Lanceiro", "desc": "Lança longa: alcança mais longe que a espada", "hp": 120, "dano": [12, 18, 25], "alcance": 3.8, "longe": false, "area": 0.0, "cor": Color(1, 1, 1), "tiro": Color(1, 1, 1)},
+	"mago": {"nome": "Mago", "desc": "Magia do orbe (explode em área) ou do livro (raio forte num alvo)", "hp": 90, "dano": [9, 13, 18], "alcance": 13.0, "longe": true, "area": 3.2, "cor": Color(0.8, 0.65, 1.0), "tiro": Color(0.7, 0.4, 1.0)},
 }
 const ARMA_CUSTO := [{}, {"madeira": 40, "pedra": 30}, {"madeira": 90, "pedra": 70, "comida": 30}]
 const OFICIOS := ["madeira", "pedra", "comida"]
@@ -41,6 +42,8 @@ var res := {"madeira": 0, "pedra": 0, "comida": 0}
 var kills := 0
 var quest := 0
 var classe := ""
+var heroi := ""                  # um dos 16 personagens (Heroi.lista)
+var magia := "orbe"              # mago: "orbe" (área) ou "livro" (um alvo, mais forte)
 var arma := 1
 var nodes: Array = []            # coletáveis: {node, tipo, hp, scene, h, dono}
 var aldeoes: Array = []
@@ -75,7 +78,7 @@ var QUESTS := [
 	{"t": "Corte árvores: junte 20 de madeira", "p": func(): return res.madeira, "n": 20, "r": {"comida": 10}},
 	{"t": "Quebre rochas: junte 15 de pedra", "p": func(): return res.pedra, "n": 15, "r": {"madeira": 10}},
 	{"t": "Construa a Casa (lote amarelo)", "p": func(): return _built("vida"), "n": 1, "r": {"pedra": 15}},
-	{"t": "Escolha uma classe (botão CLASSE)", "p": func(): return 0 if classe == "" else 1, "n": 1, "r": {"comida": 20}},
+	{"t": "Escolha classe e personagem (botão CLASSE)", "p": func(): return 0 if heroi == "" else 1, "n": 1, "r": {"comida": 20}},
 	{"t": "Derrote 3 orcs", "p": func(): return kills, "n": 3, "r": {"madeira": 30, "pedra": 20}},
 	{"t": "Contrate um aldeão (botão ALDEÕES)", "p": func(): return aldeoes.size(), "n": 1, "r": {"comida": 20}},
 	{"t": "Construa a Serraria", "p": func(): return _built("madeira"), "n": 1, "r": {"comida": 20}},
@@ -312,7 +315,9 @@ func _recalc() -> void:
 	if classe != "":
 		base = CLASSES[classe].hp
 		player.damage = CLASSES[classe].dano[arma - 1]
-		Fit.tint(player.model, CLASSES[classe].cor)
+		if classe == "mago" and magia == "livro":
+			player.damage = int(player.damage * 1.35)
+		player.attack_range = 2.6 if CLASSES[classe].longe else CLASSES[classe].alcance
 	player.max_hp = base + 25 * _lvl("vida")
 	if player.hp > 0:
 		player.hp = clampi(player.hp + maxi(0, player.max_hp - antes), 1, player.max_hp)
@@ -746,7 +751,10 @@ func _atirar(alvo: Node3D) -> void:
 	m.mesh = sph
 	add_child(m)
 	m.global_position = player.global_position + Vector3(0, 1.3, 0)
-	tiros.append({"node": m, "alvo": alvo, "dano": player.damage, "area": c.area})
+	var area: float = c.area if not (classe == "mago" and magia == "livro") else 0.0
+	if classe == "mago" and magia == "livro":
+		mat.albedo_color = Color(1.0, 0.85, 0.4)
+	tiros.append({"node": m, "alvo": alvo, "dano": player.damage, "area": area})
 
 func _tiros(delta: float) -> void:
 	for t in tiros.duplicate():
@@ -822,7 +830,29 @@ func escolher_classe(c: String) -> void:
 	classe = c
 	_recalc()
 	player.hp = player.max_hp
-	say("Agora você é %s!" % CLASSES[c].nome)
+	say("Agora você é %s! Escolha o seu personagem." % CLASSES[c].nome)
+	_save()
+
+## Põe no jogador um dos 16 personagens.
+func vestir(id: String, salvar := true) -> void:
+	var info: Dictionary = Heroi.lista()[id]
+	heroi = id
+	classe = info.classe
+	var m := Heroi.montar(id)
+	Heroi.magia(m, magia)
+	player.trocar_modelo(m, Heroi.ANIMS[classe])
+	player.model.visible = cam_modo != 1
+	_recalc()
+	if salvar:
+		player.hp = player.max_hp
+		_save()
+
+func trocar_magia(qual: String) -> void:
+	magia = qual
+	if heroi != "":
+		Heroi.magia(player.model, magia)
+	_recalc()
+	say("Magia do %s!" % qual, 2.5)
 	_save()
 
 func evoluir_arma() -> void:
@@ -909,22 +939,38 @@ func _abrir(titulo: String, texto: String, rows: Array) -> void:
 	_painel = pc
 
 func _menu_classe() -> void:
-	var rows: Array = []
-	if classe == "":
-		for k in CLASSES:
-			var c: Dictionary = CLASSES[k]
-			rows.append({"t": "%s — %s (vida %d, dano %d)" % [c.nome, c.desc, c.hp, c.dano[0]], "cb": func(): escolher_classe(k); _menu_classe()})
-		_abrir("Escolha sua classe", "A classe define sua vida, seu dano e se você luta de perto ou de longe.", rows)
+	if classe == "" or heroi == "":
+		_menu_escolha()
 		return
 	var c: Dictionary = CLASSES[classe]
-	var txt := "%s · Arma nível %d/3 · Dano %d · Vida máx. %d" % [c.nome, arma, player.damage, player.max_hp]
+	var rows: Array = []
+	var txt := "%s · %s\nArma nível %d/3 · Dano %d · Vida máx. %d" % [c.nome, Heroi.lista()[heroi].nome, arma, player.damage, player.max_hp]
 	if arma < 3:
 		var cu: Dictionary = ARMA_CUSTO[arma]
 		rows.append({"t": "Evoluir arma para nível %d (dano %d) — %s" % [arma + 1, c.dano[arma], plots[0].texto(cu)], "off": not _can_pay(cu), "cb": func(): evoluir_arma(); _menu_classe()})
-	for k in CLASSES:
-		if k != classe:
-			rows.append({"t": "Trocar para %s" % CLASSES[k].nome, "cb": func(): escolher_classe(k); _menu_classe()})
+	if classe == "mago":
+		rows.append({"t": ("✔ " if magia == "orbe" else "") + "Magia do orbe: explode e acerta vários", "cb": func(): trocar_magia("orbe"); _menu_classe()})
+		rows.append({"t": ("✔ " if magia == "livro" else "") + "Magia do livro: raio mais forte num alvo só", "cb": func(): trocar_magia("livro"); _menu_classe()})
+	rows.append({"t": "Trocar de personagem ou de classe", "cb": func(): _menu_escolha()})
 	_abrir("Classe e arma", txt, rows)
+
+## 1) escolhe a classe; 2) escolhe entre os 4 personagens dela (2 masculinos e 2 femininos).
+func _menu_escolha(cl := "") -> void:
+	var rows: Array = []
+	if cl == "":
+		for k in CLASSES:
+			var c: Dictionary = CLASSES[k]
+			rows.append({"t": "%s — %s (vida %d, dano %d)" % [c.nome, c.desc, c.hp, c.dano[0]], "cb": func(): _menu_escolha(k)})
+		_abrir("Escolha sua classe", "A classe define sua vida, seu dano e se você luta de perto ou de longe.", rows)
+		return
+	var lista := Heroi.lista()
+	for sexo in ["m", "f"]:
+		for id in lista:
+			var h: Dictionary = lista[id]
+			if h.classe == cl and h.sexo == sexo:
+				rows.append({"t": "%s — %s" % ["Masculino" if sexo == "m" else "Feminino", h.nome], "cb": func(): vestir(id); _fechar(); say("Personagem escolhido!", 2.5)})
+	rows.append({"t": "← Voltar para as classes", "cb": func(): _menu_escolha()})
+	_abrir(CLASSES[cl].nome, "Escolha o seu personagem.", rows)
 
 func _menu_aldeoes() -> void:
 	var conta := {"madeira": 0, "pedra": 0, "comida": 0}
@@ -954,7 +1000,7 @@ func _save() -> void:
 		papeis.append(v.papel)
 	var f := FileAccess.open(SAVE, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em}))
+		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em}))
 
 func _load() -> bool:
 	if not FileAccess.file_exists(SAVE):
@@ -968,6 +1014,10 @@ func _load() -> bool:
 	quest = int(d.get("quest", 0))
 	var c := String(d.get("classe", ""))
 	classe = c if CLASSES.has(c) else ""
+	magia = String(d.get("magia", "orbe"))
+	var hid := String(d.get("heroi", ""))
+	if Heroi.lista().has(hid):
+		vestir(hid, false)
 	arma = clampi(int(d.get("arma", 1)), 1, 3)
 	boss_derrotas = int(d.get("boss_derrotas", 0))
 	boss_em = int(d.get("boss_em", 6))

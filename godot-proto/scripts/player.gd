@@ -19,6 +19,7 @@ var _idle: StringName
 var _run: StringName
 var _atk: StringName
 var _dead := false
+var _morte: StringName = &""
 
 @onready var model: Node3D = $Model
 
@@ -29,6 +30,21 @@ func _ready() -> void:
 	_idle = Fit.find_anim(_ap, ["Idle"])
 	_run = Fit.find_anim(_ap, ["Run", "Walking", "Walk"])
 	_atk = Fit.find_anim(_ap, ["Run_swordAttack", "swordAttack", "Attack", "Punch"])
+	Fit.play(_ap, _idle)
+
+## Troca o boneco por um dos personagens (Heroi.montar) com as animações da classe.
+func trocar_modelo(novo: Node3D, anims: Dictionary) -> void:
+	var antigo := model
+	add_child(novo)
+	novo.rotation = antigo.rotation
+	novo.visible = antigo.visible
+	antigo.queue_free()
+	model = novo
+	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
+	_idle = anims.idle
+	_run = anims.run
+	_atk = anims.atk
+	_morte = anims.morte
 	Fit.play(_ap, _idle)
 
 func _physics_process(delta: float) -> void:
@@ -71,7 +87,7 @@ func hurt(amount: int) -> void:
 	hp = maxi(0, hp - amount)
 	if hp == 0:
 		_dead = true
-		Fit.play(_ap, Fit.find_anim(_ap, ["Death"]), false)
+		Fit.play(_ap, _morte if _morte != &"" else Fit.find_anim(_ap, ["Death"]), false)
 		died.emit()
 
 func revive(at: Vector3) -> void:
