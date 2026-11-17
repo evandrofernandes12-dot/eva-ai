@@ -190,6 +190,7 @@ def build(spec):
             cabelo(peca[4], cor)
         elif tipo == 'saiote':     # saia curta de couro/tecido sobre calça
             o, rings, sw = saia('Saiote', P('pelvis').z + 0.07, P('calf_l').z + 0.25, 0.2, m)
+            cobre.append((lambda n: TH(n), lambda p: p.z > P('calf_l').z + 0.3))
     # apaga a pele coberta (com uma pequena margem nas bordas)
     if cobre:
         bm = bmesh.new(); bm.from_mesh(body.data); bm.verts.ensure_lookup_table()
