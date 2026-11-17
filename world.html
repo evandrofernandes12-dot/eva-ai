@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eva · Floresta e Aldeia (assets CC0)</title>
+    <style>
+      html, body, #world { margin: 0; height: 100%; width: 100%; overflow: hidden; background: #1b2430; font-family: system-ui, sans-serif; }
+      #hud { position: fixed; left: 12px; bottom: 10px; color: #fff; text-shadow: 0 1px 3px #000; font-size: 13px; pointer-events: none; }
+      #msg { position: fixed; inset: 0; display: grid; place-items: center; color: #fff; font-size: 18px; background: #1b2430; }
+    </style>
+  </head>
+  <body>
+    <div id="world"></div>
+    <div id="msg">Carregando…</div>
+    <div id="hud">WASD/setas mover · Shift correr · Espaço atacar · Q/E girar câmera · <a href="/" style="color:#9be7ff;pointer-events:auto">← Criador de personagens</a></div>
+    <script type="module" src="/src/world/main.js"></script>
+  </body>
+</html>
