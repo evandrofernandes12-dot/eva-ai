@@ -3,9 +3,10 @@
 ## Controle de rotação
 - proximo_tema_psicanalise: 4   (ver temas-psicanalise.md)
 - pular_na_rotacao: 5, 6       (já publicados fora de ordem: 6 inveja e comparação em 16/11; 5 angústia de domingo em 17/11). O nº 4 (culpa inconsciente) vem a seguir; depois do 4, seguir do 7.
-- proximo_tema_fe: 3            (ver temas-fe.md)
+- proximo_tema_fe: 4            (ver temas-fe.md)
 
 ## Já publicados
+- 2026-11-18 (quarta, fé, sem reel): "Ansiedade e confiança" (temas-fe.md nº 3). Pacote gerado (carrossel e 2 stories), aguardando aprovação do usuário. Versículo: 1 Pedro 5:7 (NVI), redação 'tem cuidado de vocês' (há edição que traz 'cuida de vocês').
 - 2026-11-17 (terça, comum, com reel): "Angústia de domingo" (temas-psicanalise.md nº 5; o nº 4, culpa inconsciente, segue adiado para não repetir culpa logo depois de "culpa e perdão"). Publicados em 17/11: carrossel (https://www.instagram.com/p/Df1oZMRF22T/), reel (https://www.instagram.com/reel/Df1ojYgmdfL/) e story da manhã. Story da noite publicado às 19:53 (id 18159858253514548); mídia removida da branch.
 - 2026-11-16 (pendência): o story da noite de 16/11 NÃO foi publicado (gatilho das 19:50 não executado por falha da sessão); o vídeo continua em media-963ec681c4155ffe/story-noite.mp4, aguardando decisão do usuário.
 - 2026-11-16 (segunda, comum, sem reel): "Inveja e comparação" (temas-psicanalise.md nº 6, adiantado para não repetir culpa logo após "culpa e perdão" de 15/11; o nº 4, culpa inconsciente, fica para depois). Publicados em 16/11: carrossel (https://www.instagram.com/p/DfzDcQKlwR0/) e story da manhã. Story da noite guardado em media-963ec681c4155ffe/story-noite.mp4, a publicar às 19:50.
