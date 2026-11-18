@@ -3,7 +3,7 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v13)
+## O que tem (v14)
 - Aldeia maior e espaçada: praça no centro, Salão do Chefe ao fundo (norte), casas, forja e moinho em volta (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
@@ -15,6 +15,7 @@ Não substitui o jogo da web; é só uma amostra.
 - **Combate v11**: arqueiro dispara flechas de verdade; lanceiro dá estocadas que avançam e atravessam inimigos em linha; botões **DEFESA** (recebe 1/4 do dano, anda devagar; atacar baixa a guarda; tecla Q) e **CORRER** (1,7× mais rápido; Shift) para todas as classes.
 - **Pinça**: dois dedos na tela aproximam/afastam a câmera (bem de perto para ver o personagem); roda do mouse no computador.
 - **Interiores**: perto de Casas, Forja e Salão do Rei aparece **ENTRAR** (e **SAIR** lá dentro). No Salão fale com o **Rei** para pegar as 8 missões do reino (`REI_QUESTS` em `scripts/main.gd`; salas em `scripts/interior.gd`). Os inimigos congelam enquanto você está dentro.
+- **v14**: **fênix de fogo** só para os magos (`scripts/fenix.gd`): paira sobre a cabeça; quando o mago ataca, ou um inimigo chega a 7 m, mergulha como flecha de fogo (dano = 4× o dano do mago + 30, em área de 2,2 m; recarga 2,2 s) e volta. Casas/forja mais claras (materiais com brilho próprio, luzes extras, sem vigas). Machado do Minotauro posto em relação aos ombros reais do modelo, para as mãos sempre alcançarem o cabo.
 - **v13**: casas refeitas (móveis baixos encostados nas paredes, faixa da porta livre, sem cabeceira/laje); Rei maior (2,9 m) com o assento sob a pélvis, deixando as pernas visíveis; mãos do Minotauro recuadas para o punho cair no cabo.
 - **v12**: lanceiro golpeia com a PONTA (a lança se alinha para a frente na estocada); mago ganhou de volta o orbe flutuando na palma da mão; Minotauro segura o machado com as duas mãos (IK em `scripts/duas_maos.gd`) e o machado desce em arco até o peito do alvo; dentro dos prédios a câmera vai para a 1ª pessoa; interiores refeitos (teto, janelas, mobília) e o Salão do Rei tem altar com escada em 3 lados, trono dourado e o Rei sentado (corpo do herói G2, maior, com armadura e coroa de ouro — `Heroi.rei()`).
 - Minotauro: o machado agora desce no adversário (ele se aproxima até `alcance_machado` do alvo, em `scripts/boss.gd`; ajuste no Inspetor se a lâmina cair antes/depois).

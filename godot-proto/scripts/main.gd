@@ -15,8 +15,9 @@ const KNIGHT := preload("res://models/Knight.glb")
 const VILLAGER := preload("res://scripts/villager.gd")
 const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
+const FENIX := preload("res://scripts/fenix.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v13"
+const VERSAO := "v14"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -89,6 +90,7 @@ var _perto := ""                 # prédio da aldeia ao alcance da porta
 var _saida := Vector3(0, 0, 8)
 var _trans := false
 var _cam_antes := 0
+var fenix: Node3D                # fênix de fogo do mago
 var _interiores := {}
 var rei_q := 0                   # próxima missão do Rei
 var rei_ativa := false
@@ -440,6 +442,8 @@ func _on_player_attack() -> void:
 		if alvo != null:
 			var to: Vector3 = alvo.global_position - p
 			player.rotation.y = atan2(to.x, to.z)
+			if fenix != null and is_instance_valid(fenix):
+				fenix.atacar(alvo)   # a fênix mergulha junto com o golpe do cajado
 			_atirar(alvo)
 			return
 	elif classe == "lanceiro":
@@ -1212,9 +1216,23 @@ func vestir(id: String, salvar := true) -> void:
 	player.trocar_modelo(m, Heroi.ANIMS[classe])
 	player.model.visible = cam_modo != 1
 	_recalc()
+	_fenix_ajustar()
 	if salvar:
 		player.hp = player.max_hp
 		_save()
+
+## O mago ganha uma fênix de fogo que paira sobre ele; outras classes não têm.
+func _fenix_ajustar() -> void:
+	var tem: bool = fenix != null and is_instance_valid(fenix)
+	if classe == "mago" and not tem:
+		fenix = FENIX.new()
+		fenix.dono = player
+		fenix.jogo = self
+		add_child(fenix)
+		fenix.global_position = player.global_position + Vector3(0, 3.0, 0)
+	elif classe != "mago" and tem:
+		fenix.queue_free()
+		fenix = null
 
 func trocar_magia(qual: String) -> void:
 	magia = qual

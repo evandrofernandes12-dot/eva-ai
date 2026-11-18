@@ -17,7 +17,7 @@ const PASSO := 2.1
 ## Fração da vida em que o machado se despedaça (0.5 = quando ele fica com metade da vida).
 @export_range(0.05, 0.95) var largar_machado_em := 0.5
 ## Distância (m) entre o Minotauro e o alvo quando o machado desce: ajuste se a lâmina cair antes ou depois dele.
-@export var alcance_machado := 3.2
+@export var alcance_machado := 2.8
 
 var max_hp := 500
 var hp := 500
@@ -44,6 +44,9 @@ var _ap: AnimationPlayer
 var machado: Node3D
 var _mod                       # IK: as duas mãos seguram o cabo (duas_maos.gd)
 var _k := 1.0
+var _sk: Skeleton3D
+var _ia := -1   # ossos dos ombros: o machado é posto em relação a eles (sempre ao alcance dos braços)
+var _ib := -1
 var _alvo_local := Vector3(0, 1.1, 3.0)   # onde o machado vai cair (peito do alvo, no espaço do Minotauro)
 var _capt := false
 
@@ -111,6 +114,9 @@ func _montar() -> void:
 	machado.scale = Vector3.ONE * _k
 	add_child(machado)
 	if sk != null:
+		_sk = sk
+		_ia = sk.find_bone("ArmA")
+		_ib = sk.find_bone("ArmB")
 		_mod = DUAS_MAOS.new()
 		sk.add_child(_mod)
 	Fit.play(_ap, &"AxeIdle")
@@ -141,11 +147,16 @@ func _criar_machado() -> Node3D:
 func _process(_delta: float) -> void:
 	if machado == null or not is_instance_valid(machado):
 		return
-	var carga_g := Vector3(0, 2.7, 1.1)
+	# centro dos ombros no espaço do Minotauro: as mãos ficam a até ~1,2 m dele (alcance do braço ~1,8 m)
+	var ombros := Vector3(0, 3.7, 0)
+	if _sk != null and _ia >= 0 and _ib >= 0:
+		var pm := (_sk.get_bone_global_pose(_ia).origin + _sk.get_bone_global_pose(_ib).origin) * 0.5
+		ombros = to_local(_sk.global_transform * pm)
+	var carga_g := ombros + Vector3(0, -0.4, 1.0)
 	var carga_fi := deg_to_rad(70.0)
-	var alto_g := Vector3(0, 4.4, -0.2)
+	var alto_g := ombros + Vector3(0, 0.9, 0.0)
 	var alto_fi := deg_to_rad(160.0)
-	var imp_g := Vector3(0, 2.4, 1.4)
+	var imp_g := ombros + Vector3(0, -0.7, 1.0)
 	var dd := (_alvo_local - imp_g).normalized()
 	var imp_fi := atan2(dd.y, dd.z)
 	var g := carga_g
@@ -274,7 +285,7 @@ func _physics_process(delta: float) -> void:
 				_capt = true
 				_alvo_local = to_local(target.global_position + Vector3(0, 1.1, 0))
 				_alvo_local.x = clampf(_alvo_local.x, -0.5, 0.5)
-				_alvo_local.z = clampf(_alvo_local.z, 1.8, 3.6)
+				_alvo_local.z = clampf(_alvo_local.z, 1.8, 3.2)
 			if _t < 0.6 and d > 0.1:
 				rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 10.0 * delta)
 				var falta := d - alcance_machado

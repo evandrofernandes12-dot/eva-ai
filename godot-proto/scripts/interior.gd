@@ -17,10 +17,15 @@ const MADEIRA := Color(0.42, 0.27, 0.14)
 const PEDRA := Color(0.45, 0.44, 0.46)
 const OURO := Color(0.95, 0.75, 0.2)
 
+static var _autoluz := 0.0   # fração da cor que "brilha sozinha": casas e forja são pequenas e escuras
+
 static func _mat(cor: Color, brilho := false) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = cor
 	m.roughness = 0.85
+	if _autoluz > 0.0 and not brilho:
+		m.emission_enabled = true
+		m.emission = cor * _autoluz
 	if brilho:
 		m.emission_enabled = true
 		m.emission = cor
@@ -127,6 +132,7 @@ static func escada(pai: Node3D, topo: Vector3, dir: Vector3, run: float, alt: fl
 
 ## Monta a sala. Devolve a raiz; `rei` (meta) é o nó do Rei, quando existe.
 static func construir(id: String) -> Node3D:
+	_autoluz = 0.0 if id == "SalaoDoChefe" else 0.55
 	var s: Dictionary = SALAS[id]
 	var w: float = s.w
 	var d: float = s.d
@@ -141,9 +147,6 @@ static func construir(id: String) -> Node3D:
 	caixa(raiz, Vector3(-w * 0.5, alt * 0.5, 0), Vector3(0.5, alt, d), pa, true)
 	caixa(raiz, Vector3(w * 0.5, alt * 0.5, 0), Vector3(0.5, alt, d), pa, true)
 	caixa(raiz, Vector3(0, alt + 0.25, 0), Vector3(w + 1.0, 0.5, d + 1.0), MADEIRA.darkened(0.2))   # teto
-	var vigas := int(d / 3.0)
-	for i in vigas:                                                                             # vigas do teto
-		caixa(raiz, Vector3(0, alt - 0.1, -d * 0.5 + (i + 0.5) * d / vigas), Vector3(w, 0.2, 0.3), MADEIRA.darkened(0.35))
 	caixa(raiz, Vector3(0, 1.2, d * 0.5 - 0.3), Vector3(1.8, 2.4, 0.08), MADEIRA.darkened(0.25))       # porta (folha)
 	caixa(raiz, Vector3(0, 2.5, d * 0.5 - 0.3), Vector3(2.2, 0.2, 0.12), Color(0.2, 0.12, 0.06))       # verga
 	for sx in [-1.0, 1.0]:
@@ -156,7 +159,10 @@ static func construir(id: String) -> Node3D:
 			var z := -d * 0.5 + (i + 1.0) * d / (janelas + 1.0)
 			caixa(raiz, Vector3(lado * (w * 0.5 - 0.27), alt * 0.55, z), Vector3(0.05, alt * 0.35, 1.2), Color(0.75, 0.88, 1.0), false, true, true)
 			caixa(raiz, Vector3(lado * (w * 0.5 - 0.3), alt * 0.55, z), Vector3(0.08, 0.1, 1.5), MADEIRA.darkened(0.3))
-	luz(raiz, Vector3(0, alt - 0.8, 0), Color(1.0, 0.88, 0.7), 1.3, maxf(w, d) * 1.2)
+	luz(raiz, Vector3(0, alt - 1.4, 0), Color(1.0, 0.88, 0.7), 1.3, maxf(w, d) * 1.2)
+	if id != "SalaoDoChefe":    # luzes extras nos cantos: as paredes ficam claras até o teto
+		luz(raiz, Vector3(-w * 0.3, 2.0, -d * 0.3), Color(1.0, 0.9, 0.75), 0.7, 9.0)
+		luz(raiz, Vector3(w * 0.3, 2.0, d * 0.3), Color(1.0, 0.9, 0.75), 0.7, 9.0)
 	match id:
 		"SalaoDoChefe":
 			_salao(raiz, w, d, alt, tap)
