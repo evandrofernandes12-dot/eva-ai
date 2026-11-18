@@ -151,11 +151,14 @@ static func construir(id: String) -> Node3D:
 	caixa(raiz, Vector3(0, alt * 0.5, d * 0.5), Vector3(w, alt, 0.5), pa, true)
 	caixa(raiz, Vector3(-w * 0.5, alt * 0.5, 0), Vector3(0.5, alt, d), pa, true)
 	caixa(raiz, Vector3(w * 0.5, alt * 0.5, 0), Vector3(0.5, alt, d), pa, true)
-	caixa(raiz, Vector3(0, alt + 0.25, 0), Vector3(w + 1.0, 0.5, d + 1.0), MADEIRA.darkened(0.2))   # teto
+	var castelo := id == "SalaoDoChefe"
+	# teto: madeira escura no castelo; nas casas, liso e claro como as paredes (sem nada pendurado)
+	caixa(raiz, Vector3(0, alt + 0.25, 0), Vector3(w + 1.0, 0.5, d + 1.0), MADEIRA.darkened(0.2) if castelo else pa.lightened(0.15))
 	caixa(raiz, Vector3(0, 1.2, d * 0.5 - 0.3), Vector3(1.8, 2.4, 0.08), MADEIRA.darkened(0.25))       # porta (folha)
-	caixa(raiz, Vector3(0, 2.5, d * 0.5 - 0.3), Vector3(2.2, 0.2, 0.12), Color(0.2, 0.12, 0.06))       # verga
-	for sx in [-1.0, 1.0]:
-		caixa(raiz, Vector3(sx, 1.25, d * 0.5 - 0.3), Vector3(0.15, 2.5, 0.12), Color(0.2, 0.12, 0.06)) # batentes
+	if castelo:   # nas casas, sem verga nem batentes de madeira escura (pareciam vigas)
+		caixa(raiz, Vector3(0, 2.5, d * 0.5 - 0.3), Vector3(2.2, 0.2, 0.12), Color(0.2, 0.12, 0.06))       # verga
+		for sx in [-1.0, 1.0]:
+			caixa(raiz, Vector3(sx, 1.25, d * 0.5 - 0.3), Vector3(0.15, 2.5, 0.12), Color(0.2, 0.12, 0.06)) # batentes
 	caixa(raiz, Vector3(0.6, 1.1, d * 0.5 - 0.35), Vector3(0.1, 0.1, 0.1), OURO)                        # maçaneta
 	caixa(raiz, Vector3(0, 0.02, d * 0.5 - 1.3), Vector3(2.4, 0.04, 1.4), Color(0.3, 0.12, 0.1))       # capacho
 	var janelas := 2 if id != "SalaoDoChefe" else 4
@@ -163,7 +166,8 @@ static func construir(id: String) -> Node3D:
 		for i in janelas:
 			var z := -d * 0.5 + (i + 1.0) * d / (janelas + 1.0)
 			caixa(raiz, Vector3(lado * (w * 0.5 - 0.27), alt * 0.55, z), Vector3(0.05, alt * 0.35, 1.2), Color(0.75, 0.88, 1.0), false, true, true)
-			caixa(raiz, Vector3(lado * (w * 0.5 - 0.3), alt * 0.55, z), Vector3(0.08, 0.1, 1.5), MADEIRA.darkened(0.3))
+			if castelo:   # moldura de madeira só no castelo
+				caixa(raiz, Vector3(lado * (w * 0.5 - 0.3), alt * 0.55, z), Vector3(0.08, 0.1, 1.5), MADEIRA.darkened(0.3))
 	luz(raiz, Vector3(0, alt - 1.4, 0), Color(1.0, 0.88, 0.7), 1.3, maxf(w, d) * 1.2)
 	if id != "SalaoDoChefe":    # luzes extras nos cantos: as paredes ficam claras até o teto
 		luz(raiz, Vector3(-w * 0.3, 2.0, -d * 0.3), Color(1.0, 0.9, 0.75), 0.7, 9.0)
@@ -204,7 +208,7 @@ static func _casa(r: Node3D, w: float, d: float, alt: float, tap: Color) -> void
 	caixa(r, Vector3(bx, 0.6, -2.6), Vector3(1.95, 0.22, 3.1), Color(0.93, 0.91, 0.86))
 	caixa(r, Vector3(bx, 0.78, -3.85), Vector3(1.3, 0.16, 0.5), Color(1, 1, 1))
 	caixa(r, Vector3(bx, 0.74, -2.0), Vector3(2.0, 0.08, 1.8), tap)
-	caixa(r, Vector3(bx, 0.55, zn + 0.45), Vector3(2.2, 1.1, 0.12), MADEIRA.darkened(0.15))
+	caixa(r, Vector3(bx, 0.55, zn + 0.45), Vector3(2.2, 1.1, 0.12), MADEIRA.lightened(0.1))
 	_quadro(r, Vector3(bx, 2.1, zn + 0.3), 1.8, 1.2, 0.0, Color(0.55, 0.75, 0.95), Color(0.3, 0.55, 0.25))
 	# criado-mudo com abajur
 	caixa(r, Vector3(bx + 1.5, 0.3, zn + 0.8), Vector3(0.6, 0.6, 0.6), MADEIRA, true)
@@ -212,7 +216,6 @@ static func _casa(r: Node3D, w: float, d: float, alt: float, tap: Color) -> void
 	# lareira na parede norte, com moldura, fogo e quadro ao lado
 	var lx := 3.0
 	caixa(r, Vector3(lx, 1.1, zn + 0.7), Vector3(3.2, 2.2, 0.9), PEDRA, true)
-	caixa(r, Vector3(lx, 2.25, zn + 0.7), Vector3(3.6, 0.15, 1.1), MADEIRA.darkened(0.2))               # prateleira
 	caixa(r, Vector3(lx, 0.6, zn + 1.18), Vector3(1.5, 0.9, 0.05), Color(0.04, 0.03, 0.03))
 	modelo(r, FOGO, Vector3(lx, 0.05, zn + 1.5), 0.75)
 	luz(r, Vector3(lx, 1.2, zn + 2.2), Color(1.0, 0.55, 0.2), 1.3, 6.5)
