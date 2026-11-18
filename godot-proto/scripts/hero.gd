@@ -172,7 +172,7 @@ static func rei() -> Node3D:
 		ponta.material = ouro
 		var a := TAU * i / 5.0
 		_peca(sk, "head", ponta, Vector3(cos(a) * 0.105, 0.26, 0.01 + sin(a) * 0.105), Vector3.ONE)
-	Fit.to_height(m, 2.45)
+	Fit.to_height(m, 2.9)
 	m.scale = Vector3(m.scale.x * 1.2, m.scale.y, m.scale.z * 1.2)   # mais forte
 	return m
 

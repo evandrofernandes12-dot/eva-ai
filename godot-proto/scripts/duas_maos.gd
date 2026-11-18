@@ -27,6 +27,8 @@ func _braco(sk: Skeleton3D, b: Array, alvo_mundo: Vector3) -> void:
 	var l1 := p1.distance_to(p2)
 	var l2 := p2.distance_to(p3)
 	var t := sk.global_transform.affine_inverse() * alvo_mundo
+	# o osso da mão fica no PULSO: recua o alvo pela meia-mão para o centro do punho cair no cabo
+	t -= (t - p2).normalized() * 0.075
 	var v := t - p1
 	var d := clampf(v.length(), 0.05, (l1 + l2) * 0.995)
 	var dir := v.normalized()
