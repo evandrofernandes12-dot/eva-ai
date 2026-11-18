@@ -8,9 +8,14 @@ const FOGO := preload("res://models/Bonfire_Lit.glb")
 ## nome do nó em "Aldeia": título, largura, fundo, altura (m), cor do piso, cor das paredes, cor do tapete
 const SALAS := {
 	"SalaoDoChefe": {"nome": "Salão do Rei", "w": 26.0, "d": 22.0, "alt": 8.0, "piso": Color(0.42, 0.4, 0.4), "parede": Color(0.55, 0.52, 0.5), "tapete": Color(0.6, 0.07, 0.1)},
-	"Casa1": {"nome": "Casa", "w": 12.0, "d": 10.0, "alt": 3.4, "piso": Color(0.5, 0.35, 0.2), "parede": Color(0.76, 0.64, 0.48), "tapete": Color(0.6, 0.15, 0.12)},
-	"Casa2": {"nome": "Casa", "w": 12.0, "d": 10.0, "alt": 3.4, "piso": Color(0.46, 0.32, 0.18), "parede": Color(0.7, 0.58, 0.42), "tapete": Color(0.15, 0.4, 0.22)},
-	"Casa3": {"nome": "Casa", "w": 12.0, "d": 10.0, "alt": 3.4, "piso": Color(0.52, 0.38, 0.22), "parede": Color(0.78, 0.66, 0.52), "tapete": Color(0.15, 0.25, 0.55)},
+	"Casa1": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.45, 0.32, 0.2), "parede": Color(0.74, 0.62, 0.46), "tapete": Color(0.2, 0.2, 0.2)},
+	"Casa2": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.4, 0.34, 0.22), "parede": Color(0.55, 0.68, 0.5), "tapete": Color(0.2, 0.2, 0.2)},
+	"Casa3": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.42, 0.34, 0.26), "parede": Color(0.52, 0.6, 0.78), "tapete": Color(0.2, 0.2, 0.2)},
+	"LoteCasa": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.36, 0.22), "parede": Color(0.8, 0.7, 0.52), "tapete": Color(0.2, 0.2, 0.2)},
+	"LoteEstalagem": {"nome": "Estalagem", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.38, 0.24, 0.14), "parede": Color(0.75, 0.5, 0.38), "tapete": Color(0.2, 0.2, 0.2)},
+	"LoteSerraria": {"nome": "Serraria", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.4, 0.26), "parede": Color(0.7, 0.55, 0.35), "tapete": Color(0.2, 0.2, 0.2)},
+	"Moinho": {"nome": "Moinho", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.55, 0.5, 0.42), "parede": Color(0.9, 0.86, 0.76), "tapete": Color(0.2, 0.2, 0.2)},
+	"Barraca": {"nome": "Barraca", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.42, 0.3), "parede": Color(0.85, 0.72, 0.5), "tapete": Color(0.2, 0.2, 0.2)},
 	"Forja": {"nome": "Forja", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.27, 0.26, 0.26), "parede": Color(0.4, 0.37, 0.36), "tapete": Color(0.2, 0.2, 0.2)},
 }
 const MADEIRA := Color(0.42, 0.27, 0.14)
@@ -166,45 +171,9 @@ static func construir(id: String) -> Node3D:
 	match id:
 		"SalaoDoChefe":
 			_salao(raiz, w, d, alt, tap)
-		"Forja":
-			_forja(raiz, w, d, alt)
 		_:
-			_casa(raiz, w, d, alt, tap, -1.0 if id == "Casa2" else 1.0)
+			_forja(raiz, w, d, alt)     # casas e demais prédios usam o interior da forja, só mudam as cores
 	return raiz
-
-static func _casa(r: Node3D, w: float, d: float, alt: float, tap: Color, e: float) -> void:
-	# Tudo encostado nas paredes; a faixa da porta (|x| < 2,2 e z > 2,2) fica livre. `e` espelha a sala.
-	cilindro(r, Vector3(0, 0, 0.3), 1.8, 0.03, tap)                                               # tapete redondo
-	# cama baixa no canto noroeste: estrado, colchão, travesseiro e manta
-	var bx := -4.6 * e
-	caixa(r, Vector3(bx, 0.225, -2.6), Vector3(2.0, 0.45, 3.2), MADEIRA, true)
-	caixa(r, Vector3(bx, 0.55, -2.6), Vector3(1.85, 0.2, 3.0), Color(0.92, 0.9, 0.85))
-	caixa(r, Vector3(bx, 0.72, -3.8), Vector3(1.2, 0.15, 0.5), Color(1, 1, 1))
-	caixa(r, Vector3(bx, 0.68, -2.1), Vector3(1.9, 0.08, 1.7), tap.darkened(0.1))
-	# lareira de pedra baixa na parede norte, com fogo
-	var lx := 2.2 * e
-	caixa(r, Vector3(lx, 0.9, -d * 0.5 + 0.7), Vector3(2.6, 1.8, 0.9), PEDRA, true)
-	caixa(r, Vector3(lx, 0.55, -d * 0.5 + 1.17), Vector3(1.3, 0.8, 0.05), Color(0.05, 0.03, 0.03))
-	modelo(r, FOGO, Vector3(lx, 0.05, -d * 0.5 + 1.5), 0.7)
-	luz(r, Vector3(lx, 1.2, -d * 0.5 + 2.0), Color(1.0, 0.55, 0.2), 1.4, 6.0)
-	# mesa com dois banquinhos, pão e caneca
-	var mx := 3.0 * e
-	caixa(r, Vector3(mx, 0.8, 0.5), Vector3(2.4, 0.1, 1.4), MADEIRA, true)
-	for sx in [-1.0, 1.0]:
-		for sz in [-0.5, 0.5]:
-			caixa(r, Vector3(mx + sx, 0.38, 0.5 + sz), Vector3(0.12, 0.76, 0.12), MADEIRA.darkened(0.2))
-	cilindro(r, Vector3(mx - 0.4, 0.85, 0.5), 0.2, 0.07, Color(0.8, 0.6, 0.3))
-	cilindro(r, Vector3(mx + 0.5, 0.85, 0.6), 0.08, 0.14, Color(0.7, 0.7, 0.75))
-	cilindro(r, Vector3(mx, 0, 1.75), 0.3, 0.45, MADEIRA, true)
-	cilindro(r, Vector3(mx, 0, -0.75), 0.3, 0.45, MADEIRA, true)
-	# estante baixa na parede leste e baú / barris junto à parede da frente
-	caixa(r, Vector3(5.45 * e, 0.8, -1.8), Vector3(0.5, 1.6, 2.4), MADEIRA, true)
-	for i in 3:
-		caixa(r, Vector3(5.4 * e, 1.7, -2.6 + i * 0.8), Vector3(0.3, 0.2, 0.4), [Color(0.7, 0.2, 0.2), Color(0.2, 0.5, 0.3), Color(0.8, 0.7, 0.3)][i])
-	caixa(r, Vector3(-4.4 * e, 0.35, d * 0.5 - 1.2), Vector3(1.4, 0.7, 0.8), MADEIRA.darkened(0.1), true)
-	caixa(r, Vector3(-4.4 * e, 0.75, d * 0.5 - 1.2), Vector3(1.5, 0.1, 0.9), OURO.darkened(0.3))
-	modelo(r, BARRIL, Vector3(4.8 * e, 0, d * 0.5 - 1.1), 1.0)
-	modelo(r, BARRIL, Vector3(4.0 * e, 0, d * 0.5 - 1.2), 0.9)
 
 static func _forja(r: Node3D, w: float, d: float, alt: float) -> void:
 	# fornalha de pedra com brasa e chaminé

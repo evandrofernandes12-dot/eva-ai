@@ -17,7 +17,7 @@ const MINOTAURO := preload("res://models/Minotauro_Dark.glb")
 const BOSS := preload("res://scripts/boss.gd")
 const FENIX := preload("res://scripts/fenix.gd")
 const SAVE := "user://save_v4.json"
-const VERSAO := "v14"
+const VERSAO := "v15"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -607,12 +607,20 @@ func _contexto() -> void:
 	if _dentro == "":
 		_perto = ""
 		var best := 1e9
+		var pj := player.global_position
 		for f in _fixos:
 			if Interior.SALAS.has(f.nome):
-				var d: float = Vector2(player.global_position.x - f.pos.x, player.global_position.z - f.pos.z).length()
+				var d: float = Vector2(pj.x - f.pos.x, pj.z - f.pos.z).length()
 				if d < float(f.r) + 3.2 and d < best:
 					best = d
 					_perto = f.nome
+		for p in plots:   # prédios construídos nos lotes (Casa, Estalagem, Serraria) também têm interior
+			if p.construido and p.modelo != null and Interior.SALAS.has(String(p.name)):
+				var h: float = p.altura * (1.0 + 0.1 * (p.nivel - 1))
+				var d2: float = Vector2(pj.x - p.global_position.x, pj.z - p.global_position.z).length()
+				if d2 < h * 0.55 + 3.5 and d2 < best:
+					best = d2
+					_perto = String(p.name)
 		_ent_b.visible = _perto != "" and not _trans
 		if _perto != "":
 			_ent_b.text = "ENTRAR\n" + Interior.SALAS[_perto].nome
