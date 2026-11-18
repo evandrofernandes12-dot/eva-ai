@@ -1,4 +1,13 @@
-Modelos realistas dos pets (opcional).
-Se existir um destes arquivos, ele substitui o corpo montado por código:
-  cavalo.glb  (guerreiro)   urso.glb  (lanceiro)   lobo.glb  (arqueiro)   fenix.glb  (mago)
-Escala em metros, virado para -Z, pés em y=0. Se tiver animações, os nomes Walk/Run/Fly/Idle são usados.
+Pets do jogo (gerados no Blender por scripts/pets/fazer_pets.py, na raiz do repositório).
+
+  lobo.glb e urso.glb  <- "Fox" do KhronosGroup/glTF-Sample-Assets
+                          modelo: PixelMannen (CC0) · rig e animações: tomkranis (CC-BY 4.0) · conversão glTF: AsoboStudio e scurest (CC-BY 4.0)
+                          lobo = recolorido em cinza e alisado; urso = corpo encorpado, cauda/orelhas curtas, branco salpicado de cinza
+  cavalo.glb           <- "Horse" dos exemplos do mrdoob/three.js (modelo de mirada, projeto ro.me) · recolorido em branco
+  fenix.glb            <- "Parrot" dos exemplos do mrdoob/three.js (modelo de mirada, projeto ro.me) · cores de fogo
+
+CRÉDITOS obrigatórios (CC-BY): PixelMannen, tomkranis, AsoboStudio, scurest. Modelos do three.js: "model by mirada from ro.me"
+(a licença desses três não está explícita no repositório do three.js; confira antes de publicar o jogo comercialmente).
+
+Para trocar por outro modelo: ponha cavalo.glb / urso.glb / lobo.glb / fenix.glb aqui (metros, olhando para +Z, pés em y=0;
+animações Walk/Run/Idle são usadas se existirem).

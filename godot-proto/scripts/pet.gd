@@ -158,10 +158,21 @@ func _ready() -> void:
 	_corpo = Node3D.new()
 	add_child(_corpo)
 	var caminho := "res://models/pets/%s.glb" % tipo
-	if ResourceLoader.exists(caminho):   # modelo realista fornecido pelo usuário
+	if ResourceLoader.exists(caminho):   # modelo .glb (feito no Blender por scripts/pets/fazer_pets.py)
 		var m: Node3D = load(caminho).instantiate()
 		_corpo.add_child(m)
+		m.rotation.y = PI   # o .glb olha para +Z; os pets olham para -Z
+		Fit.to_height(m, {"cavalo": 2.0, "urso": 1.35, "lobo": 0.9}.get(tipo, 1.0))
 		_anim = Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer
+		if tipo == "cavalo":   # cores nos vértices + asas emplumadas presas nas costas
+			var meshes: Array = []
+			Fit._collect(m, meshes)
+			var mv := StandardMaterial3D.new()
+			mv.vertex_color_use_as_albedo = true
+			mv.roughness = 0.75
+			for mi: MeshInstance3D in meshes:
+				mi.material_override = mv
+			_asas_penas(Vector3(0.24, 1.42, -0.25), 1.15)
 	else:
 		match tipo:
 			"cavalo":
@@ -239,11 +250,14 @@ func _cavalo() -> void:
 	_corpo.add_child(_cauda)
 	_elip(_cauda, Vector3(0, -0.4, 0.2), Vector3(0.16, 0.9, 0.2), crina, Vector3(-15, 0, 0))
 	_elip(_cauda, Vector3(0, -0.85, 0.32), Vector3(0.12, 0.6, 0.16), crina, Vector3(-20, 0, 0))
-	# asas emplumadas: 9 penas longas + 5 curtas (cobertura) de cada lado, brancas com pontas cinza-claro
+	_asas_penas(Vector3(0.3, 1.75, -0.1), 1.0)
+
+## Asas emplumadas: 9 penas longas + 5 curtas (cobertura) de cada lado, brancas com pontas cinza-claro.
+func _asas_penas(pos: Vector3, tam: float) -> void:
 	for lado in [-1.0, 1.0]:
 		var pivo := Node3D.new()
-		pivo.position = Vector3(lado * 0.3, 1.75, -0.1)
-		pivo.scale.x = lado   # a esquerda é a direita espelhada
+		pivo.position = Vector3(lado * pos.x, pos.y, pos.z)
+		pivo.scale = Vector3(lado * tam, tam, tam)   # a esquerda é a direita espelhada
 		_corpo.add_child(pivo)
 		for i in 9:
 			var mi := MeshInstance3D.new()
@@ -350,8 +364,14 @@ func _process(delta: float) -> void:
 
 func _animar(delta: float) -> void:
 	var anda := clampf(_vel / 4.0, 0.0, 1.5)
-	if _anim != null:   # modelo fornecido pelo usuário: usa as animações dele (Walk/Idle), se existirem
-		Fit.play(_anim, Fit.find_anim(_anim, ["Walk", "Run", "Fly"] if anda > 0.2 else ["Idle", "Stand"]))
+	if _anim != null:   # modelo .glb: usa as animações dele (Walk/Run/Survey; cavalo: galope)
+		var lista: Array = ["Run", "horse"] if anda > 1.0 else (["Walk", "horse"] if anda > 0.15 else ["Survey", "Idle", "horse"])
+		var nome := Fit.find_anim(_anim, lista)
+		if nome == &"" and _anim.get_animation_list().size() > 0:
+			nome = _anim.get_animation_list()[0]
+		Fit.play(_anim, nome, true, 0.6 + anda * 0.6 if _voa else 1.0)
+		for a in _asas:
+			a[0].rotation.z = a[1] * (0.45 + sin(_t * 3.2) * 0.5)
 		return
 	_ciclo += delta * (3.0 + _vel * 1.6)
 	for p in _pernas:

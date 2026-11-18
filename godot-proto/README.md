@@ -3,7 +3,7 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v16)
+## O que tem (v17)
 - Aldeia maior e espaçada: praça no centro, Salão do Chefe ao fundo (norte), casas, forja e moinho em volta (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
@@ -15,6 +15,7 @@ Não substitui o jogo da web; é só uma amostra.
 - **Combate v11**: arqueiro dispara flechas de verdade; lanceiro dá estocadas que avançam e atravessam inimigos em linha; botões **DEFESA** (recebe 1/4 do dano, anda devagar; atacar baixa a guarda; tecla Q) e **CORRER** (1,7× mais rápido; Shift) para todas as classes.
 - **Pinça**: dois dedos na tela aproximam/afastam a câmera (bem de perto para ver o personagem); roda do mouse no computador.
 - **Interiores**: perto de Casas, Forja e Salão do Rei aparece **ENTRAR** (e **SAIR** lá dentro). No Salão fale com o **Rei** para pegar as 8 missões do reino (`REI_QUESTS` em `scripts/main.gd`; salas em `scripts/interior.gd`). Os inimigos congelam enquanto você está dentro.
+- **v17**: pets com modelos animados de verdade, feitos no Blender a partir de modelos livres do GitHub (`scripts/pets/fazer_pets.py`): lobo cinza e urso branco salpicado (a partir da raposa da Khronos, com andar/correr/parado), cavalo branco galopando com asas emplumadas, fênix batendo as asas com cauda e chamas de fogo. Créditos em `models/pets/LEIA-ME.txt`.
 - **v16**: **pets** (`scripts/pet.gd`, `scripts/fenix.gd`): guerreiro = cavalo alado branco, lanceiro = urso branco malhado de cinza, arqueiro = lobo cinza, mago = fênix de fogo. Seguem o dono e, com inimigo a 6-7 m, avançam e dão um golpe de **5 de dano** (recarga 1,6 s). Corpos montados por código (elipsoides com pelo gerado); para modelos realistas de verdade, ponha `models/pets/<cavalo|urso|lobo|fenix>.glb` (ver `LEIA-ME.txt`). Casas com layout próprio: cama, lareira, quadros, sofá e mesa com 4 cadeiras (a forja mantém fornalha e bigorna).
 - **v15**: todos os interiores (casas, estalagem, serraria, moinho, barraca) usam o layout da forja, só mudando as cores; os prédios construídos nos lotes (Casa, Estalagem, Serraria) e o Moinho e a Barraca agora também têm porta (antes só Casa1-3, Forja e Salão).
 - **v14**: **fênix de fogo** só para os magos (`scripts/fenix.gd`): paira sobre a cabeça; quando o mago ataca, ou um inimigo chega a 7 m, mergulha como flecha de fogo (dano = 4× o dano do mago + 30, em área de 2,2 m; recarga 2,2 s) e volta. Casas/forja mais claras (materiais com brilho próprio, luzes extras, sem vigas). Machado do Minotauro posto em relação aos ombros reais do modelo, para as mãos sempre alcançarem o cabo.

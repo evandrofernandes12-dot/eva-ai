@@ -18,12 +18,31 @@ var _alvo: Node3D
 var _asas: Array = []     # [pivô, lado]
 var _cauda: Node3D
 var _corpo: Node3D
+var _anim: AnimationPlayer
 
 func _ready() -> void:
 	_corpo = Node3D.new()
 	add_child(_corpo)
-	if ResourceLoader.exists("res://models/pets/fenix.glb"):
-		_corpo.add_child(load("res://models/pets/fenix.glb").instantiate())
+	if ResourceLoader.exists("res://models/pets/fenix.glb"):   # ave animada (feita no Blender) + cauda de fogo
+		var giro := Node3D.new()
+		giro.rotation.y = PI   # o .glb olha para +Z
+		_corpo.add_child(giro)
+		var m: Node3D = load("res://models/pets/fenix.glb").instantiate()
+		giro.add_child(m)
+		var bb := Fit.bounds(m)
+		var s := 2.2 / maxf(bb.size.x, bb.size.z)
+		m.scale = Vector3.ONE * s
+		m.position = -bb.get_center() * s
+		var meshes: Array = []
+		Fit._collect(m, meshes)
+		var mv := StandardMaterial3D.new()
+		mv.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED   # cores de fogo, acesas
+		mv.vertex_color_use_as_albedo = true
+		mv.cull_mode = BaseMaterial3D.CULL_DISABLED
+		for mi: MeshInstance3D in meshes:
+			mi.material_override = mv
+		_anim = Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer
+		_cauda_fogo(Vector3(0, 0, bb.size.z * s * 0.3))
 	else:
 		_montar()
 	_chamas()
@@ -112,8 +131,15 @@ func _montar() -> void:
 		for i in 6:
 			_pena(pivo, 0.8 - i * 0.05, 0.26, amarelo, laranja.darkened(0.2), Vector3(0.04, 0.07 + 0.01 * i, 0), Vector3(0, 12 - i * 13.0, 0))
 		_asas.append([pivo, lado])
+	_cauda_fogo(Vector3(0, -0.02, 0.62))
+
+## Cauda de 7 plumas longas, de ouro a rubro, em leque e caindo.
+func _cauda_fogo(pos: Vector3) -> void:
+	var amarelo := Color(1.0, 0.85, 0.25, 0.95)
+	var laranja := Color(1.0, 0.45, 0.05, 0.85)
+	var rubro := Color(0.8, 0.08, 0.02, 0.0)
 	_cauda = Node3D.new()
-	_cauda.position = Vector3(0, -0.02, 0.62)
+	_cauda.position = pos
 	_corpo.add_child(_cauda)
 	for i in 7:    # cauda de 7 plumas longas, de ouro a rubro, em leque e caindo
 		var f := absf(i - 3) / 3.0
@@ -186,6 +212,8 @@ func _process(delta: float) -> void:
 		a[0].rotation.z = a[1] * (sin(_t * 9.0) * 0.6 + 0.1 if paira else -0.2)
 	if _cauda != null:
 		_cauda.rotation.y = sin(_t * 2.0) * 0.12
+	if _anim != null and _anim.get_animation_list().size() > 0:   # bater de asas do modelo
+		Fit.play(_anim, _anim.get_animation_list()[0], true, 1.3 if paira else 0.5)
 	match estado:
 		"paira":
 			_ang += delta * 1.2
