@@ -65,3 +65,6 @@ Subir mídia numa pasta `media-<hex aleatório>` na branch de trabalho e usar as
 
 ## Tipos de slide (`kind`) e blocos
 `cover`, `text`, `quote`, `cta`. Blocos: `h1`, `h2`, `p`, `s`, `big`, `orn`, `box`. Destaque dourado: `<b class="g">`.
+
+## Limite do Zapier
+Se qualquer chamada do Zapier responder 'reached its task limit', PARAR (não insistir): registrar no histórico, manter os arquivos na branch e entregar ao usuário os caminhos completos dos arquivos para postagem manual. Cada postagem consome várias tarefas (publicar, contêiner, status, conferir).
