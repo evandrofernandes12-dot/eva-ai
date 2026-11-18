@@ -1,0 +1,4 @@
+Modelos realistas dos pets (opcional).
+Se existir um destes arquivos, ele substitui o corpo montado por código:
+  cavalo.glb  (guerreiro)   urso.glb  (lanceiro)   lobo.glb  (arqueiro)   fenix.glb  (mago)
+Escala em metros, virado para -Z, pés em y=0. Se tiver animações, os nomes Walk/Run/Fly/Idle são usados.

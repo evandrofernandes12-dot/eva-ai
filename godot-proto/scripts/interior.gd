@@ -8,14 +8,14 @@ const FOGO := preload("res://models/Bonfire_Lit.glb")
 ## nome do nó em "Aldeia": título, largura, fundo, altura (m), cor do piso, cor das paredes, cor do tapete
 const SALAS := {
 	"SalaoDoChefe": {"nome": "Salão do Rei", "w": 26.0, "d": 22.0, "alt": 8.0, "piso": Color(0.42, 0.4, 0.4), "parede": Color(0.55, 0.52, 0.5), "tapete": Color(0.6, 0.07, 0.1)},
-	"Casa1": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.45, 0.32, 0.2), "parede": Color(0.74, 0.62, 0.46), "tapete": Color(0.2, 0.2, 0.2)},
-	"Casa2": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.4, 0.34, 0.22), "parede": Color(0.55, 0.68, 0.5), "tapete": Color(0.2, 0.2, 0.2)},
-	"Casa3": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.42, 0.34, 0.26), "parede": Color(0.52, 0.6, 0.78), "tapete": Color(0.2, 0.2, 0.2)},
-	"LoteCasa": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.36, 0.22), "parede": Color(0.8, 0.7, 0.52), "tapete": Color(0.2, 0.2, 0.2)},
-	"LoteEstalagem": {"nome": "Estalagem", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.38, 0.24, 0.14), "parede": Color(0.75, 0.5, 0.38), "tapete": Color(0.2, 0.2, 0.2)},
-	"LoteSerraria": {"nome": "Serraria", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.4, 0.26), "parede": Color(0.7, 0.55, 0.35), "tapete": Color(0.2, 0.2, 0.2)},
-	"Moinho": {"nome": "Moinho", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.55, 0.5, 0.42), "parede": Color(0.9, 0.86, 0.76), "tapete": Color(0.2, 0.2, 0.2)},
-	"Barraca": {"nome": "Barraca", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.42, 0.3), "parede": Color(0.85, 0.72, 0.5), "tapete": Color(0.2, 0.2, 0.2)},
+	"Casa1": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.45, 0.32, 0.2), "parede": Color(0.74, 0.62, 0.46), "tapete": Color(0.62, 0.15, 0.12)},
+	"Casa2": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.4, 0.34, 0.22), "parede": Color(0.55, 0.68, 0.5), "tapete": Color(0.18, 0.45, 0.25)},
+	"Casa3": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.42, 0.34, 0.26), "parede": Color(0.52, 0.6, 0.78), "tapete": Color(0.18, 0.28, 0.6)},
+	"LoteCasa": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.36, 0.22), "parede": Color(0.8, 0.7, 0.52), "tapete": Color(0.55, 0.35, 0.15)},
+	"LoteEstalagem": {"nome": "Estalagem", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.38, 0.24, 0.14), "parede": Color(0.75, 0.5, 0.38), "tapete": Color(0.5, 0.12, 0.12)},
+	"LoteSerraria": {"nome": "Serraria", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.4, 0.26), "parede": Color(0.7, 0.55, 0.35), "tapete": Color(0.4, 0.3, 0.15)},
+	"Moinho": {"nome": "Moinho", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.55, 0.5, 0.42), "parede": Color(0.9, 0.86, 0.76), "tapete": Color(0.55, 0.5, 0.4)},
+	"Barraca": {"nome": "Barraca", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.42, 0.3), "parede": Color(0.85, 0.72, 0.5), "tapete": Color(0.6, 0.45, 0.25)},
 	"Forja": {"nome": "Forja", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.27, 0.26, 0.26), "parede": Color(0.4, 0.37, 0.36), "tapete": Color(0.2, 0.2, 0.2)},
 }
 const MADEIRA := Color(0.42, 0.27, 0.14)
@@ -171,9 +171,76 @@ static func construir(id: String) -> Node3D:
 	match id:
 		"SalaoDoChefe":
 			_salao(raiz, w, d, alt, tap)
+		"Forja":
+			_forja(raiz, w, d, alt)
 		_:
-			_forja(raiz, w, d, alt)     # casas e demais prédios usam o interior da forja, só mudam as cores
+			_casa(raiz, w, d, alt, tap)
 	return raiz
+
+## Casa: cama, lareira, quadros, sofá, mesa com 4 cadeiras. Faixa da porta (|x| < 2,2 e z > 2,2) livre; `tap` = cor do estofado.
+static func _cadeira(r: Node3D, x: float, z: float, olha: float) -> void:   # olha: 1 = encosto ao sul, -1 = ao norte
+	caixa(r, Vector3(x, 0.45, z), Vector3(0.5, 0.06, 0.5), MADEIRA.lightened(0.1), true)
+	for dx in [-0.21, 0.21]:
+		for dz in [-0.21, 0.21]:
+			caixa(r, Vector3(x + dx, 0.21, z + dz), Vector3(0.05, 0.42, 0.05), MADEIRA.darkened(0.2))
+	caixa(r, Vector3(x, 0.78, z + 0.23 * olha), Vector3(0.5, 0.6, 0.05), MADEIRA.lightened(0.1))
+
+static func _quadro(r: Node3D, pos: Vector3, larg: float, alt: float, giro: float, ceu: Color, terra: Color) -> void:
+	var q := Node3D.new()
+	q.position = pos
+	q.rotation.y = giro
+	r.add_child(q)
+	caixa(q, Vector3.ZERO, Vector3(larg, alt, 0.06), MADEIRA.darkened(0.3))
+	caixa(q, Vector3(0, alt * 0.12, 0.035), Vector3(larg - 0.16, alt - 0.16 - alt * 0.24, 0.02), ceu)
+	caixa(q, Vector3(0, -alt * 0.27, 0.04), Vector3(larg - 0.16, alt * 0.3, 0.02), terra)
+	caixa(q, Vector3(larg * 0.2, alt * 0.12, 0.05), Vector3(0.22, 0.22, 0.02), Color(1.0, 0.9, 0.4))
+
+static func _casa(r: Node3D, w: float, d: float, alt: float, tap: Color) -> void:
+	var zn := -d * 0.5            # parede norte (face interna em zn + 0,25)
+	cilindro(r, Vector3(0, 0, 0.3), 1.9, 0.03, tap.lightened(0.15))                              # tapete redondo
+	# cama no canto noroeste, com cabeceira baixa
+	var bx := -5.3
+	caixa(r, Vector3(bx, 0.25, -2.6), Vector3(2.1, 0.5, 3.3), MADEIRA, true)
+	caixa(r, Vector3(bx, 0.6, -2.6), Vector3(1.95, 0.22, 3.1), Color(0.93, 0.91, 0.86))
+	caixa(r, Vector3(bx, 0.78, -3.85), Vector3(1.3, 0.16, 0.5), Color(1, 1, 1))
+	caixa(r, Vector3(bx, 0.74, -2.0), Vector3(2.0, 0.08, 1.8), tap)
+	caixa(r, Vector3(bx, 0.55, zn + 0.45), Vector3(2.2, 1.1, 0.12), MADEIRA.darkened(0.15))
+	_quadro(r, Vector3(bx, 2.1, zn + 0.3), 1.8, 1.2, 0.0, Color(0.55, 0.75, 0.95), Color(0.3, 0.55, 0.25))
+	# criado-mudo com abajur
+	caixa(r, Vector3(bx + 1.5, 0.3, zn + 0.8), Vector3(0.6, 0.6, 0.6), MADEIRA, true)
+	caixa(r, Vector3(bx + 1.5, 0.75, zn + 0.8), Vector3(0.2, 0.3, 0.2), Color(1.0, 0.85, 0.5), false, true, true)
+	# lareira na parede norte, com moldura, fogo e quadro ao lado
+	var lx := 3.0
+	caixa(r, Vector3(lx, 1.1, zn + 0.7), Vector3(3.2, 2.2, 0.9), PEDRA, true)
+	caixa(r, Vector3(lx, 2.25, zn + 0.7), Vector3(3.6, 0.15, 1.1), MADEIRA.darkened(0.2))               # prateleira
+	caixa(r, Vector3(lx, 0.6, zn + 1.18), Vector3(1.5, 0.9, 0.05), Color(0.04, 0.03, 0.03))
+	modelo(r, FOGO, Vector3(lx, 0.05, zn + 1.5), 0.75)
+	luz(r, Vector3(lx, 1.2, zn + 2.2), Color(1.0, 0.55, 0.2), 1.3, 6.5)
+	_quadro(r, Vector3(-0.4, 2.0, zn + 0.3), 1.2, 0.9, 0.0, Color(0.95, 0.8, 0.55), Color(0.45, 0.3, 0.2))
+	# sofá de frente para a lareira
+	var sz := -0.6
+	caixa(r, Vector3(lx, 0.25, sz), Vector3(3.0, 0.5, 1.0), tap.darkened(0.15), true)
+	caixa(r, Vector3(lx, 0.55, sz), Vector3(2.7, 0.2, 0.85), tap)
+	caixa(r, Vector3(lx, 0.8, sz + 0.5), Vector3(3.0, 0.7, 0.22), tap.darkened(0.1), true)
+	for sx in [-1.4, 1.4]:
+		caixa(r, Vector3(lx + sx, 0.45, sz), Vector3(0.25, 0.7, 1.0), tap.darkened(0.2), true)
+	# mesa com 4 cadeiras (leste, entre o sofá e a parede da frente)
+	var mx := 4.3
+	var mz := 2.1
+	caixa(r, Vector3(mx, 0.78, mz), Vector3(1.7, 0.08, 1.0), MADEIRA, true)
+	for dx in [-0.75, 0.75]:
+		for dz in [-0.4, 0.4]:
+			caixa(r, Vector3(mx + dx, 0.37, mz + dz), Vector3(0.08, 0.74, 0.08), MADEIRA.darkened(0.2))
+	cilindro(r, Vector3(mx - 0.3, 0.82, mz), 0.18, 0.07, Color(0.85, 0.65, 0.3))
+	cilindro(r, Vector3(mx + 0.4, 0.82, mz + 0.1), 0.07, 0.13, Color(0.75, 0.75, 0.8))
+	for cx in [-0.45, 0.45]:
+		_cadeira(r, mx + cx, mz - 0.95, 1.0)
+		_cadeira(r, mx + cx, mz + 0.95, -1.0)
+	# parede oeste: quadro grande e baú; barris junto à porta
+	_quadro(r, Vector3(-w * 0.5 + 0.3, 2.0, 0.5), 1.8, 1.2, PI * 0.5, Color(0.7, 0.8, 0.95), Color(0.25, 0.45, 0.3))
+	caixa(r, Vector3(-5.0, 0.35, d * 0.5 - 1.2), Vector3(1.4, 0.7, 0.8), MADEIRA.darkened(0.1), true)
+	caixa(r, Vector3(-5.0, 0.75, d * 0.5 - 1.2), Vector3(1.5, 0.1, 0.9), OURO.darkened(0.3))
+	modelo(r, BARRIL, Vector3(5.5, 0, d * 0.5 - 1.1), 1.0)
 
 static func _forja(r: Node3D, w: float, d: float, alt: float) -> void:
 	# fornalha de pedra com brasa e chaminé

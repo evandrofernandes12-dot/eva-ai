@@ -1,10 +1,12 @@
 extends Node3D
-## Fênix de fogo do mago: paira um pouco acima da cabeça dele. Quando o mago ataca, ou um inimigo chega perto,
-## ela mergulha como uma flecha de fogo, causa dano alto em área pequena e volta. O corpo é feito por código.
+## Fênix de fogo do mago: paira acima da cabeça dele. Quando o mago ataca, ou um inimigo chega perto,
+## voa como uma flecha de fogo, dá um golpe (DANO) e volta. Corpo, penas e chamas são feitos por código.
+## Para usar um modelo realista de verdade, ponha `models/pets/fenix.glb`: ele substitui o corpo de código.
 
 const GUARDA := 7.0       # raio (m) em que ela defende o mago sozinha
-const VOO := 24.0         # velocidade do mergulho (m/s)
-const RECARGA := 2.2      # segundos entre ataques
+const VOO := 22.0         # velocidade do mergulho (m/s)
+const RECARGA := 1.6      # segundos entre golpes
+const DANO := 5           # dano por golpe
 
 var dono: Node3D          # o mago (Jogador)
 var jogo: Node            # main.gd
@@ -14,106 +16,136 @@ var _cd := 1.0
 var _ang := 0.0
 var _alvo: Node3D
 var _asas: Array = []     # [pivô, lado]
-var _rastro: CPUParticles3D
+var _cauda: Node3D
+var _corpo: Node3D
 
 func _ready() -> void:
-	_montar()
+	_corpo = Node3D.new()
+	add_child(_corpo)
+	if ResourceLoader.exists("res://models/pets/fenix.glb"):
+		_corpo.add_child(load("res://models/pets/fenix.glb").instantiate())
+	else:
+		_montar()
+	_chamas()
+	var luz := OmniLight3D.new()
+	luz.light_color = Color(1.0, 0.55, 0.15)
+	luz.light_energy = 1.5
+	luz.omni_range = 6.0
+	add_child(luz)
 
-static func _mat(cor: Color, alfa := 1.0) -> StandardMaterial3D:
+static func _fogo(vertice := true, soma := true) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = Color(cor.r, cor.g, cor.b, alfa)
-	if alfa < 1.0:
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.vertex_color_use_as_albedo = vertice
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	if soma:
+		m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	return m
 
-func _peca(pai: Node3D, malha: Mesh, cor: Color, pos: Vector3, rot := Vector3.ZERO) -> MeshInstance3D:
+func _pena(pai: Node3D, comp: float, larg: float, c0: Color, c1: Color, pos: Vector3, rot: Vector3) -> void:
 	var mi := MeshInstance3D.new()
-	mi.mesh = malha
-	mi.material_override = _mat(cor)
+	mi.mesh = Pet.pena(comp, larg, c0, c1)
+	mi.material_override = _fogo()
 	mi.position = pos
 	mi.rotation_degrees = rot
 	pai.add_child(mi)
-	return mi
 
-## Modelo virado para -Z (o bico aponta para -Z, a cauda vai para +Z). Envergadura de ~2,2 m.
+## Modelo virado para -Z (bico em -Z, cauda em +Z). Envergadura de ~2,6 m.
 func _montar() -> void:
-	var laranja := Color(1.0, 0.45, 0.05)
-	var amarelo := Color(1.0, 0.85, 0.2)
-	var vermelho := Color(0.9, 0.12, 0.04)
-	var corpo := SphereMesh.new()
-	corpo.radius = 0.5
-	corpo.height = 1.0
-	var c := _peca(self, corpo, laranja, Vector3.ZERO)
-	c.scale = Vector3(0.34, 0.3, 0.8)
-	var cab := SphereMesh.new()
-	cab.radius = 0.5
-	cab.height = 1.0
-	var h := _peca(self, cab, amarelo, Vector3(0, 0.13, -0.5))
-	h.scale = Vector3.ONE * 0.24
-	var bico := CylinderMesh.new()
-	bico.top_radius = 0.0
-	bico.bottom_radius = 0.06
-	bico.height = 0.25
-	_peca(self, bico, Color(1.0, 0.95, 0.4), Vector3(0, 0.1, -0.72), Vector3(-90, 0, 0))   # ápice (+Y) vira -Z
-	for i in 3:   # crista na cabeça
-		var cr := CylinderMesh.new()
-		cr.top_radius = 0.0
-		cr.bottom_radius = 0.035
-		cr.height = 0.26
-		_peca(self, cr, vermelho if i != 1 else amarelo, Vector3((i - 1) * 0.06, 0.3, -0.42), Vector3(70, 0, (i - 1) * 25))
-	# asas: 5 penas em leque de cada lado, de amarelo (perto do corpo) a vermelho (pontas)
-	for lado in [-1.0, 1.0]:
+	var braseiro := StandardMaterial3D.new()    # corpo: carne escura de brasa, com brilho laranja
+	braseiro.albedo_color = Color(0.45, 0.07, 0.02)
+	braseiro.emission_enabled = true
+	braseiro.emission = Color(1.0, 0.32, 0.05)
+	braseiro.emission_energy_multiplier = 1.4
+	braseiro.roughness = 0.6
+	var ouro := Pet.liso(Color(0.95, 0.7, 0.15), 0.35)
+	ouro.emission_enabled = true
+	ouro.emission = Color(0.8, 0.45, 0.05)
+	for e in [[Vector3(0, 0, 0.0), Vector3(0.3, 0.28, 0.85), Vector3.ZERO],            # tronco
+			[Vector3(0, 0.05, -0.5), Vector3(0.22, 0.22, 0.5), Vector3(25, 0, 0)],     # pescoço
+			[Vector3(0, 0.2, -0.78), Vector3(0.2, 0.19, 0.3), Vector3.ZERO],           # cabeça
+			[Vector3(0, 0.0, 0.5), Vector3(0.2, 0.17, 0.4), Vector3(-15, 0, 0)]]:      # rabadilha
+		var mi := MeshInstance3D.new()
+		var sp := SphereMesh.new()
+		sp.radius = 0.5
+		sp.height = 1.0
+		mi.mesh = sp
+		mi.material_override = braseiro
+		mi.position = e[0]
+		mi.scale = e[1]
+		mi.rotation_degrees = e[2]
+		_corpo.add_child(mi)
+	var bico := MeshInstance3D.new()    # bico curvo de ouro
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.0
+	cm.bottom_radius = 0.055
+	cm.height = 0.26
+	bico.mesh = cm
+	bico.material_override = ouro
+	bico.position = Vector3(0, 0.17, -0.98)
+	bico.rotation_degrees = Vector3(-100, 0, 0)
+	_corpo.add_child(bico)
+	for lado in [-1.0, 1.0]:   # olhos acesos
+		var olho := MeshInstance3D.new()
+		var so := SphereMesh.new()
+		so.radius = 0.03
+		so.height = 0.06
+		var mo := _fogo(false)
+		mo.albedo_color = Color(1.0, 0.95, 0.5)
+		so.material = mo
+		olho.mesh = so
+		olho.position = Vector3(lado * 0.09, 0.25, -0.86)
+		_corpo.add_child(olho)
+	var amarelo := Color(1.0, 0.85, 0.25, 0.95)
+	var laranja := Color(1.0, 0.45, 0.05, 0.85)
+	var rubro := Color(0.8, 0.08, 0.02, 0.0)
+	for i in 5:    # penacho
+		_pena(_corpo, 0.5 - absf(i - 2) * 0.07, 0.08, amarelo, rubro, Vector3(0, 0.36, -0.72), Vector3(0, -90.0 + (i - 2) * 20.0, 60))
+	for lado in [-1.0, 1.0]:   # asas: 8 primárias + 6 secundárias + cobertura, em leque
 		var pivo := Node3D.new()
-		pivo.position = Vector3(lado * 0.14, 0.08, -0.1)
-		add_child(pivo)
-		for i in 5:
-			var pena := BoxMesh.new()
-			pena.size = Vector3(0.95 - i * 0.07, 0.02, 0.2)
-			var mi := _peca(pivo, pena, amarelo.lerp(vermelho, i / 4.0), Vector3(lado * (0.47 - i * 0.02), 0, 0.05 + i * 0.17), Vector3(0, -lado * i * 9.0, 0))
-			mi.name = "pena%d" % i
+		pivo.position = Vector3(lado * 0.16, 0.1, -0.12)
+		pivo.scale.x = lado
+		_corpo.add_child(pivo)
+		for i in 8:
+			_pena(pivo, 1.5 - i * 0.07, 0.3, amarelo.lerp(laranja, i / 7.0), rubro, Vector3(0.04, 0.012 * i, 0), Vector3(0, 24 - i * 9.0, 0))
+		for i in 6:
+			_pena(pivo, 0.8 - i * 0.05, 0.26, amarelo, laranja.darkened(0.2), Vector3(0.04, 0.07 + 0.01 * i, 0), Vector3(0, 12 - i * 13.0, 0))
 		_asas.append([pivo, lado])
-	# cauda: 5 plumas longas
-	for i in 5:
-		var pl := BoxMesh.new()
-		pl.size = Vector3(0.08, 0.02, 1.5 - absf(i - 2) * 0.25)
-		var ang := (i - 2) * 9.0
-		var mi := _peca(self, pl, amarelo.lerp(vermelho, absf(i - 2) / 2.0), Vector3((i - 2) * 0.1, -0.02, 0.8 + 0.5), Vector3(0, ang, 0))
-		mi.position.z = 0.6 + (1.5 - absf(i - 2) * 0.25) * 0.5
-		mi.position.x = (i - 2) * 0.12
-	var luz := OmniLight3D.new()
-	luz.light_color = Color(1.0, 0.55, 0.15)
-	luz.light_energy = 1.6
-	luz.omni_range = 6.0
-	add_child(luz)
-	# chamas que ficam para trás
-	_rastro = CPUParticles3D.new()
-	var bola := SphereMesh.new()
-	bola.radius = 0.12
-	bola.height = 0.24
-	var pm := StandardMaterial3D.new()
-	pm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	pm.vertex_color_use_as_albedo = true
-	pm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	bola.material = pm
-	_rastro.mesh = bola
-	_rastro.amount = 36
-	_rastro.lifetime = 0.8
-	_rastro.local_coords = false
-	_rastro.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	_rastro.emission_sphere_radius = 0.25
-	_rastro.direction = Vector3(0, 1, 0)
-	_rastro.spread = 60.0
-	_rastro.gravity = Vector3(0, 1.6, 0)
-	_rastro.initial_velocity_min = 0.2
-	_rastro.initial_velocity_max = 0.7
-	_rastro.scale_amount_min = 0.6
-	_rastro.scale_amount_max = 1.2
-	var g := Gradient.new()
-	g.colors = PackedColorArray([Color(1.0, 0.9, 0.3, 0.9), Color(1.0, 0.4, 0.05, 0.7), Color(0.5, 0.05, 0.0, 0.0)])
-	g.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
-	_rastro.color_ramp = g
-	add_child(_rastro)
+	_cauda = Node3D.new()
+	_cauda.position = Vector3(0, -0.02, 0.62)
+	_corpo.add_child(_cauda)
+	for i in 7:    # cauda de 7 plumas longas, de ouro a rubro, em leque e caindo
+		var f := absf(i - 3) / 3.0
+		_pena(_cauda, 2.1 - f * 0.7, 0.2, amarelo.lerp(laranja, f), rubro, Vector3.ZERO, Vector3(0, -90.0 + (i - 3) * 8.0, -8 - f * 6))
+
+## Chamas e brasas: duas fontes de partículas aditivas (corpo e rastro).
+func _chamas() -> void:
+	for cfg in [[60, 0.9, 0.3, 1.8, 0.5, true], [30, 1.4, 0.18, 0.5, 0.25, false]]:
+		var ps := CPUParticles3D.new()
+		var bola := SphereMesh.new()
+		bola.radius = 0.1
+		bola.height = 0.2
+		bola.material = _fogo()
+		ps.mesh = bola
+		ps.amount = cfg[0]
+		ps.lifetime = cfg[1]
+		ps.local_coords = false
+		ps.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+		ps.emission_sphere_radius = cfg[2]
+		ps.direction = Vector3(0, 1, 0)
+		ps.spread = 70.0
+		ps.gravity = Vector3(0, cfg[3], 0)
+		ps.initial_velocity_min = 0.1
+		ps.initial_velocity_max = cfg[4]
+		ps.scale_amount_min = 0.5
+		ps.scale_amount_max = 1.5 if cfg[5] else 0.8
+		var g := Gradient.new()
+		g.colors = PackedColorArray([Color(1.0, 0.9, 0.35, 0.9), Color(1.0, 0.4, 0.05, 0.6), Color(0.4, 0.04, 0.0, 0.0)])
+		g.offsets = PackedFloat32Array([0.0, 0.45, 1.0])
+		ps.color_ramp = g
+		ps.position = Vector3(0, 0, 0.3) if not cfg[5] else Vector3.ZERO
+		add_child(ps)
 
 func _inimigo(raio: float) -> Node3D:
 	var melhor: Node3D = null
@@ -149,10 +181,11 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	_cd = maxf(0.0, _cd - delta)
-	var batida := 14.0 if estado == "paira" else 4.0
-	for a in _asas:   # bater de asas (no mergulho ficam quase fechadas)
-		a[0].rotation.z = a[1] * (sin(_t * batida) * 0.7 if estado == "paira" else -0.25)
-	_rastro.emitting = true
+	var paira := estado == "paira"
+	for a in _asas:   # bater de asas (no mergulho ficam recolhidas para trás)
+		a[0].rotation.z = a[1] * (sin(_t * 9.0) * 0.6 + 0.1 if paira else -0.2)
+	if _cauda != null:
+		_cauda.rotation.y = sin(_t * 2.0) * 0.12
 	match estado:
 		"paira":
 			_ang += delta * 1.2
@@ -173,7 +206,9 @@ func _process(delta: float) -> void:
 			var d := to.length()
 			_virar(to)
 			if d < 1.2:
-				_acertar(dest)
+				_cd = RECARGA
+				_alvo.hurt(DANO)
+				jogo.flash(dest, Color(1.0, 0.5, 0.1), 0.6, 0.25)
 				estado = "volta"
 			else:
 				global_position += to / d * minf(d, VOO * delta)
@@ -184,13 +219,3 @@ func _process(delta: float) -> void:
 				estado = "paira"
 			else:
 				global_position += to2.normalized() * minf(to2.length(), 18.0 * delta)
-
-## Impacto: explosão de fogo, dano alto em quem estiver perto do ponto atingido.
-func _acertar(pos: Vector3) -> void:
-	_cd = RECARGA
-	var dano: int = int(dono.damage) * 4 + 30
-	jogo.flash(pos, Color(1.0, 0.45, 0.1), 2.2, 0.5)
-	jogo.flash(pos, Color(1.0, 0.85, 0.3), 1.2, 0.3)
-	for e in jogo.enemies:
-		if is_instance_valid(e) and not e._dead and e.global_position.distance_to(pos) < 2.2:
-			e.hurt(dano)
