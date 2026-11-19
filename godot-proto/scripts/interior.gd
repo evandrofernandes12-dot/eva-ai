@@ -320,6 +320,9 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 		caixa(r, Vector3(x, ty + 0.6, zt - 0.5), Vector3(0.3, 1.2, 1.2), OURO.darkened(0.15), true)   # braços
 		caixa(r, Vector3(x, ty + 1.22, zt - 0.5), Vector3(0.38, 0.1, 1.3), OURO)
 	caixa(r, Vector3(0, ty + 0.05, zt + 0.9), Vector3(2.4, 0.1, 0.9), Color(0.6, 0.08, 0.12))        # tapete dos pés
+	# Excalibur cravada na pedra, ao pé da escada (Sketchfab, CC-BY: JuanWithOutAim)
+	if ResourceLoader.exists("res://models/Excalibur_Pedra.glb"):
+		modelo(r, load("res://models/Excalibur_Pedra.glb"), Vector3(4.5, 0, zc + 5.0), 1.7)
 	var rei := Node3D.new()
 	rei.name = "Rei"
 	rei.position = Vector3(0, ty, zt)

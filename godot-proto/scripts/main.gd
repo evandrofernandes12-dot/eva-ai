@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v22"
+const VERSAO := "v23"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -174,6 +174,7 @@ func _ready() -> void:
 		p.upgraded.connect(_on_upgraded)
 	_scatter_forest()
 	_ceu()
+	Efeitos.chao($Chao/Malha, load("res://models/grass_albedo.jpg"))
 	player.attacked.connect(_on_player_attack)
 	player.died.connect(_on_player_died)
 	$HUD/Atacar.pressed.connect(player.attack)
@@ -287,6 +288,10 @@ func _place(holder: Node3D, scene: PackedScene, h: float, tipo: String, hp: int)
 	n.position = _ring_pos()
 	n.rotation.y = _rng.randf() * TAU
 	Fit.to_height(n, h)
+	if tipo == "madeira":       # árvores balançam ao vento
+		Efeitos.vento(n, 0.18, h)
+	elif tipo == "comida":      # arbustos, de leve
+		Efeitos.vento(n, 0.06, h)
 	if tipo != "":
 		nodes.append({"node": n, "tipo": tipo, "hp": hp, "scene": scene, "h": h, "maxhp": hp, "dono": null})
 
@@ -1247,6 +1252,7 @@ func vestir(id: String, salvar := true) -> void:
 	var m := Heroi.montar(id)
 	player.trocar_modelo(m, Heroi.ANIMS[classe])
 	player.model.visible = cam_modo != 1
+	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6))   # luz de borda no herói
 	_recalc()
 	_pet_ajustar()
 	if salvar:

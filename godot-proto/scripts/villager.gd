@@ -27,6 +27,7 @@ func setup(scene: PackedScene, main: Node, oficio: String) -> void:
 func _ready() -> void:
 	Fit.to_height(model, 1.55)
 	Fit.tint(model, CORES[papel])
+	_ferramenta()
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	_idle = Fit.find_anim(_ap, ["Idle"])
 	_run = Fit.find_anim(_ap, ["Walking", "Walk", "Run"])
@@ -89,3 +90,24 @@ func _process(delta: float) -> void:
 				carga = 0
 				estado = "busca"
 				_t = 0.5
+
+## Ferramenta na mão direita (Sketchfab, CC-BY: RoboticModels): machado do lenhador, picareta do pedreiro.
+const FERRAMENTA := {"madeira": "res://models/armas/Machado_Lenhador.glb", "pedra": "res://models/armas/Picareta.glb"}
+
+func _ferramenta() -> void:
+	if not FERRAMENTA.has(papel) or not ResourceLoader.exists(FERRAMENTA[papel]):
+		return
+	var sk := Fit.find_node_of(model, "Skeleton3D") as Skeleton3D
+	if sk == null or sk.find_bone("MiddleHand.R") < 0:
+		return
+	var ba := BoneAttachment3D.new()
+	ba.bone_name = "MiddleHand.R"
+	sk.add_child(ba)
+	var piv := Node3D.new()            # o cabo atravessa o punho, com a cabeça da ferramenta para a frente
+	piv.position = Vector3(0, 0.25, 0)
+	piv.rotation_degrees = Vector3(0, 0, 90)
+	ba.add_child(piv)
+	var f: Node3D = load(FERRAMENTA[papel]).instantiate()
+	f.scale = Vector3.ONE * 2.2         # ~0,8 m no aldeão (o esqueleto do modelo é ~2,8x maior que o jogo)
+	f.position = Vector3(0, 0.77, 0)    # segura perto do fim do cabo
+	piv.add_child(f)

@@ -3,7 +3,7 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v22)
+## O que tem (v23)
 - Aldeia maior e espaçada: praça no centro, Salão do Chefe ao fundo (norte), casas, forja e moinho em volta (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
@@ -15,6 +15,7 @@ Não substitui o jogo da web; é só uma amostra.
 - **Combate v11**: arqueiro dispara flechas de verdade; lanceiro dá estocadas que avançam e atravessam inimigos em linha; botões **DEFESA** (recebe 1/4 do dano, anda devagar; atacar baixa a guarda; tecla Q) e **CORRER** (1,7× mais rápido; Shift) para todas as classes.
 - **Pinça**: dois dedos na tela aproximam/afastam a câmera (bem de perto para ver o personagem); roda do mouse no computador.
 - **Interiores**: perto de Casas, Forja e Salão do Rei aparece **ENTRAR** (e **SAIR** lá dentro). No Salão fale com o **Rei** para pegar as 8 missões do reino (`REI_QUESTS` em `scripts/main.gd`; salas em `scripts/interior.gd`). Os inimigos congelam enquanto você está dentro.
+- **v23**: armas novas do Sketchfab (CC-BY): espada rúnica (G1), Excalibur (G3), espada maldita nos espadões (G2/G4), cetro mágico (M1/M2) e cajado de cristal (M3/M4); machado na mão do lenhador e picareta na do pedreiro; Excalibur na pedra no Salão do Rei. **Shaders** leves (`shaders/`, `scripts/efeitos.gd`): vento nas árvores e arbustos, luz de borda no herói (dourada) e no Minotauro (vermelha), grama do chão sem repetição.
 - **v22**: modelos do Sketchfab (CC-BY, créditos em `models/CREDITOS.txt`): arqueiro com arco realista no lugar da besta; flecha realista; barril realista (aldeia e casas); céu com foto 360° de floresta e lago.
 - **v21**: corrigido o "bloco" escuro dentro das casas (o barril e a fogueira eram medidos fora da cena e saíam gigantes); lobo sem o bug de deitar/torcer (as animações quebravam ao reexportar pelo Blender: agora só a cor é trocada direto no .glb, `scripts/pets/lobo_glb.py`) e maior (1,6 m).
 - **v20**: urso sem "andar sozinho" nas animações (root motion removido no Blender), troca entre parado/andar/trote/corrida conforme a velocidade e, ao atacar, para, levanta nas patas de trás e dá a patada (dano no meio do golpe); lobo maior (1,3 m); fênix menor (2,4 m com a cauda).

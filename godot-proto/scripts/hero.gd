@@ -10,24 +10,30 @@ const ESPADAO := ["Sword_Big.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.4, 0.5]
 const LANCA := ["Spear.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 2.3, 0.5, "lanca"]
 const BESTA := ["Besta.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 0.75, 0.0]
 # arco (Sketchfab, CC-BY: Francisco Fischer Pioner): em pé na mão direita, corda virada para o arqueiro
+# armas do Sketchfab (CC-BY): espada rúnica (Thomas Garzon), Excalibur (JuanWithOutAim), espada maldita (suddel)
+const ESPADA_RUNICA := ["Espada_Runica.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.0, 0.42]
+const EXCALIBUR := ["Excalibur.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.05, 0.44]
+const ESPADA_MALDITA := ["Espada_Maldita.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.45, 0.6]
 const ARCO := ["Arco.glb", "hand_r", MAO_D, Vector3(180, 0, -90), 1.3, 0.0]
 const ALJAVA := ["Aljava.glb", "spine_03", Vector3(0.12, 0, -0.15), Vector3(0, 0, 0), 0.8, 0.0]
 # o escudo gótico tem a ponta em -Y no modelo; o eixo Y do osso aponta para a mão, então gira 180° (Z) para a ponta ficar para baixo
 const ESC_GOTICO := ["Shield_Heater.glb", "lowerarm_l", Vector3(-0.12, 0.13, 0), Vector3(0, -90, 180), 0.75, 0.0, "escudo"]
 const ESC_REDONDO := ["Shield_Round.glb", "lowerarm_l", Vector3(-0.12, 0.13, 0), Vector3(0, -90, 0), 0.7, 0.0, "escudo"]
 static func ORBE(cor: String) -> Array: return ["Orbe_%s.glb" % cor, "hand_l", Vector3(0.1, 0.08, 0.12), Vector3.ZERO, 0.0, 0.0, "orbe"]
+## cajados do Sketchfab (CC-BY): cetro mágico (wellintonfarias) e cajado de cristal (gabriel machiniski)
+static func CAJADO_N(arq: String) -> Array: return [arq, "hand_r", MAO_D, Vector3(90, 0, 0), 1.9, 0.25, "cajado"]
 static func CAJADO(cor: String) -> Array: return ["Cajado_%s.glb" % cor, "hand_r", MAO_D, Vector3(90, 0, 0), 1.9, 0.25]
 
 static func lista() -> Dictionary:
 	return {
-		"G1": {"classe": "guerreiro", "sexo": "m", "nome": "Armadura e elmo, espada e escudo", "armas": [ESPADA, ESC_GOTICO]},
-		"G2": {"classe": "guerreiro", "sexo": "m", "nome": "Armadura sem elmo, espadão", "armas": [ESPADAO]},
-		"G3": {"classe": "guerreiro", "sexo": "f", "nome": "Armadura de bronze, espada e escudo", "armas": [ESPADA, ESC_REDONDO]},
-		"G4": {"classe": "guerreiro", "sexo": "f", "nome": "Armadura sem elmo, espadão", "armas": [ESPADAO]},
-		"M1": {"classe": "mago", "sexo": "m", "nome": "Robe azul com capuz", "armas": [CAJADO("Azul"), ORBE("Azul")]},
-		"M2": {"classe": "mago", "sexo": "m", "nome": "Robe roxo, capuz e ombreiras", "armas": [CAJADO("Roxo"), ORBE("Roxo")]},
-		"M3": {"classe": "mago", "sexo": "f", "nome": "Robe vermelho, sem capuz", "armas": [CAJADO("Rubi"), ORBE("Rubi")]},
-		"M4": {"classe": "mago", "sexo": "f", "nome": "Robe verde, capuz e ombreiras", "armas": [CAJADO("Azul"), ORBE("Verde")]},
+		"G1": {"classe": "guerreiro", "sexo": "m", "nome": "Armadura e elmo, espada e escudo", "armas": [ESPADA_RUNICA, ESC_GOTICO]},
+		"G2": {"classe": "guerreiro", "sexo": "m", "nome": "Armadura sem elmo, espadão", "armas": [ESPADA_MALDITA]},
+		"G3": {"classe": "guerreiro", "sexo": "f", "nome": "Armadura de bronze, espada e escudo", "armas": [EXCALIBUR, ESC_REDONDO]},
+		"G4": {"classe": "guerreiro", "sexo": "f", "nome": "Armadura sem elmo, espadão", "armas": [ESPADA_MALDITA]},
+		"M1": {"classe": "mago", "sexo": "m", "nome": "Robe azul com capuz", "armas": [CAJADO_N("Cetro_Magico.glb"), ORBE("Azul")]},
+		"M2": {"classe": "mago", "sexo": "m", "nome": "Robe roxo, capuz e ombreiras", "armas": [CAJADO_N("Cetro_Magico.glb"), ORBE("Roxo")]},
+		"M3": {"classe": "mago", "sexo": "f", "nome": "Robe vermelho, sem capuz", "armas": [CAJADO_N("Cajado_Cristal.glb"), ORBE("Rubi")]},
+		"M4": {"classe": "mago", "sexo": "f", "nome": "Robe verde, capuz e ombreiras", "armas": [CAJADO_N("Cajado_Cristal.glb"), ORBE("Verde")]},
 		"A1": {"classe": "arqueiro", "sexo": "m", "nome": "Toda de verde, com capuz e capa", "armas": [ARCO, ALJAVA]},
 		"A2": {"classe": "arqueiro", "sexo": "m", "nome": "Couro marrom, sem capuz", "armas": [ARCO, ALJAVA]},
 		"A4": {"classe": "arqueiro", "sexo": "f", "nome": "Toda de verde, com capuz e capa", "armas": [ARCO, ALJAVA]},
@@ -97,6 +103,9 @@ static func montar(id: String, armado := true) -> Node3D:
 			_prender(sk, a)
 	return m
 
+static func tipo_da(x: Array) -> String:
+	return String(x[6]) if x.size() > 6 else ""
+
 static func _prender(sk: Skeleton3D, x: Array) -> void:
 	var w: Node3D = load("res://models/armas/" + x[0]).instantiate()
 	var ba := BoneAttachment3D.new()
@@ -112,7 +121,7 @@ static func _prender(sk: Skeleton3D, x: Array) -> void:
 		w.position = -(bb.get_center() * s) + Vector3(0, x[5], 0)
 	piv.position = x[2]
 	piv.rotation_degrees = x[3]
-	if String(x[0]).begins_with("Cajado"):   # ponta do cajado (cristal em +Y): de onde sai a magia
+	if String(x[0]).begins_with("Cajado") or tipo_da(x) == "cajado":   # ponta do cajado (cristal em +Y): de onde sai a magia
 		var mk := Marker3D.new()
 		mk.name = "Ponta"
 		piv.add_child(mk)
