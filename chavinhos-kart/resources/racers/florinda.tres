@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RacerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/kart/RacerStats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+id = "florinda"
+display_name = "Dona Florinda"
+description = "Xícara turbo. Cuidado com o chinelo!"
+kart_style = "teacup"
+max_speed = 27.5
+acceleration = 18.0
+handling = 2.4
+drift_boost = 1.0
+weight = 0.8
+body_color = Color(0.6, 0.75, 0.95, 1)
+accent_color = Color(0.85, 0.35, 0.5, 1)
+ai_skill = 0.86

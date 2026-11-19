@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RacerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/kart/RacerStats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+id = "madruga"
+display_name = "Seu Madruga"
+description = "Triciclo motorizado e muito azar."
+kart_style = "crate"
+max_speed = 29.0
+acceleration = 16.0
+handling = 2.2
+drift_boost = 1.0
+weight = 0.9
+body_color = Color(0.4, 0.6, 0.7, 1)
+accent_color = Color(0.55, 0.4, 0.22, 1)
+ai_skill = 0.9

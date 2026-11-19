@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RacerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/kart/RacerStats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+id = "nhonho"
+display_name = "Nhonho"
+description = "Pesadão: ninguém empurra o Nhonho."
+kart_style = "armored"
+max_speed = 27.0
+acceleration = 13.0
+handling = 1.9
+drift_boost = 0.8
+weight = 1.5
+body_color = Color(0.5, 0.52, 0.56, 1)
+accent_color = Color(0.2, 0.5, 0.2, 1)
+ai_skill = 0.84

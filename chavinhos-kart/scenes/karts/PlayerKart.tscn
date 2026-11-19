@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/karts/BaseKart.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/kart/FollowCamera.gd" id="2_cam"]
+
+[node name="PlayerKart" instance=ExtResource("1_base")]
+is_player = true
+
+[node name="Camera3D" type="Camera3D" parent="." index="2"]
+top_level = true
+current = true
+fov = 70.0
+far = 600.0
+script = ExtResource("2_cam")

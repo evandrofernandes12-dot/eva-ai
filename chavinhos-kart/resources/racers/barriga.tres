@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RacerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/kart/RacerStats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+id = "barriga"
+display_name = "Seu Barriga"
+description = "Blindado e cobrando 14 meses de aluguel."
+kart_style = "armored"
+max_speed = 27.0
+acceleration = 12.5
+handling = 1.8
+drift_boost = 0.8
+weight = 1.6
+body_color = Color(0.2, 0.35, 0.2, 1)
+accent_color = Color(0.7, 0.55, 0.15, 1)
+ai_skill = 0.86

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RacerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/kart/RacerStats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+id = "popis"
+display_name = "Popis"
+description = "Drift fofo e muito boost."
+kart_style = "pinkcar"
+max_speed = 28.0
+acceleration = 17.0
+handling = 2.4
+drift_boost = 1.2
+weight = 0.7
+body_color = Color(1.0, 0.55, 0.75, 1)
+accent_color = Color(0.7, 0.5, 0.9, 1)
+ai_skill = 0.88

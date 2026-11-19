@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RacerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/kart/RacerStats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+id = "chiquinha"
+display_name = "Chiquinha"
+description = "Ágil nas curvas e muito teimosa."
+kart_style = "plank"
+max_speed = 28.0
+acceleration = 18.0
+handling = 2.5
+drift_boost = 1.1
+weight = 0.7
+body_color = Color(0.55, 0.38, 0.2, 1)
+accent_color = Color(0.85, 0.15, 0.15, 1)
+ai_skill = 0.92

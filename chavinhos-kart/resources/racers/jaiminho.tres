@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RacerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/kart/RacerStats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+id = "jaiminho"
+display_name = "Jaiminho"
+description = "O carteiro mais rápido em linha reta."
+kart_style = "mail"
+max_speed = 30.5
+acceleration = 14.0
+handling = 2.0
+drift_boost = 0.9
+weight = 0.9
+body_color = Color(0.3, 0.38, 0.55, 1)
+accent_color = Color(0.6, 0.4, 0.2, 1)
+ai_skill = 0.93

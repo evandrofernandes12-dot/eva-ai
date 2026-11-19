@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RacerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/kart/RacerStats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+id = "quico"
+display_name = "Quico"
+description = "Triciclo veloz, mas gosta de dar show."
+kart_style = "trike"
+max_speed = 30.0
+acceleration = 15.0
+handling = 2.1
+drift_boost = 0.9
+weight = 1.0
+body_color = Color(0.75, 0.08, 0.1, 1)
+accent_color = Color(0.95, 0.8, 0.1, 1)
+ai_skill = 0.88
