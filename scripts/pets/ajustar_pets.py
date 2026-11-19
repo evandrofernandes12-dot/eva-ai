@@ -155,8 +155,7 @@ def cinza(px, L):   # lobo cinza: clareia e tira a cor, mantendo os pelos; barri
     px[..., 0] = g; px[..., 1] = g; px[..., 2] = g * 1.04
     return px
 recolorir(cinza, 0.5)
-if cab and tras:
-    virar_para_frente(arm, cab, tras)
+# NÃO girar o lobo aqui: as animações dele quebram (o corpo torce). A frente dele fica em -X; o jogo gira o modelo.
 exportar("lobo.glb")
 
 # ---------- fênix: cria a animação de voo ----------

@@ -29,6 +29,8 @@ var _golpe := 0.0          # tempo restante da animação de ataque
 var _ataque: StringName = &""   # animação de ataque do modelo (urso: levanta nas patas de trás e dá a patada)
 ## Andar do modelo .glb: [animação, velocidade natural em m/s]. A velocidade da animação acompanha a do pet.
 const PASSOS := {"urso": [["Walk", 1.1], ["Trot", 4.5], ["Run", 8.0]]}
+## Giro do .glb para o pet olhar para -Z (a maioria olha para +Z; o lobo original olha para -X).
+const GIRO := {"lobo": -PI / 2.0}
 const ATAQUE_DURA := 1.7     # duração da patada do urso (s)
 const ATAQUE_ACERTA := 0.55  # quando a patada acerta, contado do começo (s)
 
@@ -167,8 +169,8 @@ func _ready() -> void:
 	if ResourceLoader.exists(caminho):   # modelo .glb (feito no Blender por scripts/pets/fazer_pets.py)
 		var m: Node3D = load(caminho).instantiate()
 		_corpo.add_child(m)
-		m.rotation.y = PI   # o .glb olha para +Z; os pets olham para -Z
-		Fit.to_height(m, {"cavalo": 2.0, "urso": 1.45, "lobo": 1.3}.get(tipo, 1.0))
+		m.rotation.y = GIRO.get(tipo, PI)   # os pets olham para -Z
+		Fit.to_height(m, {"cavalo": 2.0, "urso": 1.45, "lobo": 1.6}.get(tipo, 1.0))
 		_anim = Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer
 		_ataque = Fit.find_anim(_anim, ["Attack_StandAngry_01_High", "Attack"])
 		if tipo == "cavalo":   # cores nos vértices + asas emplumadas presas nas costas

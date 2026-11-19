@@ -78,10 +78,14 @@ static func coluna(pai: Node3D, pos: Vector3, raio: float, alt: float, cor: Colo
 	pai.add_child(sb)
 
 static func modelo(pai: Node3D, cena: PackedScene, pos: Vector3, alt: float, giro := 0.0) -> Node3D:
+	# A sala ainda não está na árvore de cena: Fit.to_height mediria errado (sem global_transform) e o barril
+	# e a fogueira saíam gigantes, atravessando a casa. Heroi._caixa mede o modelo fora da árvore.
 	var n: Node3D = cena.instantiate()
 	pai.add_child(n)
-	Fit.to_height(n, alt)
-	n.position += pos
+	var bb := Heroi._caixa(n)
+	var s := alt / maxf(bb.size.y, 0.0001)
+	n.scale = Vector3.ONE * s
+	n.position = pos - Vector3(0, bb.position.y * s, 0)
 	n.rotation.y = giro
 	return n
 
