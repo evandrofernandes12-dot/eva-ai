@@ -103,11 +103,14 @@ func _ferramenta() -> void:
 	var ba := BoneAttachment3D.new()
 	ba.bone_name = "MiddleHand.R"
 	sk.add_child(ba)
+	# o esqueleto do modelo tem outra escala: mede a escala real para a ferramenta ter ~0,8 m no mundo
+	var osso := sk.find_bone("MiddleHand.R")
+	var s: float = maxf((sk.global_transform * sk.get_bone_global_pose(osso)).basis.get_scale().x, 0.0001)
 	var piv := Node3D.new()            # o cabo atravessa o punho, com a cabeça da ferramenta para a frente
-	piv.position = Vector3(0, 0.25, 0)
+	piv.position = Vector3(0, 0.08 / s, 0)
 	piv.rotation_degrees = Vector3(0, 0, 90)
 	ba.add_child(piv)
 	var f: Node3D = load(FERRAMENTA[papel]).instantiate()
-	f.scale = Vector3.ONE * 2.2         # ~0,8 m no aldeão (o esqueleto do modelo é ~2,8x maior que o jogo)
-	f.position = Vector3(0, 0.77, 0)    # segura perto do fim do cabo
+	f.scale = Vector3.ONE * (0.8 / s)
+	f.position = Vector3(0, 0.28 / s, 0)    # segura perto do fim do cabo
 	piv.add_child(f)

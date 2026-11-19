@@ -120,7 +120,7 @@ func _montar() -> void:
 		_mod = DUAS_MAOS.new()
 		sk.add_child(_mod)
 	Fit.play(_ap, &"AxeIdle")
-	Efeitos.realce(model, Color(1.0, 0.25, 0.1), 0.6)   # luz de borda vermelha no chefe
+	Efeitos.realce(model, Color(1.0, 0.25, 0.1), 0.3)   # luz de borda vermelha no chefe
 
 ## Converte uma posição dada no espaço do modelo (pose de descanso) para o espaço local do osso.
 func _no_osso(sk: Skeleton3D, osso: String, no_modelo: Transform3D) -> Transform3D:

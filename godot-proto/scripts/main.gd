@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v23"
+const VERSAO := "v24"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -225,8 +225,8 @@ func _ceu() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(1, 1, 1)
-	env.ambient_light_energy = 0.9
+	env.ambient_light_color = Color(0.58, 0.62, 0.7)   # luz ambiente suave (branca demais deixava todos lavados)
+	env.ambient_light_energy = 0.7
 
 func say(t: String, secs := 4.0) -> void:
 	msg.text = t
@@ -1252,7 +1252,7 @@ func vestir(id: String, salvar := true) -> void:
 	var m := Heroi.montar(id)
 	player.trocar_modelo(m, Heroi.ANIMS[classe])
 	player.model.visible = cam_modo != 1
-	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6))   # luz de borda no herói
+	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6), 0.18)   # luz de borda no herói
 	_recalc()
 	_pet_ajustar()
 	if salvar:

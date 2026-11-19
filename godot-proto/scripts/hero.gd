@@ -9,12 +9,13 @@ const ESPADA := ["Sword.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.0, 0.35]
 const ESPADAO := ["Sword_Big.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.4, 0.5]
 const LANCA := ["Spear.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 2.3, 0.5, "lanca"]
 const BESTA := ["Besta.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 0.75, 0.0]
-# arco (Sketchfab, CC-BY: Francisco Fischer Pioner): em pé na mão direita, corda virada para o arqueiro
 # armas do Sketchfab (CC-BY): espada rúnica (Thomas Garzon), Excalibur (JuanWithOutAim), espada maldita (suddel)
-const ESPADA_RUNICA := ["Espada_Runica.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.0, 0.42]
-const EXCALIBUR := ["Excalibur.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.05, 0.44]
-const ESPADA_MALDITA := ["Espada_Maldita.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.45, 0.6]
-const ARCO := ["Arco.glb", "hand_r", MAO_D, Vector3(180, 0, -90), 1.3, 0.0]
+const ESPADA_RUNICA := ["Espada_Runica.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.3, 0.55]
+const EXCALIBUR := ["Excalibur.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.3, 0.55]
+const ESPADA_MALDITA := ["Espada_Maldita.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.1, 0.46]
+# arco (Sketchfab, CC-BY: Francisco Fischer Pioner): em pé na mão (comprimento no eixo Z do osso, que fica
+# vertical com o braço esticado na mira), corda virada para o arqueiro
+const ARCO := ["Arco.glb", "hand_r", MAO_D, Vector3(0, 90, 90), 1.3, 0.0]
 const ALJAVA := ["Aljava.glb", "spine_03", Vector3(0.12, 0, -0.15), Vector3(0, 0, 0), 0.8, 0.0]
 # o escudo gótico tem a ponta em -Y no modelo; o eixo Y do osso aponta para a mão, então gira 180° (Z) para a ponta ficar para baixo
 const ESC_GOTICO := ["Shield_Heater.glb", "lowerarm_l", Vector3(-0.12, 0.13, 0), Vector3(0, -90, 180), 0.75, 0.0, "escudo"]
