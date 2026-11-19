@@ -26,6 +26,11 @@ var _cauda: Node3D
 var _anim: AnimationPlayer
 var _velocidade := 6.5
 var _golpe := 0.0          # tempo restante da animação de ataque
+var _ataque: StringName = &""   # animação de ataque do modelo (urso: levanta nas patas de trás e dá a patada)
+## Andar do modelo .glb: [animação, velocidade natural em m/s]. A velocidade da animação acompanha a do pet.
+const PASSOS := {"urso": [["Walk", 1.1], ["Trot", 4.5], ["Run", 8.0]]}
+const ATAQUE_DURA := 1.7     # duração da patada do urso (s)
+const ATAQUE_ACERTA := 0.55  # quando a patada acerta, contado do começo (s)
 
 static var _tex := {}
 
@@ -163,8 +168,9 @@ func _ready() -> void:
 		var m: Node3D = load(caminho).instantiate()
 		_corpo.add_child(m)
 		m.rotation.y = PI   # o .glb olha para +Z; os pets olham para -Z
-		Fit.to_height(m, {"cavalo": 2.0, "urso": 1.45, "lobo": 0.95}.get(tipo, 1.0))
+		Fit.to_height(m, {"cavalo": 2.0, "urso": 1.45, "lobo": 1.3}.get(tipo, 1.0))
 		_anim = Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer
+		_ataque = Fit.find_anim(_anim, ["Attack_StandAngry_01_High", "Attack"])
 		if tipo == "cavalo":   # cores nos vértices + asas emplumadas presas nas costas
 			var meshes: Array = []
 			Fit._collect(m, meshes)
@@ -346,14 +352,28 @@ func _process(delta: float) -> void:
 				var to2 := dest - global_position
 				var d2 := to2.length()
 				_virar(to2, delta)
-				if d2 < 1.9:
+				if _ataque != &"" and d2 < 2.8:   # para, levanta e dá a patada (o dano sai no meio do golpe)
+					estado = "golpeia"
+					_golpe = ATAQUE_DURA
+				elif d2 < 1.9:
 					_alvo.hurt(DANO)
-					_golpe = 0.7
 					jogo.flash(_alvo.global_position + Vector3(0, 0.9, 0), Color(1.0, 0.9, 0.7), 0.5, 0.2)
 					_cd = RECARGA
 					estado = "volta"
 				else:
 					global_position += to2 / d2 * minf(d2, 13.0 * delta)
+		"golpeia":
+			if is_instance_valid(_alvo):
+				_virar(_alvo.global_position - global_position, delta)
+			var antes_g := _golpe
+			_golpe -= delta
+			if antes_g > ATAQUE_DURA - ATAQUE_ACERTA and _golpe <= ATAQUE_DURA - ATAQUE_ACERTA and is_instance_valid(_alvo) and not _alvo._dead:
+				if _alvo.global_position.distance_to(global_position) < 3.4:
+					_alvo.hurt(DANO)
+					jogo.flash(_alvo.global_position + Vector3(0, 0.9, 0), Color(1.0, 0.9, 0.7), 0.5, 0.2)
+			if _golpe <= 0.0:
+				_cd = RECARGA
+				estado = "volta"
 		"volta":
 			var to3 := _posto() - global_position
 			_virar(to3, delta)
@@ -367,9 +387,18 @@ func _process(delta: float) -> void:
 func _animar(delta: float) -> void:
 	var anda := clampf(_vel / 4.0, 0.0, 1.5)
 	if _anim != null:   # modelo .glb: usa as animações dele (Walk/Run/Survey; cavalo: galope)
-		_golpe -= delta
-		if _golpe > 0.0 and Fit.find_anim(_anim, ["Attack"]) != &"":   # bote/patada ao acertar
-			Fit.play(_anim, Fit.find_anim(_anim, ["Attack"]), false, 1.3)
+		if estado == "golpeia" and _ataque != &"":   # levanta e dá a patada
+			Fit.play(_anim, _ataque, false, _anim.get_animation(_ataque).length / ATAQUE_DURA)
+			return
+		if PASSOS.has(tipo):   # urso: parado / andar / trote / corrida, no ritmo do deslocamento
+			if _vel < 0.3:
+				Fit.play(_anim, Fit.find_anim(_anim, ["Stand_Idle", "Idle"]))
+			else:
+				var passo: Array = PASSOS[tipo][0]
+				for pp in PASSOS[tipo]:
+					if _vel > pp[1] * 0.6:
+						passo = pp
+				Fit.play(_anim, Fit.find_anim(_anim, [passo[0]]), true, clampf(_vel / passo[1], 0.6, 1.6))
 			return
 		var lista: Array = ["Run", "horse"] if anda > 1.0 else (["Walk", "horse"] if anda > 0.15 else ["Survey", "Idle", "horse"])
 		var nome := Fit.find_anim(_anim, lista)

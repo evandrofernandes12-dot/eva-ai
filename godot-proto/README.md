@@ -3,7 +3,7 @@
 Teste pequeno para sentir como seria o jogo no Godot 4 (feito no 4.3, renderizador Compatibilidade).
 Não substitui o jogo da web; é só uma amostra.
 
-## O que tem (v19)
+## O que tem (v20)
 - Aldeia maior e espaçada: praça no centro, Salão do Chefe ao fundo (norte), casas, forja e moinho em volta (nó **Aldeia** da cena `main.tscn`).
 - Cavaleiro animado: direcional na tela ou WASD; botão ATACAR ou Espaço.
 - Coleta: árvores dão madeira, rochas dão pedra, arbustos dão comida. Os recursos renascem depois de 45 s.
@@ -15,6 +15,7 @@ Não substitui o jogo da web; é só uma amostra.
 - **Combate v11**: arqueiro dispara flechas de verdade; lanceiro dá estocadas que avançam e atravessam inimigos em linha; botões **DEFESA** (recebe 1/4 do dano, anda devagar; atacar baixa a guarda; tecla Q) e **CORRER** (1,7× mais rápido; Shift) para todas as classes.
 - **Pinça**: dois dedos na tela aproximam/afastam a câmera (bem de perto para ver o personagem); roda do mouse no computador.
 - **Interiores**: perto de Casas, Forja e Salão do Rei aparece **ENTRAR** (e **SAIR** lá dentro). No Salão fale com o **Rei** para pegar as 8 missões do reino (`REI_QUESTS` em `scripts/main.gd`; salas em `scripts/interior.gd`). Os inimigos congelam enquanto você está dentro.
+- **v20**: urso sem "andar sozinho" nas animações (root motion removido no Blender), troca entre parado/andar/trote/corrida conforme a velocidade e, ao atacar, para, levanta nas patas de trás e dá a patada (dano no meio do golpe); lobo maior (1,3 m); fênix menor (2,4 m com a cauda).
 - **v19**: lobo, urso e fênix com os modelos realistas do Sketchfab enviados pelo usuário, ajustados no Blender (`scripts/pets/ajustar_pets.py`): urso branco salpicado (andar, trote, corrida, ataque), lobo cinza (andar, correr, parado), fênix em cores de fogo com animação de voo criada no Blender. Créditos e licenças em `models/pets/LEIA-ME.txt` (o lobo é não comercial).
 - **v18**: interior das casas sem nenhuma peça de madeira escura atravessada (verga, batentes, molduras das janelas, prateleira da lareira) e com teto claro e liso; exterior das casas e Salão do Rei sem mudança.
 - **v17**: pets com modelos animados de verdade, feitos no Blender a partir de modelos livres do GitHub (`scripts/pets/fazer_pets.py`): lobo cinza e urso branco salpicado (a partir da raposa da Khronos, com andar/correr/parado), cavalo branco galopando com asas emplumadas, fênix batendo as asas com cauda e chamas de fogo. Créditos em `models/pets/LEIA-ME.txt`.

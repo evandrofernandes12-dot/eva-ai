@@ -95,10 +95,31 @@ def exportar(nome):
 # ---------- urso: branco com manchas cinza-claro e salpicos cinza-escuro ----------
 arm = abrir("urso")
 virar_para_frente(arm, osso_com(arm, "head") or osso_com(arm, "neck"), osso_com(arm, "pelvis") or osso_com(arm, "hip") or osso_com(arm, "tail"))
-manter = {"Stand_Idle_01", "Stand_Breathing_01", "Walk", "Trot", "Run", "Attack_Run_01_AttackF", "Attack_StandAngry_01_High"}
+manter = {"Stand_Idle_01", "Walk", "Trot", "Run", "Attack_StandAngry_01_High"}   # parado, andar, trote, correr, levantar e dar patada
 for a in list(bpy.data.actions):
-    if not any(a.name.startswith(m) for m in manter):
+    if a.name not in manter:
         bpy.data.actions.remove(a)
+def fcurves(acao):
+    for layer in acao.layers:
+        for strip in layer.strips:
+            for cb in strip.channelbags:
+                yield from cb.fcurves
+
+# As animações de locomoção do urso andam para a frente sozinhas (root motion): no jogo ele ia correr e voltar
+# de repente a cada ciclo. Tira a deriva das curvas de posição (mantém o balanço) — quem anda é o código do pet.
+for acao in bpy.data.actions:
+    for fc in fcurves(acao):
+        if not fc.data_path.endswith("location") or len(fc.keyframe_points) < 2:
+            continue
+        kp = fc.keyframe_points
+        t0, t1 = kp[0].co.x, kp[-1].co.x
+        v0, v1 = kp[0].co.y, kp[-1].co.y
+        faixa = max(k.co.y for k in kp) - min(k.co.y for k in kp)
+        if faixa > 1e-4 and abs(v1 - v0) > 0.5 * faixa and t1 > t0:
+            for k in kp:
+                dv = (v1 - v0) * (k.co.x - t0) / (t1 - t0)
+                k.co.y -= dv; k.handle_left.y -= dv; k.handle_right.y -= dv
+            print("sem deriva:", acao.name, fc.data_path, fc.array_index, round(v1 - v0, 2))
 feitas = set()
 for o in bpy.context.scene.objects:
     if o.type != 'MESH' or max(o.dimensions) < 0.3:   # olhos/dentes ficam como estão

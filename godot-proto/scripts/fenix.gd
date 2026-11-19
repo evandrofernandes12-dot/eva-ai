@@ -30,7 +30,7 @@ func _ready() -> void:
 		var m: Node3D = load("res://models/pets/fenix.glb").instantiate()
 		giro.add_child(m)
 		var bb := Fit.bounds(m)
-		var s := 3.4 / maxf(bb.size.x, bb.size.z)   # inclui a cauda longa
+		var s := 2.4 / maxf(bb.size.x, bb.size.z)   # inclui a cauda longa
 		m.scale = Vector3.ONE * s
 		m.position = -bb.get_center() * s
 		var meshes: Array = []
