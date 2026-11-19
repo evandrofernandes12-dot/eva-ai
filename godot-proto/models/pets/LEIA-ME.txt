@@ -1,13 +1,18 @@
-Pets do jogo (gerados no Blender por scripts/pets/fazer_pets.py, na raiz do repositório).
+Pets do jogo (ajustados no Blender pelos scripts em scripts/pets/ na raiz do repositório).
 
-  lobo.glb e urso.glb  <- "Fox" do KhronosGroup/glTF-Sample-Assets
-                          modelo: PixelMannen (CC0) · rig e animações: tomkranis (CC-BY 4.0) · conversão glTF: AsoboStudio e scurest (CC-BY 4.0)
-                          lobo = recolorido em cinza e alisado; urso = corpo encorpado, cauda/orelhas curtas, branco salpicado de cinza
-  cavalo.glb           <- "Horse" dos exemplos do mrdoob/three.js (modelo de mirada, projeto ro.me) · recolorido em branco
-  fenix.glb            <- "Parrot" dos exemplos do mrdoob/three.js (modelo de mirada, projeto ro.me) · cores de fogo
+  urso.glb   <- "Realistic Animated Bear 3D Model" · WildMesh 3D · CC-BY 4.0
+                https://sketchfab.com/3d-models/realistic-animated-bear-3d-model-bffc3c87d2d148ff8533e1cc8a11c9f1
+                (pelo recolorido em branco com manchas cinza; só as animações usadas) — ajustar_pets.py
+  lobo.glb   <- "Wolf with Animations" · 3DHaupt · CC-BY-NC-SA 4.0 (NÃO COMERCIAL e compartilha-igual)
+                https://sketchfab.com/3d-models/wolf-with-animations-f3769a474a714ebbbaca0d97f9b0a5a0
+                (recolorido em cinza; sem a placa de chão) — ajustar_pets.py
+  fenix.glb  <- "Real-time Bones Demo: Phoenix Bird" (modelo original "Phoenix bird" de NORBERTO-3D) · CC-BY 4.0
+                https://sketchfab.com/3d-models/real-time-bones-demo-phoenix-bird-6a8d1fd20a1f46e988d9d06e028f75a0
+                (cores de fogo; animação de voo criada no Blender) — ajustar_pets.py
+  cavalo.glb <- "Horse" dos exemplos do mrdoob/three.js (modelo de mirada, ro.me) · recolorido em branco — fazer_pets.py
 
-CRÉDITOS obrigatórios (CC-BY): PixelMannen, tomkranis, AsoboStudio, scurest. Modelos do three.js: "model by mirada from ro.me"
-(a licença desses três não está explícita no repositório do three.js; confira antes de publicar o jogo comercialmente).
+CRÉDITOS obrigatórios: WildMesh 3D, 3DHaupt, NORBERTO-3D, Sketchfab; "horse model by mirada from ro.me".
+O lobo é de uso NÃO COMERCIAL: para vender o jogo, troque por outro modelo.
 
-Para trocar por outro modelo: ponha cavalo.glb / urso.glb / lobo.glb / fenix.glb aqui (metros, olhando para +Z, pés em y=0;
-animações Walk/Run/Idle são usadas se existirem).
+Para trocar por outro modelo: ponha cavalo.glb / urso.glb / lobo.glb / fenix.glb aqui (olhando para +Z, pés em y=0;
+animações Walk/Run/Idle/Attack são usadas se existirem).

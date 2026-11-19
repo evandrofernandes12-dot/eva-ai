@@ -30,19 +30,23 @@ func _ready() -> void:
 		var m: Node3D = load("res://models/pets/fenix.glb").instantiate()
 		giro.add_child(m)
 		var bb := Fit.bounds(m)
-		var s := 2.2 / maxf(bb.size.x, bb.size.z)
+		var s := 3.4 / maxf(bb.size.x, bb.size.z)   # inclui a cauda longa
 		m.scale = Vector3.ONE * s
 		m.position = -bb.get_center() * s
 		var meshes: Array = []
 		Fit._collect(m, meshes)
-		var mv := StandardMaterial3D.new()
-		mv.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED   # cores de fogo, acesas
-		mv.vertex_color_use_as_albedo = true
-		mv.cull_mode = BaseMaterial3D.CULL_DISABLED
-		for mi: MeshInstance3D in meshes:
-			mi.material_override = mv
+		for mi: MeshInstance3D in meshes:   # penas brilham com a própria textura (fogo)
+			for i in mi.mesh.get_surface_count():
+				var mt := mi.get_active_material(i)
+				if mt is BaseMaterial3D:
+					var dup: BaseMaterial3D = mt.duplicate()
+					dup.emission_enabled = true
+					dup.emission = Color(1.0, 0.55, 0.2)
+					dup.emission_texture = dup.albedo_texture
+					dup.emission_energy_multiplier = 0.8
+					dup.cull_mode = BaseMaterial3D.CULL_DISABLED
+					mi.set_surface_override_material(i, dup)
 		_anim = Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer
-		_cauda_fogo(Vector3(0, 0, bb.size.z * s * 0.3))
 	else:
 		_montar()
 	_chamas()

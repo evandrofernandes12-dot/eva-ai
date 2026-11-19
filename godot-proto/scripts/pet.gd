@@ -25,6 +25,7 @@ var _corpo: Node3D
 var _cauda: Node3D
 var _anim: AnimationPlayer
 var _velocidade := 6.5
+var _golpe := 0.0          # tempo restante da animação de ataque
 
 static var _tex := {}
 
@@ -162,7 +163,7 @@ func _ready() -> void:
 		var m: Node3D = load(caminho).instantiate()
 		_corpo.add_child(m)
 		m.rotation.y = PI   # o .glb olha para +Z; os pets olham para -Z
-		Fit.to_height(m, {"cavalo": 2.0, "urso": 1.35, "lobo": 0.9}.get(tipo, 1.0))
+		Fit.to_height(m, {"cavalo": 2.0, "urso": 1.45, "lobo": 0.95}.get(tipo, 1.0))
 		_anim = Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer
 		if tipo == "cavalo":   # cores nos vértices + asas emplumadas presas nas costas
 			var meshes: Array = []
@@ -347,6 +348,7 @@ func _process(delta: float) -> void:
 				_virar(to2, delta)
 				if d2 < 1.9:
 					_alvo.hurt(DANO)
+					_golpe = 0.7
 					jogo.flash(_alvo.global_position + Vector3(0, 0.9, 0), Color(1.0, 0.9, 0.7), 0.5, 0.2)
 					_cd = RECARGA
 					estado = "volta"
@@ -365,6 +367,10 @@ func _process(delta: float) -> void:
 func _animar(delta: float) -> void:
 	var anda := clampf(_vel / 4.0, 0.0, 1.5)
 	if _anim != null:   # modelo .glb: usa as animações dele (Walk/Run/Survey; cavalo: galope)
+		_golpe -= delta
+		if _golpe > 0.0 and Fit.find_anim(_anim, ["Attack"]) != &"":   # bote/patada ao acertar
+			Fit.play(_anim, Fit.find_anim(_anim, ["Attack"]), false, 1.3)
+			return
 		var lista: Array = ["Run", "horse"] if anda > 1.0 else (["Walk", "horse"] if anda > 0.15 else ["Survey", "Idle", "horse"])
 		var nome := Fit.find_anim(_anim, lista)
 		if nome == &"" and _anim.get_animation_list().size() > 0:
