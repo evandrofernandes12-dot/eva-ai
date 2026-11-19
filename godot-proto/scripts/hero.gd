@@ -15,7 +15,7 @@ const EXCALIBUR := ["Excalibur.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.3, 0.
 const ESPADA_MALDITA := ["Espada_Maldita.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.1, 0.46]
 # arco (Sketchfab, CC-BY: Francisco Fischer Pioner): em pé na mão (comprimento no eixo Z do osso, que fica
 # vertical com o braço esticado na mira), corda virada para o arqueiro
-const ARCO := ["Arco.glb", "hand_r", MAO_D, Vector3(0, 90, 90), 1.3, 0.0]
+const ARCO := ["Arco.glb", "hand_l", MAO_E, Vector3.ZERO, 1.15, 0.0, "arco"]   # na mão esquerda, guiado por arco_ik.gd
 const ALJAVA := ["Aljava.glb", "spine_03", Vector3(0.12, 0, -0.15), Vector3(0, 0, 0), 0.8, 0.0]
 # o escudo gótico tem a ponta em -Y no modelo; o eixo Y do osso aponta para a mão, então gira 180° (Z) para a ponta ficar para baixo
 const ESC_GOTICO := ["Shield_Heater.glb", "lowerarm_l", Vector3(-0.12, 0.13, 0), Vector3(0, -90, 180), 0.75, 0.0, "escudo"]
@@ -49,7 +49,7 @@ static func lista() -> Dictionary:
 const ANIMS := {
 	"guerreiro": {"idle": "Sword_Idle", "run": "Jog_Fwd", "atk": "Sword_Regular_A", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
 	"lanceiro": {"idle": "Sword_Idle", "run": "Jog_Fwd", "atk": "Punch_Jab", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
-	"arqueiro": {"idle": "Pistol_Idle", "run": "Jog_Fwd", "atk": "Pistol_Shoot", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
+	"arqueiro": {"idle": "Idle", "run": "Jog_Fwd", "atk": "", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
 	"mago": {"idle": "Idle", "run": "Jog_Fwd", "atk": "Sword_Attack", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
 }
 
@@ -98,16 +98,76 @@ static func montar(id: String, armado := true) -> Node3D:
 	ap.name = "AnimationPlayer"
 	m.add_child(ap)
 	ap.add_animation_library(&"", _biblioteca())
+	_pele(m)
 	var sk := Fit.find_node_of(m, "Skeleton3D") as Skeleton3D
 	for a in info.armas:
 		if armado or a.size() > 6:   # desarmado: só fica o que não é arma de mão
 			_prender(sk, a)
 	return m
 
+const PELE := Color(0.82, 0.66, 0.56)   # multiplica a textura da pele (1,1,1 = original, que saía clara demais no tablet)
+
+## Troca o material do corpo por um fosco, com cor de pele mais forte e sem brilho branco.
+static func _pele(raiz: Node) -> void:
+	var malhas: Array = []
+	Fit._collect(raiz, malhas)
+	for mi: MeshInstance3D in malhas:
+		if mi.mesh == null:
+			continue
+		for i in mi.mesh.get_surface_count():
+			var orig := mi.mesh.surface_get_material(i) as StandardMaterial3D
+			if orig == null or not orig.resource_name.begins_with("MI_Superhero"):
+				continue
+			var mat := orig.duplicate() as StandardMaterial3D
+			mat.vertex_color_use_as_albedo = false
+			mat.albedo_color = PELE
+			mat.metallic = 0.0
+			mat.metallic_texture = null
+			mat.roughness = 0.85
+			mat.roughness_texture = null
+			mat.metallic_specular = 0.2
+			mi.set_surface_override_material(i, mat)
+
+static func _esconder_material(raiz: Node, nome: String) -> void:
+	var some := StandardMaterial3D.new()
+	some.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	some.albedo_color = Color(0, 0, 0, 0)
+	var malhas: Array = []
+	Fit._collect(raiz, malhas)
+	for mi: MeshInstance3D in malhas:
+		if mi.mesh == null:
+			continue
+		for i in mi.mesh.get_surface_count():
+			var m := mi.mesh.surface_get_material(i)
+			if m != null and m.resource_name == nome:
+				mi.set_surface_override_material(i, some)
+
 static func tipo_da(x: Array) -> String:
 	return String(x[6]) if x.size() > 6 else ""
 
+const ARCO_IK := preload("res://scripts/arco_ik.gd")
+
 static func _prender(sk: Skeleton3D, x: Array) -> void:
+	if tipo_da(x) == "arco":
+		var ik := ARCO_IK.new()
+		ik.name = "ArcoIK"
+		sk.add_child(ik)
+		var a: Node3D = load("res://models/armas/" + x[0]).instantiate()
+		a.top_level = true
+		ik.add_child(a)
+		ik.arco = a
+		if ResourceLoader.exists("res://models/armas/Flecha.glb"):   # flecha encaixada na corda durante a puxada
+			var f := Node3D.new()
+			f.top_level = true
+			f.visible = false
+			var fm: Node3D = load("res://models/armas/Flecha.glb").instantiate()
+			fm.rotation.y = PI / 2.0   # ponta do modelo em +X -> -Z
+			f.add_child(fm)
+			var bb := _caixa(f)
+			fm.position.z = -bb.end.z   # a cauda (lado +Z) fica na origem, na corda
+			ik.add_child(f)
+			ik.flecha = f
+		return
 	var w: Node3D = load("res://models/armas/" + x[0]).instantiate()
 	var ba := BoneAttachment3D.new()
 	ba.bone_name = x[1]
@@ -127,6 +187,8 @@ static func _prender(sk: Skeleton3D, x: Array) -> void:
 		mk.name = "Ponta"
 		piv.add_child(mk)
 		mk.position = Vector3(0, x[5] + x[4] * 0.5, 0)
+	if x[0] == "Cetro_Magico.glb":   # tira a bolha branca translúcida (aura) em volta da ponta do cetro
+		_esconder_material(w, "Material_29")
 	var tipo: String = x[6] if x.size() > 6 else ""
 	if tipo != "":
 		ba.name = tipo.capitalize()

@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v24"
+const VERSAO := "v25"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -1079,12 +1079,15 @@ func _atirar(alvo: Node3D) -> void:
 		m = mi
 	else:
 		m = _flecha()
-	await get_tree().create_timer(0.28).timeout   # espera o golpe do cajado / o disparo
+	var arco: Node = player.model.find_child("ArcoIK", true, false)
+	await get_tree().create_timer(0.28 if arco == null else 0.4).timeout   # espera o golpe do cajado / a corda soltar (SOLTA em arco_ik.gd)
 	if not is_instance_valid(alvo) or not is_instance_valid(player):
 		m.free()
 		return
 	add_child(m)
 	m.global_position = _ponta() if mago else player.global_position + Vector3(0, 1.3, 0) + player.global_basis.z * 0.6
+	if is_instance_valid(arco) and arco.arco != null:   # a flecha sai do arco
+		m.global_position = arco.arco.global_position
 	if mago:
 		flash(m.global_position, c.tiro, 0.7, 0.25)
 	tiros.append({"node": m, "alvo": alvo, "dano": player.damage, "area": area, "cor": c.tiro, "flecha": not mago})
@@ -1252,7 +1255,7 @@ func vestir(id: String, salvar := true) -> void:
 	var m := Heroi.montar(id)
 	player.trocar_modelo(m, Heroi.ANIMS[classe])
 	player.model.visible = cam_modo != 1
-	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6), 0.18)   # luz de borda no herói
+	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6), 0.1)   # luz de borda no herói
 	_recalc()
 	_pet_ajustar()
 	if salvar:

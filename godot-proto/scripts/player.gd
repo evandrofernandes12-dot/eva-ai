@@ -18,6 +18,7 @@ var _ap: AnimationPlayer
 var _idle: StringName
 var _run: StringName
 var _atk: StringName
+var _arco: Node   # arco_ik.gd do arqueiro (levanta o arco e puxa a corda)
 var _dead := false
 var _morte: StringName = &""
 var correndo := false            # botão CORRER (ou Shift)
@@ -70,6 +71,7 @@ func trocar_modelo(novo: Node3D, anims: Dictionary) -> void:
 	_atk = anims.atk
 	_morte = anims.morte
 	_lanca = novo.find_child("Lanca", true, false) as Node3D
+	_arco = novo.find_child("ArcoIK", true, false)
 	_lanca_t = 0.0
 	_def = anims.get("def", &"")
 	_corre = anims.get("corre", &"")
@@ -122,6 +124,8 @@ func attack() -> void:
 		_lanca_tr = (_lanca.get_child(0) as Node3D).transform
 	_cd = 0.55
 	_busy = 0.45
+	if _arco != null:
+		_arco.disparar()
 	if _atk != &"":
 		_ap.stop()
 		Fit.play(_ap, _atk, false, 1.6)
