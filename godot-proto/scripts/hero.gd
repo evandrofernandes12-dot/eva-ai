@@ -9,6 +9,8 @@ const ESPADA := ["Sword.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.0, 0.35]
 const ESPADAO := ["Sword_Big.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.4, 0.5]
 const LANCA := ["Spear.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 2.3, 0.5, "lanca"]
 const BESTA := ["Besta.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 0.75, 0.0]
+# arco (Sketchfab, CC-BY: Francisco Fischer Pioner): em pé na mão direita, corda virada para o arqueiro
+const ARCO := ["Arco.glb", "hand_r", MAO_D, Vector3(180, 0, -90), 1.3, 0.0]
 const ALJAVA := ["Aljava.glb", "spine_03", Vector3(0.12, 0, -0.15), Vector3(0, 0, 0), 0.8, 0.0]
 # o escudo gótico tem a ponta em -Y no modelo; o eixo Y do osso aponta para a mão, então gira 180° (Z) para a ponta ficar para baixo
 const ESC_GOTICO := ["Shield_Heater.glb", "lowerarm_l", Vector3(-0.12, 0.13, 0), Vector3(0, -90, 180), 0.75, 0.0, "escudo"]
@@ -26,10 +28,10 @@ static func lista() -> Dictionary:
 		"M2": {"classe": "mago", "sexo": "m", "nome": "Robe roxo, capuz e ombreiras", "armas": [CAJADO("Roxo"), ORBE("Roxo")]},
 		"M3": {"classe": "mago", "sexo": "f", "nome": "Robe vermelho, sem capuz", "armas": [CAJADO("Rubi"), ORBE("Rubi")]},
 		"M4": {"classe": "mago", "sexo": "f", "nome": "Robe verde, capuz e ombreiras", "armas": [CAJADO("Azul"), ORBE("Verde")]},
-		"A1": {"classe": "arqueiro", "sexo": "m", "nome": "Toda de verde, com capuz e capa", "armas": [BESTA, ALJAVA]},
-		"A2": {"classe": "arqueiro", "sexo": "m", "nome": "Couro marrom, sem capuz", "armas": [BESTA, ALJAVA]},
-		"A4": {"classe": "arqueiro", "sexo": "f", "nome": "Toda de verde, com capuz e capa", "armas": [BESTA, ALJAVA]},
-		"A3": {"classe": "arqueiro", "sexo": "f", "nome": "Couro marrom, sem capuz", "armas": [BESTA, ALJAVA]},
+		"A1": {"classe": "arqueiro", "sexo": "m", "nome": "Toda de verde, com capuz e capa", "armas": [ARCO, ALJAVA]},
+		"A2": {"classe": "arqueiro", "sexo": "m", "nome": "Couro marrom, sem capuz", "armas": [ARCO, ALJAVA]},
+		"A4": {"classe": "arqueiro", "sexo": "f", "nome": "Toda de verde, com capuz e capa", "armas": [ARCO, ALJAVA]},
+		"A3": {"classe": "arqueiro", "sexo": "f", "nome": "Couro marrom, sem capuz", "armas": [ARCO, ALJAVA]},
 		"L1": {"classe": "lanceiro", "sexo": "m", "nome": "Armadura e elmo, lança e escudo", "armas": [LANCA, ESC_REDONDO]},
 		"L2": {"classe": "lanceiro", "sexo": "m", "nome": "Couro e capa vermelha, lança", "armas": [LANCA]},
 		"L3": {"classe": "lanceiro", "sexo": "f", "nome": "Armadura, lança e escudo", "armas": [LANCA, ESC_GOTICO]},

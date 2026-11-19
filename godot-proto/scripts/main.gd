@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v21"
+const VERSAO := "v22"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -173,6 +173,7 @@ func _ready() -> void:
 		p.built.connect(_on_built)
 		p.upgraded.connect(_on_upgraded)
 	_scatter_forest()
+	_ceu()
 	player.attacked.connect(_on_player_attack)
 	player.died.connect(_on_player_died)
 	$HUD/Atacar.pressed.connect(player.attack)
@@ -210,6 +211,21 @@ func _ready() -> void:
 	_boss_hud()
 	if not _load():
 		say("Ande com o direcional. Bata em árvores, rochas e arbustos para coletar.", 7.0)
+
+## Céu: foto 360° (Sketchfab, CC-BY: Marcin Lubecki), no lugar do céu liso. A luz ambiente continua branca.
+func _ceu() -> void:
+	if not ResourceLoader.exists("res://models/ceu.jpg"):
+		return
+	var env: Environment = $Ambiente.environment
+	var mat := PanoramaSkyMaterial.new()
+	mat.panorama = load("res://models/ceu.jpg")
+	var sky := Sky.new()
+	sky.sky_material = mat
+	env.background_mode = Environment.BG_SKY
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(1, 1, 1)
+	env.ambient_light_energy = 0.9
 
 func say(t: String, secs := 4.0) -> void:
 	msg.text = t
@@ -1017,6 +1033,11 @@ func _ponta() -> Vector3:
 ## Flecha: haste, ponta de metal e penas. Aponta o -Z para o alvo (look_at).
 func _flecha() -> Node3D:
 	var r := Node3D.new()
+	if ResourceLoader.exists("res://models/armas/Flecha.glb"):   # flecha realista (Sketchfab, CC-BY: Gwappa)
+		var f: Node3D = load("res://models/armas/Flecha.glb").instantiate()
+		f.rotation.y = PI / 2.0   # a ponta do modelo está em +X; a flecha voa para -Z
+		r.add_child(f)
+		return r
 	Interior.caixa(r, Vector3(0, 0, 0), Vector3(0.035, 0.035, 0.9), Color(0.55, 0.38, 0.2))
 	var tip := MeshInstance3D.new()
 	var cm := CylinderMesh.new()

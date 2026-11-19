@@ -1,0 +1,10 @@
+Créditos dos modelos de terceiros (licença CC-BY 4.0, salvo indicação)
+
+Lote 1 (Sketchfab), ajustados por scripts/pets/lote1.py:
+  armas/Arco.glb    "Arco" — Francisco Fischer Pioner (sketchfab.com/franciscopioner)
+  armas/Flecha.glb  "Arrow" — Gwappa (sketchfab.com/Gwappa)
+  Barrel.glb        "Barrel - Low Poly" — Badders (sketchfab.com/Badders)
+  ceu.jpg           "360 Panorama #17 VR Czorsztyn" — Marcin Lubecki (sketchfab.com/Lubus)
+
+Pets: ver pets/LEIA-ME.txt (WildMesh 3D, 3DHaupt [não comercial], NORBERTO-3D, mirada/ro.me, PixelMannen, tomkranis).
+Personagens e animações: Quaternius (CC0).
