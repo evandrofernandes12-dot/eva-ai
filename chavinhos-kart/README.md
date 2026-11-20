@@ -17,6 +17,8 @@ corrida de 3 voltas contra 7 pilotos de IA (Circuito da Vila) → pódio.
 | Voltar à pista | R |
 | Pausa | Esc |
 
+**Tablet/celular:** os controles de toque aparecem sozinhos (◀ ▶ à esquerda; ACEL, FREIO, DRIFT, ITEM à direita; VOLTAR e pausa). Multitoque suportado.
+
 ## Conteúdo
 - **11 pilotos** (`resources/racers/*.tres`, `RacerStats`): Chaves, Chiquinha, Quico, Nhonho, Popis, Seu Madruga,
   Jaiminho, Dona Florinda, Prof. Girafales, Seu Barriga e Bruxa do 71 — cada um com kart e visual procedural próprios.

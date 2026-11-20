@@ -79,6 +79,7 @@ func _build_controls_panel() -> void:
 		"E / ENTER .......... Usar item",
 		"R .................. Voltar para a pista",
 		"ESC ................ Pausar",
+		"TABLET / CELULAR: botões na tela (volante à esquerda, pedais à direita)",
 	]
 	for line in lines:
 		col.add_child(UIStyle.label(line, 24, Color.WHITE, 4))

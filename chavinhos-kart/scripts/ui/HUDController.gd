@@ -20,6 +20,12 @@ var _center_label: Label
 var _msg_label: Label
 var _wrong_way: Label
 var _minimap: MiniMap
+var _touch: TouchControls
+var _top_left: VBoxContainer
+var _top_center: VBoxContainer
+var _top_right: VBoxContainer
+var _speed_box: VBoxContainer
+var _touch_layout: bool = false
 var _pause_panel: Control
 var _msg_tween: Tween
 
@@ -59,12 +65,14 @@ func _build_ui() -> void:
 	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(top)
 	var left := VBoxContainer.new()
+	_top_left = left
 	left.custom_minimum_size = Vector2(300, 0)
 	top.add_child(left)
 	_place_label = UIStyle.label("1º/8", 76, UIStyle.YELLOW, 12)
 	left.add_child(_place_label)
 	top.add_child(_expander())
 	var center := VBoxContainer.new()
+	_top_center = center
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
 	top.add_child(center)
 	_item_icon = ItemIcon.new()
@@ -75,6 +83,7 @@ func _build_ui() -> void:
 	center.add_child(_item_name)
 	top.add_child(_expander())
 	var right := VBoxContainer.new()
+	_top_right = right
 	right.custom_minimum_size = Vector2(300, 0)
 	top.add_child(right)
 	_lap_label = UIStyle.label("Volta 1/3", 44, Color.WHITE, 10)
@@ -98,6 +107,7 @@ func _build_ui() -> void:
 	bottom.add_child(_minimap)
 	bottom.add_child(_expander())
 	var speed_box := VBoxContainer.new()
+	_speed_box = speed_box
 	speed_box.alignment = BoxContainer.ALIGNMENT_END
 	bottom.add_child(speed_box)
 	_speed_label = UIStyle.label("0 km/h", 40, Color.WHITE, 9)
@@ -135,6 +145,30 @@ func _build_ui() -> void:
 	col.add_child(_wrong_way)
 
 	_build_pause_menu()
+
+	_touch = TouchControls.new()
+	_touch.visibility_changed.connect(_apply_touch_layout)
+	_touch.pause_pressed.connect(_toggle_pause)
+	add_child(_touch)
+	move_child(_touch, _pause_panel.get_index())
+	_apply_touch_layout()
+
+
+## No toque os botões ocupam os cantos de baixo: minimapa e velocidade sobem para o topo.
+func _apply_touch_layout() -> void:
+	var want: bool = _touch.visible
+	if want == _touch_layout:
+		return
+	_touch_layout = want
+	if want:
+		_minimap.reparent(_top_left)
+		_minimap.custom_minimum_size = Vector2(150, 150)
+		_speed_label.reparent(_top_right)
+		_speed_label.add_theme_font_size_override("font_size", 28)
+		_speed_bar.visible = false
+		_drift_bar.reparent(_top_center)
+	else:
+		_minimap.custom_minimum_size = Vector2(230, 230)
 
 
 func _expander(vertical: bool = false) -> Control:
@@ -312,9 +346,9 @@ class ItemIcon extends Control:
 ## Minimapa: contorno da pista + pontinhos dos karts.
 class MiniMap extends Control:
 	var _game: GameManager
-	var _pts: PackedVector2Array = PackedVector2Array()
+	var _path: TrackPath
 	var _min: Vector2 = Vector2.ZERO
-	var _scale: float = 1.0
+	var _extent: float = 1.0
 
 	func setup(g: GameManager) -> void:
 		_game = g
@@ -326,21 +360,24 @@ class MiniMap extends Control:
 			hi = Vector2(maxf(hi.x, p.x), maxf(hi.y, p.z))
 		_min = lo
 		var extent: Vector2 = hi - lo
-		_scale = (minf(custom_minimum_size.x, custom_minimum_size.y) - 24.0) / maxf(maxf(extent.x, extent.y), 1.0)
-		for p in path.points:
-			_pts.append(_to_map(p))
-		_pts.append(_pts[0])
+		_extent = maxf(maxf(extent.x, extent.y), 1.0)
+		_path = path
 
 	func _to_map(p: Vector3) -> Vector2:
-		return (Vector2(p.x, p.z) - _min) * _scale + Vector2(12, 12)
+		var sc: float = (minf(size.x, size.y) - 24.0) / _extent
+		return (Vector2(p.x, p.z) - _min) * sc + Vector2(12, 12)
 
 	func _process(_delta: float) -> void:
 		queue_redraw()
 
 	func _draw() -> void:
 		draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0.35))
-		if _pts.size() < 2:
+		if _path == null:
 			return
+		var _pts := PackedVector2Array()
+		for p in _path.points:
+			_pts.append(_to_map(p))
+		_pts.append(_pts[0])
 		draw_polyline(_pts, Color(0.05, 0.05, 0.08, 0.9), 12.0, true)
 		draw_polyline(_pts, Color(0.95, 0.85, 0.5), 6.0, true)
 		if _game == null:
