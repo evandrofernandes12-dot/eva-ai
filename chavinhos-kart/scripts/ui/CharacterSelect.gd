@@ -22,7 +22,7 @@ func _ready() -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 14)
 	margin.add_child(root)
-	root.add_child(UIStyle.label("ESCOLHA SEU PILOTO", 56, UIStyle.YELLOW, 12))
+	root.add_child(UIStyle.label("ESCOLHA SEU PILOTO  -  %s" % _mode_title(), 52, UIStyle.YELLOW, 12))
 
 	var row := HBoxContainer.new()
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -96,4 +96,14 @@ func _select(stats: RacerStats) -> void:
 
 func _start(stats: RacerStats) -> void:
 	Global.select_racer(stats)
-	Global.goto_race()
+	Global.after_character_select()
+
+
+func _mode_title() -> String:
+	if Global.mode == Global.Mode.CUP:
+		return "COPA DA VILA"
+	if Global.mode == Global.Mode.BATTLE:
+		return "BATALHA DE BALÕES"
+	if Global.mode == Global.Mode.CHALLENGE:
+		return "DESAFIO: %s" % str(Global.challenge.get("title", ""))
+	return "CORRIDA RÁPIDA"

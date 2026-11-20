@@ -123,9 +123,11 @@ func _end_race() -> void:
 
 func _entry(k: KartController, place: int, time: float) -> Dictionary:
 	return {
+		"slot": k.net_slot,
 		"stats": k.stats,
 		"name": k.stats.display_name,
 		"place": place,
 		"time": time,
 		"is_player": k.is_player,
+		"score_text": "",
 	}

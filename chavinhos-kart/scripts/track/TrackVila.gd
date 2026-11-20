@@ -6,6 +6,7 @@ extends TrackBase
 
 func _init_theme() -> void:
 	track_title = "CIRCUITO DA VILA"
+	offroad_factor = 0.55
 	ground_color = Color(0.58, 0.42, 0.27)
 	road_color = Color(0.32, 0.31, 0.34)
 	wall_colors = [Color(0.9, 0.74, 0.52), Color(0.82, 0.52, 0.36)]

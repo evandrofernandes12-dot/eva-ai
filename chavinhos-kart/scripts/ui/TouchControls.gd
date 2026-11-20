@@ -24,22 +24,32 @@ func _ready() -> void:
 	pause.from_top = 150.0
 	pause.tapped.connect(func() -> void: pause_pressed.emit())
 	get_viewport().size_changed.connect(_layout)
+	refresh()
+
+
+## Reaplica as opções salvas (modo, tamanho e opacidade).
+func refresh() -> void:
+	var mode: int = int(Save.get_setting("touch_mode", 0))
+	var auto_on: bool = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+	visible = (mode == 1) or (mode == 0 and auto_on)
+	modulate.a = float(Save.get_setting("touch_alpha", 1.0))
 	_layout()
-	visible = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
 
 
 ## Posiciona os botões em coordenadas absolutas da tela (independe do tamanho do pai).
 func _layout() -> void:
 	var vs: Vector2 = get_viewport_rect().size
+	var sc: float = float(Save.get_setting("touch_scale", 1.0))
 	for b in _buttons:
-		var x: float = vs.x - b.margin - b.size_px if b.right_side else b.margin
-		var y: float = b.from_top if b.from_top >= 0.0 else vs.y - b.bottom - b.size_px
+		var sz: float = b.size_px * sc
+		var x: float = vs.x - b.margin - sz if b.right_side else b.margin
+		var y: float = b.from_top if b.from_top >= 0.0 else vs.y - b.bottom * sc - sz
 		b.position = Vector2(x, y)
-		b.size = Vector2(b.size_px, b.size_px)
+		b.size = Vector2(sz, sz)
 
 
 func _input(event: InputEvent) -> void:
-	if not visible and event is InputEventScreenTouch:
+	if not visible and event is InputEventScreenTouch and int(Save.get_setting("touch_mode", 0)) != 2:
 		visible = true
 
 

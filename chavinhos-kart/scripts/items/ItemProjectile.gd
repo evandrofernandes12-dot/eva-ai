@@ -43,15 +43,20 @@ func activate(kart: KartController) -> void:
 
 
 func _find_target(kart: KartController) -> KartController:
-	if kart.path == null:
-		return null
 	var best: KartController = null
 	var best_d: float = 90.0
+	var fwd: Vector3 = -kart.global_transform.basis.z
 	for node in get_tree().get_nodes_in_group("karts"):
 		var other: KartController = node as KartController
-		if other == null or other == kart or other.finished:
+		if other == null or other == kart or other.finished or other.eliminated:
 			continue
-		var ahead: float = kart.path.signed_delta(kart.path_dist, other.path_dist)
+		var ahead: float
+		if kart.path == null: # arena: alvo mais próximo dentro do cone frontal
+			var to: Vector3 = other.global_position - kart.global_position
+			to.y = 0.0
+			ahead = to.length() if to.normalized().dot(fwd) > 0.3 else -1.0
+		else:
+			ahead = kart.path.signed_delta(kart.path_dist, other.path_dist)
 		if ahead > 0.0 and ahead < best_d:
 			best_d = ahead
 			best = other
@@ -59,7 +64,7 @@ func _find_target(kart: KartController) -> KartController:
 
 
 func _tick(delta: float) -> void:
-	if is_instance_valid(target) and not target.finished:
+	if is_instance_valid(target) and not target.finished and not target.eliminated:
 		var to: Vector3 = target.global_position - global_position
 		to.y = 0.0
 		if to.length() > 0.5:

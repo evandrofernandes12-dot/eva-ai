@@ -12,15 +12,29 @@ signal drift_started
 signal drift_boost_released(level: int)
 signal hit_wall(impact: float)
 signal bumped
+signal item_used(type: int)
+signal rival_hit
 
 const GRAVITY: float = 30.0
-const OFFROAD_FACTOR: float = 0.55
 const DRIFT_LEVEL_TIMES: Array[float] = [0.8, 1.7, 2.8]
 const DRIFT_BOOST_TIMES: Array[float] = [0.8, 1.3, 1.9]
 const KART_RADIUS: float = 1.9
 
 @export var stats: RacerStats
 @export var is_player: bool = false
+## Online: kart controlado por outro jogador/IA do anfitrião (só recebe estado pela rede).
+var is_remote: bool = false
+var net_slot: int = 0
+var eliminated: bool = false   # fora da Batalha de Balões
+var offroad_factor: float = 0.55
+var _net_timer: float = 0.0
+var _net_has: bool = false
+var _net_pos: Vector3 = Vector3.ZERO
+var _net_vel: Vector3 = Vector3.ZERO
+var _net_rot: float = 0.0
+var _net_speed: float = 0.0
+var _net_steer: float = 0.0
+var _item_counter: int = 0
 
 # ---- Entradas (preenchidas pelo jogador ou pela IA)
 var in_throttle: float = 0.0
@@ -100,6 +114,13 @@ func _gather_input() -> void:
 func _physics_process(delta: float) -> void:
 	if stats == null:
 		return
+	if is_remote:
+		_remote_step(delta)
+		return
+	if eliminated:
+		speed = 0.0
+		velocity = Vector3.ZERO
+		return
 	_gather_input()
 	_update_timers(delta)
 	_update_track_position()
@@ -117,7 +138,7 @@ func _physics_process(delta: float) -> void:
 	# ---- velocidade máxima atual
 	var top: float = stats.max_speed * speed_mult
 	if offroad:
-		top *= OFFROAD_FACTOR
+		top *= offroad_factor
 	if boost_timer > 0.0:
 		top += boost_power
 
@@ -186,6 +207,7 @@ func _physics_process(delta: float) -> void:
 			boost_timer > 0.0, spinning, offroad, stats.max_speed)
 	if is_player:
 		AudioManager.set_engine(absf(speed) / (stats.max_speed + 8.0), not controls_locked or speed > 1.0)
+	_net_send(delta)
 
 
 func _update_timers(delta: float) -> void:
@@ -283,7 +305,7 @@ func _handle_collisions(before: Vector3) -> void:
 func _separate_from_karts() -> void:
 	for node in get_tree().get_nodes_in_group("karts"):
 		var other: KartController = node as KartController
-		if other == null or other == self:
+		if other == null or other == self or other.eliminated:
 			continue
 		var d: Vector3 = global_position - other.global_position
 		d.y = 0.0
@@ -315,7 +337,15 @@ func use_item() -> void:
 	var it: int = held_item
 	held_item = ItemDefs.Type.NONE
 	item_changed.emit(ItemDefs.Type.NONE)
-	ItemDefs.spawn(self, it)
+	item_used.emit(it)
+	var net_id: int = -1
+	if NetworkManager.active:
+		_item_counter += 1
+		net_id = net_slot * 1000 + _item_counter
+		var gm: Node = get_tree().current_scene
+		if gm != null and gm.has_method("net_item"):
+			gm.rpc("net_item", net_slot, it, net_id)
+	ItemDefs.spawn(self, it, net_id)
 
 
 func apply_boost(power: float, duration: float) -> void:
@@ -338,6 +368,8 @@ func spin_out(duration: float = 1.2) -> void:
 	boost_power = 0.0
 	speed *= 0.35
 	spun_out.emit()
+	if NetworkManager.active and multiplayer.has_multiplayer_peer():
+		rpc("net_spun", duration)
 	if is_player:
 		AudioManager.play_sfx("spin")
 
@@ -355,3 +387,58 @@ func reset_to_track() -> void:
 	spin_timer = 0.0
 	path_idx = -1
 	_update_track_position()
+
+
+# ===================================================================== rede (online)
+
+func _net_send(delta: float) -> void:
+	if not NetworkManager.active or not multiplayer.has_multiplayer_peer():
+		return
+	_net_timer -= delta
+	if _net_timer > 0.0:
+		return
+	_net_timer = 0.05 # 20 envios por segundo
+	net_state.rpc(global_position, rotation.y, speed, in_steer, drifting, drift_dir, drift_level,
+		boost_timer > 0.0, spin_timer > 0.0, Vector3(velocity.x, 0.0, velocity.z))
+
+
+@rpc("authority", "call_remote", "unreliable_ordered")
+func net_state(pos: Vector3, rot_y: float, spd: float, steer: float, drift: bool, ddir: float,
+		dlevel: int, boost: bool, spin: bool, vel: Vector3) -> void:
+	if not is_remote:
+		return
+	_net_pos = pos
+	_net_rot = rot_y
+	_net_speed = spd
+	_net_steer = steer
+	_net_vel = vel
+	drifting = drift
+	drift_dir = ddir
+	drift_level = dlevel
+	boost_timer = 0.3 if boost else 0.0
+	spin_timer = 0.3 if spin else 0.0
+	if not _net_has:
+		_net_has = true
+		global_position = pos
+		rotation.y = rot_y
+
+
+@rpc("authority", "call_remote", "reliable")
+func net_spun(_duration: float) -> void:
+	if is_remote:
+		spun_out.emit()
+
+
+## Interpola o kart remoto até o último estado recebido (sem física local).
+func _remote_step(delta: float) -> void:
+	if eliminated or not _net_has:
+		return
+	_net_pos += _net_vel * delta
+	var t: float = clampf(delta * 12.0, 0.0, 1.0)
+	global_position = global_position.lerp(_net_pos, t)
+	rotation.y = lerp_angle(rotation.y, _net_rot, t)
+	speed = _net_speed
+	_update_track_position()
+	if visuals != null:
+		visuals.update_visuals(delta, speed, _net_steer, drifting, drift_dir, drift_level,
+			boost_timer > 0.0, spin_timer > 0.0, offroad, stats.max_speed)

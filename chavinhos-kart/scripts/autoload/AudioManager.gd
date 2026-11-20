@@ -17,6 +17,14 @@ var _engine_freq: float = 50.0
 var _engine_vol: float = 0.0
 var _target_freq: float = 50.0
 var _target_vol: float = 0.0
+var sfx_volume: float = 1.0
+
+
+## Lê o volume salvo (Opções) e aplica no barramento principal.
+func apply_settings() -> void:
+	var master: float = float(Save.get_setting("vol_master", 0.9))
+	sfx_volume = float(Save.get_setting("vol_sfx", 1.0))
+	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(master, 0.0001)))
 
 
 func _ready() -> void:
@@ -28,6 +36,7 @@ func _ready() -> void:
 		_voices.append(p)
 	_build_sfx()
 	_setup_engine()
+	apply_settings()
 
 
 # ---------------------------------------------------------------- SFX
@@ -38,7 +47,7 @@ func play_sfx(sfx_name: String, volume_db: float = 0.0, pitch: float = 1.0) -> v
 	var p: AudioStreamPlayer = _voices[_voice_idx]
 	_voice_idx = (_voice_idx + 1) % _voices.size()
 	p.stream = sfx[sfx_name] as AudioStream
-	p.volume_db = volume_db - 6.0
+	p.volume_db = volume_db - 6.0 + linear_to_db(maxf(sfx_volume, 0.0001))
 	p.pitch_scale = pitch
 	p.play()
 

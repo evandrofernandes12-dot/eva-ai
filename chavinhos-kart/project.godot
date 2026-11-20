@@ -11,6 +11,9 @@ config/features=PackedStringArray("4.3", "Mobile")
 
 [autoload]
 
+Save="*res://scripts/autoload/Save.gd"
+Transition="*res://scripts/autoload/Transition.gd"
+NetworkManager="*res://scripts/autoload/NetworkManager.gd"
 Global="*res://scripts/autoload/Global.gd"
 AudioManager="*res://scripts/autoload/AudioManager.gd"
 

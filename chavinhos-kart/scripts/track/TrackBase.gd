@@ -20,6 +20,13 @@ var wall_colors: Array[Color] = [Color(0.88, 0.72, 0.5), Color(0.78, 0.5, 0.35)]
 var sky_top: Color = Color(0.25, 0.45, 0.8)
 var sky_horizon: Color = Color(0.95, 0.7, 0.45)
 var sun_color: Color = Color(1.0, 0.88, 0.7)
+var sun_energy: float = 1.25
+var ambient_energy: float = 0.9
+var fog_density: float = 0.0012
+var indoor: bool = false           # sem céu: fundo de cor sólida e luz fraca
+var offroad_factor: float = 0.55   # multiplicador de velocidade fora da pista
+var wall_height: float = 2.4
+var description: String = ""
 
 
 func _ready() -> void:
@@ -52,31 +59,37 @@ func _build_scenery() -> void:
 # ---------- ambiente
 
 func _build_environment() -> void:
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = sky_top
-	sky_mat.sky_horizon_color = sky_horizon
-	sky_mat.ground_horizon_color = sky_horizon
-	sky_mat.ground_bottom_color = ground_color.darkened(0.4)
-	sky_mat.sun_angle_max = 25.0
-	var sky := Sky.new()
-	sky.sky_material = sky_mat
 	var env := Environment.new()
-	env.background_mode = Environment.BG_SKY
-	env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.9
+	if indoor:
+		env.background_mode = Environment.BG_COLOR
+		env.background_color = sky_top
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		env.ambient_light_color = sky_horizon
+	else:
+		var sky_mat := ProceduralSkyMaterial.new()
+		sky_mat.sky_top_color = sky_top
+		sky_mat.sky_horizon_color = sky_horizon
+		sky_mat.ground_horizon_color = sky_horizon
+		sky_mat.ground_bottom_color = ground_color.darkened(0.4)
+		sky_mat.sun_angle_max = 25.0
+		var sky := Sky.new()
+		sky.sky_material = sky_mat
+		env.background_mode = Environment.BG_SKY
+		env.sky = sky
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_energy = ambient_energy
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
 	env.fog_light_color = sky_horizon
-	env.fog_density = 0.0012
+	env.fog_density = fog_density
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-42.0, -35.0, 0.0)
 	sun.light_color = sun_color
-	sun.light_energy = 1.25
-	sun.shadow_enabled = true
+	sun.light_energy = sun_energy
+	sun.shadow_enabled = not indoor
 	sun.directional_shadow_max_distance = 110.0
 	add_child(sun)
 
@@ -194,7 +207,7 @@ func _build_walls() -> void:
 		var st := SurfaceTool.new()
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
 		sts.append(st)
-	var height: float = 2.4
+	var height: float = wall_height
 	for i in path.count:
 		var j: int = (i + 1) % path.count
 		var st: SurfaceTool = sts[(i / 5) % sts.size()]

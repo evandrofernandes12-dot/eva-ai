@@ -66,3 +66,34 @@ static func gradient_bg(top: Color, bottom: Color) -> TextureRect:
 	rect.stretch_mode = TextureRect.STRETCH_SCALE
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	return rect
+
+
+## Cartão arredondado (lista de salas, desafios, etc.).
+static func card(bg: Color = Color(0.16, 0.1, 0.05, 0.85), border: Color = Color(0.9, 0.65, 0.2)) -> PanelContainer:
+	var p := PanelContainer.new()
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(3)
+	s.set_corner_radius_all(16)
+	s.set_content_margin_all(14.0)
+	p.add_theme_stylebox_override("panel", s)
+	return p
+
+
+static func slider(min_v: float, max_v: float, value: float, step: float = 0.05) -> HSlider:
+	var s := HSlider.new()
+	s.min_value = min_v
+	s.max_value = max_v
+	s.step = step
+	s.value = value
+	s.custom_minimum_size = Vector2(320, 40)
+	return s
+
+
+## Faz o título "respirar" (escala suave contínua).
+static func pulse(node: Control, amount: float = 0.04, period: float = 1.6) -> void:
+	node.pivot_offset = node.size * 0.5
+	var tw: Tween = node.create_tween().set_loops()
+	tw.tween_property(node, "scale", Vector2.ONE * (1.0 + amount), period * 0.5).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(node, "scale", Vector2.ONE, period * 0.5).set_trans(Tween.TRANS_SINE)

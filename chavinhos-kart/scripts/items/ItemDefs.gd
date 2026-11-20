@@ -48,12 +48,13 @@ static func roll(place: int, total: int) -> int:
 
 
 ## Instancia o item no mundo (irmão do kart) e o ativa.
-static func spawn(kart: Node3D, type: int) -> void:
+static func spawn(kart: Node3D, type: int, net_id: int = -1) -> void:
 	if not SCENES.has(type):
 		return
 	var scene: PackedScene = load(str(SCENES[type])) as PackedScene
 	if scene == null:
 		return
 	var inst: Node = scene.instantiate()
+	inst.set("net_id", net_id)
 	kart.get_parent().add_child(inst)
 	inst.call("activate", kart) # ItemBase.activate(kart)

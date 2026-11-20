@@ -1,6 +1,10 @@
 class_name Podium
 extends Node3D
-## Pódio 3D com os três primeiros colocados + tabela de resultados.
+## Pódio 3D com os três primeiros + painel de resultados. Adapta-se ao modo:
+## Corrida (recorde), Copa (pontos e troféu), Batalha (balões), Desafio (cumprido?) e Online (voltar à sala).
+
+var _cup_final: bool = false
+var _trophy_kind: String = ""
 
 
 func _ready() -> void:
@@ -8,15 +12,46 @@ func _ready() -> void:
 	if results.is_empty():
 		results = _fake_results() # permite abrir a cena isoladamente (F6) para testar
 
-	_build_world()
 	var order: Array[Dictionary] = []
 	order.assign(results)
 	order.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a["place"]) < int(b["place"]))
-	# posições: 1º centro (alto), 2º esquerda, 3º direita
+
+	var standings: Array[Dictionary] = []
+	if Global.mode == Global.Mode.CUP:
+		standings = Global.cup_standings()
+		_cup_final = not Global.cup_has_next()
+		if _cup_final:
+			_trophy_kind = _compute_trophy(standings)
+			if _trophy_kind != "":
+				Save.add_trophy(_trophy_kind)
+			# o pódio final mostra a classificação geral
+			var final_order: Array[Dictionary] = []
+			for i in standings.size():
+				var e: Dictionary = standings[i].duplicate()
+				e["place"] = i + 1
+				e["time"] = 0.0
+				final_order.append(e)
+			order = final_order
+
+	_build_world()
 	var layout: Array[Vector2] = [Vector2(0.0, 2.2), Vector2(-3.6, 1.5), Vector2(3.6, 1.0)]
 	for i in mini(3, order.size()):
 		_build_block(order[i], layout[i], i)
-	_build_ui(order)
+	if _cup_final and _trophy_kind != "":
+		_build_trophy()
+	_build_ui(order, standings)
+
+
+func _compute_trophy(standings: Array[Dictionary]) -> String:
+	for i in standings.size():
+		if bool(standings[i]["is_player"]):
+			if i == 0:
+				return "gold"
+			if i == 1:
+				return "silver"
+			if i == 2:
+				return "bronze"
+	return ""
 
 
 func _build_world() -> void:
@@ -54,7 +89,6 @@ func _build_block(entry: Dictionary, lay: Vector2, rank_idx: int) -> void:
 	num.text = str(rank_idx + 1)
 	num.font_size = 200
 	num.pixel_size = 0.01
-	num.modulate = Color.WHITE
 	num.outline_size = 24
 	num.position = Vector3(lay.x, h / 2.0, 1.52)
 	add_child(num)
@@ -72,6 +106,22 @@ func _build_block(entry: Dictionary, lay: Vector2, rank_idx: int) -> void:
 	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	tag.position = Vector3(lay.x, h + 3.2, 0)
 	add_child(tag)
+
+
+func _build_trophy() -> void:
+	var col: Color = Color(0.95, 0.78, 0.2)
+	if _trophy_kind == "silver":
+		col = Color(0.8, 0.83, 0.88)
+	elif _trophy_kind == "bronze":
+		col = Color(0.8, 0.5, 0.25)
+	var t := Node3D.new()
+	t.position = Vector3(-8.0, 0.0, 3.0)
+	add_child(t)
+	ProcMesh.box(t, Vector3(2.0, 0.5, 2.0), Vector3(0, 0.25, 0), Color(0.2, 0.15, 0.1), Vector3.ZERO, 0.5, 0.3)
+	ProcMesh.cyl(t, 0.25, 1.2, Vector3(0, 1.1, 0), col, Vector3.ZERO, -1.0, 0.25, 0.9)
+	ProcMesh.cyl(t, 1.1, 1.4, Vector3(0, 2.4, 0), col, Vector3.ZERO, 0.5, 0.25, 0.9, 0.3)
+	for sx: float in [-1.15, 1.15]:
+		ProcMesh.torus(t, 0.08, 0.4, Vector3(sx, 2.5, 0), col, Vector3(0, 0, 90), 0.9)
 
 
 func _build_confetti() -> void:
@@ -103,7 +153,27 @@ func _build_confetti() -> void:
 	add_child(p)
 
 
-func _build_ui(order: Array[Dictionary]) -> void:
+func _headline() -> Array:
+	if Global.mode == Global.Mode.CUP:
+		if _cup_final:
+			var titles: Dictionary = {
+				"gold": "CAMPEÃO DA COPA!", "silver": "VICE-CAMPEÃO!",
+				"bronze": "TERCEIRO LUGAR NA COPA!", "": "FIM DA COPA",
+			}
+			var names: Dictionary = {"gold": "OURO", "silver": "PRATA", "bronze": "BRONZE", "": "nenhum desta vez"}
+			return [str(titles[_trophy_kind]), "Troféu: %s" % str(names[_trophy_kind])]
+		return ["COPA - ETAPA %d/%d" % [Global.cup_stage + 1, Global.CUP_TRACKS.size()], TrackCatalog.track_name(Global.track_index)]
+	if Global.mode == Global.Mode.BATTLE:
+		return ["BATALHA ENCERRADA", ""]
+	if Global.mode == Global.Mode.CHALLENGE:
+		var done: bool = bool(Global.challenge_result.get("done", false))
+		return ["DESAFIO CUMPRIDO!" if done else "DESAFIO NÃO CUMPRIDO", str(Global.challenge_result.get("text", ""))]
+	if Global.mode == Global.Mode.ONLINE:
+		return ["RESULTADO ONLINE", ""]
+	return ["PÓDIO", "NOVO RECORDE DE VOLTA!" if Global.new_record else TrackCatalog.track_name(Global.track_index)]
+
+
+func _build_ui(order: Array[Dictionary], standings: Array[Dictionary]) -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var margin := MarginContainer.new()
@@ -116,37 +186,68 @@ func _build_ui(order: Array[Dictionary]) -> void:
 	var left := VBoxContainer.new()
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.add_child(left)
-	var winner: String = str(order[0]["name"]) if not order.is_empty() else ""
-	left.add_child(UIStyle.label("PÓDIO", 72, UIStyle.YELLOW, 14))
-	left.add_child(UIStyle.label("Vencedor: %s" % winner, 32, Color.WHITE, 8))
+	var head: Array = _headline()
+	left.add_child(UIStyle.label(str(head[0]), 54, UIStyle.YELLOW, 12))
+	if str(head[1]) != "":
+		var sub: Label = UIStyle.label(str(head[1]), 24, Color(1, 1, 0.85), 6)
+		sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		sub.custom_minimum_size = Vector2(420, 0)
+		left.add_child(sub)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left.add_child(spacer)
-	var again: Button = UIStyle.button("CORRER DE NOVO", 26, Vector2(300, 56))
-	again.pressed.connect(Global.goto_race)
-	left.add_child(again)
-	var pick: Button = UIStyle.button("ESCOLHER PILOTO", 26, Vector2(300, 56))
-	pick.pressed.connect(Global.goto_select)
-	left.add_child(pick)
-	var menu: Button = UIStyle.button("MENU PRINCIPAL", 26, Vector2(300, 56))
-	menu.pressed.connect(Global.goto_menu)
-	left.add_child(menu)
-	again.grab_focus()
 
-	var panel: PanelContainer = UIStyle.panel()
+	var first: Button = null
+	if Global.mode == Global.Mode.ONLINE:
+		if NetworkManager.active and NetworkManager.is_host:
+			first = _btn(left, "VOLTAR À SALA", NetworkManager.return_to_lobby)
+		else:
+			left.add_child(UIStyle.label("Aguardando o anfitrião...", 24, Color.WHITE, 5))
+		_btn(left, "SAIR DA SALA", func() -> void:
+			NetworkManager.leave()
+			Global.goto_menu())
+	elif Global.mode == Global.Mode.CUP:
+		if Global.cup_has_next():
+			first = _btn(left, "PRÓXIMA PISTA", Global.cup_next_race)
+		else:
+			first = _btn(left, "NOVA COPA", Global.start_cup)
+		_btn(left, "MENU PRINCIPAL", Global.goto_menu)
+	else:
+		first = _btn(left, "CORRER DE NOVO", Global.goto_race)
+		_btn(left, "ESCOLHER PILOTO", Global.goto_select)
+		_btn(left, "MENU PRINCIPAL", Global.goto_menu)
+	if first != null:
+		first.grab_focus()
+
+	var panel: PanelContainer = UIStyle.card(Color(0.1, 0.06, 0.02, 0.85))
 	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	root.add_child(panel)
 	var col := VBoxContainer.new()
 	panel.add_child(col)
-	col.add_child(UIStyle.label("RESULTADOS", 30, UIStyle.YELLOW, 6))
-	for e in order:
-		var is_player: bool = bool(e["is_player"])
-		var line: String = "%dº  %-16s %s" % [int(e["place"]), str(e["name"]), Global.format_time(float(e["time"]))]
-		col.add_child(UIStyle.label(line, 22, UIStyle.YELLOW if is_player else Color.WHITE, 4))
+	col.add_child(UIStyle.label("CLASSIFICAÇÃO GERAL" if Global.mode == Global.Mode.CUP else "RESULTADOS", 28, UIStyle.YELLOW, 6))
+	if Global.mode == Global.Mode.CUP:
+		for i in standings.size():
+			var e: Dictionary = standings[i]
+			col.add_child(UIStyle.label("%dº  %-16s %3d pts" % [i + 1, str(e["name"]), int(e["points"])], 22,
+				UIStyle.YELLOW if bool(e["is_player"]) else Color.WHITE, 4))
+	else:
+		for e in order:
+			var extra: String = str(e.get("score_text", ""))
+			if extra == "":
+				extra = Global.format_time(float(e["time"]))
+			col.add_child(UIStyle.label("%dº  %-16s %s" % [int(e["place"]), str(e["name"]), extra], 22,
+				UIStyle.YELLOW if bool(e["is_player"]) else Color.WHITE, 4))
+
+
+func _btn(parent: Control, text: String, action: Callable) -> Button:
+	var b: Button = UIStyle.button(text, 26, Vector2(320, 56))
+	b.pressed.connect(action)
+	parent.add_child(b)
+	return b
 
 
 func _fake_results() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for i in mini(Global.TOTAL_RACERS, Global.racers.size()):
-		out.append({"stats": Global.racers[i], "name": Global.racers[i].display_name, "place": i + 1, "time": 80.0 + float(i) * 2.3, "is_player": i == 0})
+		out.append({"stats": Global.racers[i], "name": Global.racers[i].display_name, "place": i + 1, "time": 80.0 + float(i) * 2.3, "is_player": i == 0, "score_text": ""})
 	return out

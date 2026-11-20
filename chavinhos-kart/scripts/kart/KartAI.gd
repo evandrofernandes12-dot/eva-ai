@@ -11,6 +11,7 @@ var _item_delay: float = 2.0
 var _item_timer: float = 0.0
 var _stuck_timer: float = 0.0
 var _time: float = 0.0
+var battle_mode: bool = false
 
 
 func _ready() -> void:
@@ -21,9 +22,18 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if kart == null or kart.path == null or kart.stats == null:
+	if kart == null or kart.stats == null or kart.is_remote or not kart.is_multiplayer_authority():
+		return
+	if kart.eliminated:
 		return
 	_time += delta
+	if battle_mode:
+		_battle_step(delta)
+		_handle_stuck(delta)
+		_handle_items(delta)
+		return
+	if kart.path == null:
+		return
 	var path: TrackPath = kart.path
 	var speed_abs: float = absf(kart.speed)
 
@@ -55,6 +65,39 @@ func _physics_process(delta: float) -> void:
 	_avoid_karts(delta)
 	_handle_stuck(delta)
 	_handle_items(delta)
+
+
+## Batalha: persegue o rival mais próximo, evita o chafariz central e as paredes.
+func _battle_step(_delta: float) -> void:
+	var pos: Vector3 = kart.global_position
+	pos.y = 0.0
+	var target: KartController = _nearest_rival()
+	var aim: Vector3 = -pos
+	if target != null and pos.length() < 62.0:
+		aim = target.global_position - pos
+	if pos.length() < 15.0:
+		aim = pos # perto do chafariz: afasta
+	aim.y = 0.0
+	var b: Basis = kart.global_transform.basis
+	var ang: float = atan2(aim.dot(b.x), aim.dot(-b.z))
+	kart.in_steer = clampf(ang * 1.8, -1.0, 1.0)
+	kart.in_throttle = 1.0
+	kart.in_brake = 0.0
+	kart.in_drift = false
+
+
+func _nearest_rival() -> KartController:
+	var best: KartController = null
+	var best_d: float = INF
+	for node in get_tree().get_nodes_in_group("karts"):
+		var other: KartController = node as KartController
+		if other == null or other == kart or other.eliminated:
+			continue
+		var d: float = kart.global_position.distance_to(other.global_position)
+		if d < best_d:
+			best_d = d
+			best = other
+	return best
 
 
 func _avoid_karts(delta: float) -> void:
@@ -91,6 +134,10 @@ func _handle_items(delta: float) -> void:
 		return
 	_item_timer += delta
 	if _item_timer >= _item_delay:
+		if battle_mode and (kart.held_item == ItemDefs.Type.BOLA_QUADRADA or kart.held_item == ItemDefs.Type.CHINELO):
+			var rival: KartController = _nearest_rival()
+			if rival == null or kart.global_position.distance_to(rival.global_position) > 55.0:
+				return
 		_item_timer = 0.0
 		_item_delay = randf_range(1.5, 5.0)
 		kart.use_item()

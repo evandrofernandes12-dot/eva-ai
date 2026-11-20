@@ -3,6 +3,7 @@ extends Area3D
 ## Base de todos os itens lançáveis/colocáveis. Camadas: item = 4 (valor 8), detecta karts = 3 (valor 4).
 
 var owner_kart: KartController
+var net_id: int = -1 # id de rede (-1 = offline)
 var lifetime: float = 15.0
 var arm_time: float = 0.5 # o dono é imune durante este tempo
 var armed: bool = false
@@ -15,6 +16,7 @@ func _ready() -> void:
 	monitoring = true
 	monitorable = false
 	body_entered.connect(_on_body_entered)
+	add_to_group("net_items")
 	_build_visual()
 
 
@@ -47,6 +49,14 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if k == owner_kart and not armed:
 		return
+	if k.eliminated or not k.is_multiplayer_authority():
+		return # online: só quem controla o kart aplica o acerto
+	if net_id >= 0 and NetworkManager.active:
+		var gm: Node = get_tree().current_scene
+		if gm != null and gm.has_method("net_item_hit"):
+			gm.rpc("net_item_hit", net_id)
+	if owner_kart != null and k != owner_kart:
+		owner_kart.rival_hit.emit()
 	_hit_kart(k)
 
 
