@@ -105,7 +105,7 @@ static func montar(id: String, armado := true) -> Node3D:
 			_prender(sk, a)
 	return m
 
-const PELE := Color(0.82, 0.66, 0.56)   # multiplica a textura da pele (1,1,1 = original, que saía clara demais no tablet)
+const PELE := Color(0.66, 0.48, 0.38)   # multiplica a textura da pele (1,1,1 = original, que saía clara demais no tablet)
 
 ## Troca o material do corpo por um fosco, com cor de pele mais forte e sem brilho branco.
 static func _pele(raiz: Node) -> void:

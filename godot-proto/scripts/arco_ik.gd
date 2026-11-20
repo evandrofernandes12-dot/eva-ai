@@ -27,6 +27,9 @@ func _preparar(sk: Skeleton3D) -> bool:
 	for n in ["upperarm_l", "lowerarm_l", "hand_l", "upperarm_r", "lowerarm_r", "hand_r", "spine_01", "spine_03", "head", "thigh_l", "thigh_r", "pelvis"]:
 		var k := sk.find_bone(n)
 		if k < 0:
+			k = sk.find_bone(n.capitalize())   # nos heróis a cabeça é "Head"
+		if k < 0:
+			push_warning("arco_ik: osso não achado: " + n)
 			return false
 		_i[n] = k
 	var rest := func(n: String) -> Vector3: return sk.get_bone_global_rest(_i[n]).origin
