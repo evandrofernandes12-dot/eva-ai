@@ -10,7 +10,6 @@ var _buttons: Array[TouchButton] = []
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# esquerda: volante
 	_add("◀", "steer_left", 30, 40, 180, false)
@@ -22,12 +21,21 @@ func _ready() -> void:
 	_add("DRIFT", "drift", 30, 250, 150, true)
 	_add("ITEM", "use_item", 200, 215, 130, true, 24)
 	var pause: TouchButton = _add("II", "", 20, 0, 80, true, 34)
-	pause.anchor_top = 0.0
-	pause.anchor_bottom = 0.0
-	pause.offset_top = 150.0
-	pause.offset_bottom = 230.0
+	pause.from_top = 150.0
 	pause.tapped.connect(func() -> void: pause_pressed.emit())
+	get_viewport().size_changed.connect(_layout)
+	_layout()
 	visible = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+
+
+## Posiciona os botões em coordenadas absolutas da tela (independe do tamanho do pai).
+func _layout() -> void:
+	var vs: Vector2 = get_viewport_rect().size
+	for b in _buttons:
+		var x: float = vs.x - b.margin - b.size_px if b.right_side else b.margin
+		var y: float = b.from_top if b.from_top >= 0.0 else vs.y - b.bottom - b.size_px
+		b.position = Vector2(x, y)
+		b.size = Vector2(b.size_px, b.size_px)
 
 
 func _input(event: InputEvent) -> void:
@@ -46,16 +54,10 @@ func _add(text: String, action: String, margin: float, bottom: float, size_px: f
 	b.action = action
 	b.label_text = text
 	b.font_size = font
-	if right_side:
-		b.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		b.offset_right = -margin
-		b.offset_left = -margin - size_px
-	else:
-		b.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-		b.offset_left = margin
-		b.offset_right = margin + size_px
-	b.offset_bottom = -bottom
-	b.offset_top = -bottom - size_px
+	b.margin = margin
+	b.bottom = bottom
+	b.size_px = size_px
+	b.right_side = right_side
 	add_child(b)
 	_buttons.append(b)
 	return b
@@ -68,6 +70,11 @@ class TouchButton extends Control:
 	var action: String = ""
 	var label_text: String = ""
 	var font_size: int = 28
+	var margin: float = 0.0
+	var bottom: float = 0.0
+	var size_px: float = 100.0
+	var right_side: bool = true
+	var from_top: float = -1.0
 	var _touch_index: int = -99
 	var _down: bool = false
 
