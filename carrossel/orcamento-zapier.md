@@ -25,4 +25,6 @@ Tudo que o usuário posta à mão não gasta tarefa. Quanto mais stories manuais
 ## Enquanto os créditos não voltam (modo manual)
 NÃO usar o Zapier. Às 19:00 de cada dia, preparar o pacote do DIA SEGUINTE e enviar ao usuário todos os arquivos
 (slides PNG em ordem, vídeos dos stories e do reel) e as legendas completas para copiar e colar. O usuário posta à mão.
+A entrega é UM ZIP por dia (`python3 carrossel/empacotar.py <pasta-do-dia> <saida.zip>`), para o usuário baixar uma vez e extrair no tablet,
+em vez de salvar os arquivos um por um.
 Voltar a publicar pelo Zapier só quando o usuário avisar que os créditos voltaram e escolher o plano.
