@@ -1,12 +1,10 @@
 extends Node
-## Online: lobby + sincronização. Cada jogador simula o próprio kart e envia o estado (20x/s);
-## o anfitrião também simula os bots e decide os resultados.
+## Online. Duas formas de jogar:
+##  - Servidor oficial (WebSocket/wss): funciona no navegador e em qualquer aparelho. É o padrão.
+##  - Sala na rede local (ENet/UDP): só em PC/tablet/celular nativo, com busca automática de salas.
 ##
-## Transportes:
-##  - ENet (UDP, porta 47320): sala criada por um jogador. Funciona na mesma rede Wi-Fi (com busca
-##    automática de salas) ou pela internet via IP público + redirecionamento de porta / VPN (Tailscale etc.).
-##  - WebSocket: entrar em "ws://host:porta" (para servidor dedicado atrás de proxy).
-##  - Servidor dedicado: rode o projeto com  `--headless -- --server`  (ver README).
+## Modelo: o servidor (dedicado ou um jogador no modo LAN) repassa o estado de cada kart a todos.
+## Cada jogador simula o próprio kart e envia o estado 20x/s. Bots são simulados pelo servidor.
 
 signal lobby_updated
 signal connected_ok
@@ -14,6 +12,10 @@ signal connect_failed
 signal disconnected_from_host
 signal rooms_updated
 
+## Mude a cada alteração que afete a rede. Cliente e servidor precisam ter a mesma versão.
+const GAME_VERSION: String = "2.1"
+## Endereço do servidor oficial (Render). Troque pelo endereço real depois de criar o serviço.
+const DEFAULT_SERVER_URL: String = "wss://chavinhos-kart.onrender.com"
 const PORT: int = 47320
 const DISCOVERY_PORT: int = 47321
 const MAX_HUMANS: int = 8
@@ -27,6 +29,7 @@ var settings: Dictionary = {"battle": false, "track": 0, "laps": 3}
 var config: Dictionary = {}    # configuração da corrida em andamento
 var rooms: Dictionary = {}     # ip -> { name, port, count, seen }
 var racing: bool = false
+var last_error: String = ""
 
 var _my_name: String = "Jogador"
 var _my_racer: String = "chaves"
@@ -43,13 +46,20 @@ func _ready() -> void:
 	multiplayer.server_disconnected.connect(_on_server_gone)
 
 
+static func is_web() -> bool:
+	return OS.has_feature("web")
+
+
 func my_id() -> int:
 	return multiplayer.get_unique_id() if active else 1
 
 
 # ===================================================================== conexão
 
+## Sala na rede local (somente nativo). Retorna código de erro.
 func host_game(room: String, player_name: String, racer_id: String) -> int:
+	if is_web():
+		return ERR_UNAVAILABLE
 	leave()
 	var peer := ENetMultiplayerPeer.new()
 	var err: int = peer.create_server(PORT, MAX_HUMANS)
@@ -66,12 +76,18 @@ func host_game(room: String, player_name: String, racer_id: String) -> int:
 	return OK
 
 
+## Servidor oficial: roda com `--headless -- --server` (ver Dockerfile). Usa WebSocket para
+## o navegador conseguir conectar. Na nuvem a porta vem da variável PORT.
 func host_dedicated() -> int:
 	leave()
-	var peer := ENetMultiplayerPeer.new()
-	var err: int = peer.create_server(PORT, MAX_HUMANS)
+	var port: int = PORT
+	var env_port: String = OS.get_environment("PORT")
+	if env_port != "":
+		port = int(env_port)
+	var peer := WebSocketMultiplayerPeer.new()
+	var err: int = peer.create_server(port)
 	if err != OK:
-		push_error("Não foi possível abrir a porta %d" % PORT)
+		push_error("Não foi possível abrir a porta %d" % port)
 		return err
 	multiplayer.multiplayer_peer = peer
 	active = true
@@ -80,23 +96,32 @@ func host_dedicated() -> int:
 	room_name = "Servidor Chavinho"
 	players = {}
 	settings = {"battle": false, "track": 0, "laps": 3}
-	_start_broadcast()
-	print("Servidor dedicado ouvindo na porta ", PORT)
+	print("Servidor dedicado (WebSocket) ouvindo na porta ", port, " - versão ", GAME_VERSION)
 	return OK
 
 
+## address: "" ou "oficial" = servidor oficial; ws(s)://... ; host (no navegador vira wss://host);
+## IP ou IP:porta (somente nativo, rede local, via ENet).
 func join_game(address: String, player_name: String, racer_id: String) -> int:
 	leave()
 	_my_name = player_name
 	_my_racer = racer_id
+	last_error = ""
+	var addr: String = address.strip_edges()
+	if addr == "" or addr == "oficial":
+		addr = DEFAULT_SERVER_URL
 	var peer: MultiplayerPeer
 	var err: int
-	if address.begins_with("ws://") or address.begins_with("wss://"):
+	if addr.begins_with("ws://") or addr.begins_with("wss://"):
 		var ws := WebSocketMultiplayerPeer.new()
-		err = ws.create_client(address)
+		err = ws.create_client(addr)
 		peer = ws
+	elif is_web():
+		var ws2 := WebSocketMultiplayerPeer.new()
+		err = ws2.create_client("wss://" + addr)
+		peer = ws2
 	else:
-		var host: String = address.strip_edges()
+		var host: String = addr
 		var port: int = PORT
 		if ":" in host:
 			var parts: PackedStringArray = host.split(":")
@@ -117,7 +142,7 @@ func join_game(address: String, player_name: String, racer_id: String) -> int:
 func leave() -> void:
 	stop_discovery()
 	_udp_tx = null
-	if multiplayer.multiplayer_peer != null:
+	if multiplayer.multiplayer_peer != null and not (multiplayer.multiplayer_peer is OfflineMultiplayerPeer):
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	active = false
@@ -130,12 +155,14 @@ func leave() -> void:
 
 
 func _on_connected() -> void:
-	_net_register.rpc_id(1, _my_name, _my_racer)
-	connected_ok.emit()
+	# Só vira "conectado" quando o servidor aceita (_net_welcome), para mostrar erros de versão.
+	_net_register.rpc_id(1, _my_name, _my_racer, GAME_VERSION)
 
 
 func _on_connection_failed() -> void:
 	leave()
+	if last_error == "":
+		last_error = "Não consegui conectar. Verifique o endereço e a internet."
 	connect_failed.emit()
 
 
@@ -148,6 +175,12 @@ func _on_peer_disconnected(id: int) -> void:
 	if is_host and players.has(id):
 		players.erase(id)
 		_sync()
+
+
+func _kick_later(id: int) -> void:
+	get_tree().create_timer(0.5).timeout.connect(func() -> void:
+		if multiplayer.multiplayer_peer != null and multiplayer.get_peers().has(id):
+			multiplayer.multiplayer_peer.disconnect_peer(id))
 
 
 # ===================================================================== lobby
@@ -182,15 +215,33 @@ func _sync() -> void:
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func _net_register(pname: String, racer_id: String) -> void:
+func _net_register(pname: String, racer_id: String, version: String) -> void:
 	if not is_host:
 		return
 	var id: int = multiplayer.get_remote_sender_id()
+	if version != GAME_VERSION:
+		_net_rejected.rpc_id(id, "Versão diferente (sua %s, servidor %s). Atualize a página (Ctrl+F5)." % [version, GAME_VERSION])
+		_kick_later(id)
+		return
 	if players.size() >= MAX_HUMANS or racing:
-		multiplayer.multiplayer_peer.disconnect_peer(id)
+		_net_rejected.rpc_id(id, "Sala cheia ou corrida em andamento. Tente de novo em instantes.")
+		_kick_later(id)
 		return
 	players[id] = {"name": pname.substr(0, 16), "racer": racer_id, "ready": false}
+	_net_welcome.rpc_id(id)
 	_sync()
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_welcome() -> void:
+	connected_ok.emit()
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_rejected(msg: String) -> void:
+	last_error = msg
+	leave()
+	connect_failed.emit()
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -241,12 +292,13 @@ func start_race() -> void:
 			used[r.id] = true
 	slots.shuffle()
 	var cfg: Dictionary = {
-		"battle": bool(settings["battle"]), "track": int(settings["track"]),
-		"laps": int(settings["laps"]), "slots": slots,
+		"battle": false,  # Batalha de Balões ainda não é online
+		"track": int(settings["track"]),
+		"laps": int(settings["laps"]),
+		"slots": slots,
 	}
 	if dedicated:
 		cfg["track"] = randi() % TrackCatalog.count()
-		cfg["battle"] = false
 		cfg["laps"] = 3
 	config = cfg
 	Global.mode = Global.Mode.ONLINE
@@ -283,10 +335,12 @@ func _net_return_lobby() -> void:
 	Global.goto_lobby()
 
 
-# ===================================================================== descoberta de salas (LAN)
+# ===================================================================== descoberta de salas (LAN, nativo)
 
 func local_addresses() -> PackedStringArray:
 	var out := PackedStringArray()
+	if is_web():
+		return out
 	for a in IP.get_local_addresses():
 		if a.count(".") == 3 and not a.begins_with("127.") and not a.begins_with("169.254."):
 			out.append(a)
@@ -296,6 +350,8 @@ func local_addresses() -> PackedStringArray:
 func start_discovery() -> void:
 	stop_discovery()
 	rooms.clear()
+	if is_web():
+		return
 	_udp_rx = PacketPeerUDP.new()
 	if _udp_rx.bind(DISCOVERY_PORT) != OK:
 		_udp_rx = null
@@ -336,7 +392,7 @@ func _process(delta: float) -> void:
 				changed = true
 		if changed:
 			rooms_updated.emit()
-	# servidor dedicado: inicia sozinho quando todos estiverem prontos
+	# servidor: inicia sozinho quando todos estiverem prontos
 	if dedicated and is_host and not racing:
 		var all_ready: bool = not players.is_empty()
 		for id in players:

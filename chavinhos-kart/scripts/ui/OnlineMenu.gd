@@ -1,6 +1,7 @@
 class_name OnlineMenu
 extends Control
-## Menu online: criar sala, entrar numa sala encontrada na rede local ou digitar IP/endereço.
+## Menu online. No navegador só há o servidor oficial (e endereço manual).
+## No PC/tablet/celular nativo também dá para criar sala na rede local.
 
 var _status: Label
 var _rooms_box: VBoxContainer
@@ -10,6 +11,7 @@ var _busy: bool = false
 
 func _ready() -> void:
 	NetworkManager.leave()
+	var web: bool = NetworkManager.is_web()
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(UIStyle.gradient_bg(Color(0.2, 0.4, 0.75), Color(0.1, 0.18, 0.35)))
 	var margin := MarginContainer.new()
@@ -28,46 +30,54 @@ func _ready() -> void:
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(row)
 
-	# ---- criar sala
-	var left: PanelContainer = UIStyle.card()
-	row.add_child(left)
-	var lcol := VBoxContainer.new()
-	lcol.add_theme_constant_override("separation", 10)
-	left.add_child(lcol)
-	lcol.add_child(UIStyle.label("Criar sala", 30, Color.WHITE, 6))
-	var info: Label = UIStyle.label("Seus amigos entram pela mesma rede Wi-Fi\n(a sala aparece sozinha na lista deles).", 18, Color(1, 1, 0.9), 3)
-	lcol.add_child(info)
-	var host: Button = UIStyle.button("CRIAR SALA", 28, Vector2(340, 62))
-	host.pressed.connect(_host)
-	lcol.add_child(host)
-	lcol.add_child(UIStyle.label("Pela internet: use o IP público + porta UDP %d\n(ou uma VPN como Tailscale) e passe o endereço aos amigos." % NetworkManager.PORT, 16, Color(0.8, 0.9, 1.0), 3))
+	# ---- criar sala (somente nativo)
+	if not web:
+		var left: PanelContainer = UIStyle.card()
+		row.add_child(left)
+		var lcol := VBoxContainer.new()
+		lcol.add_theme_constant_override("separation", 10)
+		left.add_child(lcol)
+		lcol.add_child(UIStyle.label("Criar sala na rede", 30, Color.WHITE, 6))
+		lcol.add_child(UIStyle.label("Seus amigos na mesma Wi-Fi veem a sala sozinhos.", 18, Color(1, 1, 0.9), 3))
+		var host: Button = UIStyle.button("CRIAR SALA", 28, Vector2(340, 62))
+		host.pressed.connect(_host)
+		lcol.add_child(host)
 
 	# ---- entrar
 	var right: PanelContainer = UIStyle.card()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(right)
 	var rcol := VBoxContainer.new()
-	rcol.add_theme_constant_override("separation", 8)
+	rcol.add_theme_constant_override("separation", 10)
 	right.add_child(rcol)
-	rcol.add_child(UIStyle.label("Salas na rede local", 30, Color.WHITE, 6))
-	_rooms_box = VBoxContainer.new()
-	_rooms_box.custom_minimum_size = Vector2(480, 150)
-	rcol.add_child(_rooms_box)
-	rcol.add_child(UIStyle.label("Ou digite o endereço (IP, IP:porta ou ws://...)", 18, Color(1, 1, 0.9), 3))
+	rcol.add_child(UIStyle.label("Servidor oficial", 30, Color.WHITE, 6))
+	rcol.add_child(UIStyle.label("Funciona no navegador e em qualquer aparelho, de qualquer lugar.", 18, Color(1, 1, 0.9), 3))
+	var official: Button = UIStyle.button("ENTRAR NO SERVIDOR", 28, Vector2(460, 62))
+	official.pressed.connect(func() -> void: _join(""))
+	rcol.add_child(official)
+
+	if not web:
+		rcol.add_child(UIStyle.label("Salas na rede local", 24, Color.WHITE, 4))
+		_rooms_box = VBoxContainer.new()
+		_rooms_box.custom_minimum_size = Vector2(480, 110)
+		rcol.add_child(_rooms_box)
+
+	rcol.add_child(UIStyle.label("Ou digite um endereço", 18, Color(1, 1, 0.9), 3))
 	var ip_row := HBoxContainer.new()
 	ip_row.add_theme_constant_override("separation", 8)
 	rcol.add_child(ip_row)
 	_ip_edit = LineEdit.new()
-	_ip_edit.placeholder_text = "192.168.0.10"
+	_ip_edit.placeholder_text = "meu-servidor.onrender.com" if web else "192.168.0.10  ou  nome.onrender.com"
 	_ip_edit.text = str(Save.get_setting("last_ip", ""))
 	_ip_edit.custom_minimum_size = Vector2(300, 52)
-	_ip_edit.add_theme_font_size_override("font_size", 24)
+	_ip_edit.add_theme_font_size_override("font_size", 22)
 	ip_row.add_child(_ip_edit)
-	var join: Button = UIStyle.button("ENTRAR", 24, Vector2(160, 52))
+	var join: Button = UIStyle.button("ENTRAR", 24, Vector2(150, 52))
 	join.pressed.connect(func() -> void: _join(_ip_edit.text))
 	ip_row.add_child(join)
 
 	_status = UIStyle.label("", 22, Color(1.0, 0.85, 0.4), 5)
+	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(_status)
 	var back: Button = UIStyle.button("VOLTAR", 24, Vector2(220, 56))
 	back.pressed.connect(Global.goto_menu)
@@ -76,9 +86,10 @@ func _ready() -> void:
 	NetworkManager.rooms_updated.connect(_refresh_rooms)
 	NetworkManager.connected_ok.connect(_on_connected)
 	NetworkManager.connect_failed.connect(_on_failed)
-	NetworkManager.start_discovery()
-	_refresh_rooms()
-	host.grab_focus()
+	if not web:
+		NetworkManager.start_discovery()
+		_refresh_rooms()
+	official.grab_focus()
 
 
 func _exit_tree() -> void:
@@ -92,6 +103,8 @@ func _exit_tree() -> void:
 
 
 func _refresh_rooms() -> void:
+	if _rooms_box == null:
+		return
 	for c in _rooms_box.get_children():
 		c.queue_free()
 	if NetworkManager.rooms.is_empty():
@@ -117,7 +130,7 @@ func _host() -> void:
 
 
 func _join(address: String) -> void:
-	if _busy or address.strip_edges() == "":
+	if _busy:
 		return
 	_busy = true
 	Save.set_setting("last_ip", address)
@@ -127,7 +140,7 @@ func _join(address: String) -> void:
 		_busy = false
 		_status.text = "Endereço inválido."
 		return
-	_status.text = "Conectando a %s ..." % address
+	_status.text = "Conectando... (se o servidor estiver dormindo, pode levar até 1 minuto)"
 
 
 func _on_connected() -> void:
@@ -137,4 +150,4 @@ func _on_connected() -> void:
 
 func _on_failed() -> void:
 	_busy = false
-	_status.text = "Não consegui conectar. Verifique o endereço e se estão na mesma rede."
+	_status.text = NetworkManager.last_error if NetworkManager.last_error != "" else "Não consegui conectar."

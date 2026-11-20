@@ -30,6 +30,8 @@ corrida de 3 voltas contra 7 pilotos de IA (Circuito da Vila) → pódio.
 Circuito da Vila · Acapulco Sunset (areia freia muito) · Casa da Bruxa do 71 (interior escuro) · Ferro-Velho do Seu Barriga.
 
 ## Online
+Veja **DEPLOY.md** para publicar a versão web e o servidor. Resumo: amigos entram pelo link da versão web, de qualquer aparelho.
+
 - **Mesma rede Wi-Fi**: um toca em *Jogar online → Criar sala*; os outros veem a sala na lista e tocam nela.
 - **Pela internet**: o anfitrião libera a porta **UDP 47320** no roteador (ou todos usam uma VPN como Tailscale) e passa o IP; os outros digitam em *Entrar*.
 - **Servidor dedicado** (opcional, em um PC/VPS): `godot --headless --path chavinhos-kart -- --server`. Os jogadores entram pelo IP, marcam PRONTO e a corrida começa sozinha (pista sorteada).

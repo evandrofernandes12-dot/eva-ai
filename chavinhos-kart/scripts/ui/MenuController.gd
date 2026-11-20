@@ -57,6 +57,17 @@ func _ready() -> void:
 	quit.pressed.connect(func() -> void: get_tree().quit())
 	row.add_child(quit)
 
+	var ver: Label = UIStyle.label("v%s" % NetworkManager.GAME_VERSION, 16, Color(1, 1, 1, 0.85), 3)
+	ver.anchor_left = 1.0
+	ver.anchor_top = 1.0
+	ver.anchor_right = 1.0
+	ver.anchor_bottom = 1.0
+	ver.offset_left = -120.0
+	ver.offset_top = -34.0
+	ver.offset_right = -12.0
+	ver.offset_bottom = -8.0
+	ver.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(ver)
 	_build_controls_panel()
 	first.grab_focus()
 	await get_tree().process_frame

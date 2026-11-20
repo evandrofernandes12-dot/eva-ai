@@ -53,8 +53,8 @@ func _on_body_entered(body: Node3D) -> void:
 		return # online: só quem controla o kart aplica o acerto
 	if net_id >= 0 and NetworkManager.active:
 		var gm: Node = get_tree().current_scene
-		if gm != null and gm.has_method("net_item_hit"):
-			gm.rpc("net_item_hit", net_id)
+		if gm != null and gm.has_method("send_net"):
+			gm.call("send_net", "hit", -1, [net_id])
 	if owner_kart != null and k != owner_kart:
 		owner_kart.rival_hit.emit()
 	_hit_kart(k)

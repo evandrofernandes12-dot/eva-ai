@@ -77,6 +77,7 @@ func _ready() -> void:
 	scard.add_child(scol)
 	scol.add_child(UIStyle.label("Corrida", 28, Color.WHITE, 6))
 	_mode_opt = _option(scol, "Modo", ["Corrida", "Batalha de Balões"])
+	(_mode_opt.get_parent() as Control).visible = false # batalha ainda é só offline
 	var tracks: Array[String] = []
 	for i in TrackCatalog.count():
 		tracks.append(TrackCatalog.track_name(i))
@@ -143,7 +144,7 @@ func _on_settings_changed(_i: int) -> void:
 	if _updating:
 		return
 	NetworkManager.set_settings({
-		"battle": _mode_opt.selected == 1,
+		"battle": false,
 		"track": _track_opt.selected,
 		"laps": int(_laps_opt.get_item_text(_laps_opt.selected)),
 	})
@@ -164,13 +165,13 @@ func _refresh() -> void:
 		_players_box.add_child(UIStyle.label("Aguardando jogadores...", 20, Color(0.8, 0.8, 0.8), 3))
 	var s: Dictionary = NetworkManager.settings
 	_updating = true
-	_mode_opt.select(1 if bool(s["battle"]) else 0)
+	_mode_opt.select(0)
 	_track_opt.select(clampi(int(s["track"]), 0, TrackCatalog.count() - 1))
 	for i in _laps_opt.item_count:
 		if int(_laps_opt.get_item_text(i)) == int(s["laps"]):
 			_laps_opt.select(i)
 	_updating = false
-	_track_opt.disabled = (not NetworkManager.is_host) or NetworkManager.dedicated or _mode_opt.selected == 1
+	_track_opt.disabled = (not NetworkManager.is_host) or NetworkManager.dedicated
 	_laps_opt.disabled = _track_opt.disabled
 	var ips: PackedStringArray = NetworkManager.local_addresses()
 	if NetworkManager.is_host:

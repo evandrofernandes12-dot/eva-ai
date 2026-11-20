@@ -343,8 +343,8 @@ func use_item() -> void:
 		_item_counter += 1
 		net_id = net_slot * 1000 + _item_counter
 		var gm: Node = get_tree().current_scene
-		if gm != null and gm.has_method("net_item"):
-			gm.rpc("net_item", net_slot, it, net_id)
+		if gm != null and gm.has_method("send_net") and it != ItemDefs.Type.SANDUICHE and is_multiplayer_authority():
+			gm.call("send_net", "item", net_slot, [it, net_id])
 	ItemDefs.spawn(self, it, net_id)
 
 
@@ -368,8 +368,6 @@ func spin_out(duration: float = 1.2) -> void:
 	boost_power = 0.0
 	speed *= 0.35
 	spun_out.emit()
-	if NetworkManager.active and multiplayer.has_multiplayer_peer():
-		rpc("net_spun", duration)
 	if is_player:
 		AudioManager.play_sfx("spin")
 
@@ -391,42 +389,41 @@ func reset_to_track() -> void:
 
 # ===================================================================== rede (online)
 
+## Estado enviado ao servidor (que repassa aos outros) 20 vezes por segundo.
+func net_payload() -> Array:
+	return [global_position, rotation.y, speed, in_steer, drifting, drift_dir, drift_level,
+		boost_timer > 0.0, spin_timer > 0.0, Vector3(velocity.x, 0.0, velocity.z)]
+
+
 func _net_send(delta: float) -> void:
-	if not NetworkManager.active or not multiplayer.has_multiplayer_peer():
+	if not NetworkManager.active or is_remote or not is_multiplayer_authority():
 		return
 	_net_timer -= delta
 	if _net_timer > 0.0:
 		return
-	_net_timer = 0.05 # 20 envios por segundo
-	net_state.rpc(global_position, rotation.y, speed, in_steer, drifting, drift_dir, drift_level,
-		boost_timer > 0.0, spin_timer > 0.0, Vector3(velocity.x, 0.0, velocity.z))
+	_net_timer = 0.05
+	var gm: Node = get_tree().current_scene
+	if gm != null and gm.has_method("send_net"):
+		gm.call("send_net", "state", net_slot, net_payload())
 
 
-@rpc("authority", "call_remote", "unreliable_ordered")
-func net_state(pos: Vector3, rot_y: float, spd: float, steer: float, drift: bool, ddir: float,
-		dlevel: int, boost: bool, spin: bool, vel: Vector3) -> void:
-	if not is_remote:
+func apply_net_state(d: Array) -> void:
+	if not is_remote or d.size() < 10:
 		return
-	_net_pos = pos
-	_net_rot = rot_y
-	_net_speed = spd
-	_net_steer = steer
-	_net_vel = vel
-	drifting = drift
-	drift_dir = ddir
-	drift_level = dlevel
-	boost_timer = 0.3 if boost else 0.0
-	spin_timer = 0.3 if spin else 0.0
+	_net_pos = d[0]
+	_net_rot = d[1]
+	_net_speed = d[2]
+	_net_steer = d[3]
+	drifting = d[4]
+	drift_dir = d[5]
+	drift_level = d[6]
+	boost_timer = 0.3 if d[7] else 0.0
+	spin_timer = 0.3 if d[8] else 0.0
+	_net_vel = d[9]
 	if not _net_has:
 		_net_has = true
-		global_position = pos
-		rotation.y = rot_y
-
-
-@rpc("authority", "call_remote", "reliable")
-func net_spun(_duration: float) -> void:
-	if is_remote:
-		spun_out.emit()
+		global_position = _net_pos
+		rotation.y = _net_rot
 
 
 ## Interpola o kart remoto até o último estado recebido (sem física local).

@@ -269,6 +269,57 @@ func kart_by_slot(slot: int) -> KartController:
 	return null
 
 
+# ---- repasse de eventos: clientes falam só com o servidor; o servidor repassa aos outros.
+# kind: "state" (posição do kart), "item" (item lançado), "hit" (item acertou alguém).
+
+## Envia um evento. Em qualquer aparelho, chame sempre este método.
+func send_net(kind: String, slot: int, data: Array) -> void:
+	if not online:
+		return
+	if multiplayer.is_server():
+		_broadcast(kind, slot, data, 0)
+	else:
+		up_msg.rpc_id(1, kind, slot, data)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func up_msg(kind: String, slot: int, data: Array) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender: int = multiplayer.get_remote_sender_id()
+	var k: KartController = kart_by_slot(slot)
+	if kind != "hit" and (k == null or k.get_multiplayer_authority() != sender):
+		return # só o dono do kart pode mandar o estado/itens dele
+	_apply(kind, slot, data)
+	_broadcast(kind, slot, data, sender)
+
+
+func _broadcast(kind: String, slot: int, data: Array, except: int) -> void:
+	for id in multiplayer.get_peers():
+		if int(id) != except:
+			down_msg.rpc_id(int(id), kind, slot, data)
+
+
+@rpc("authority", "call_remote", "reliable")
+func down_msg(kind: String, slot: int, data: Array) -> void:
+	_apply(kind, slot, data)
+
+
+func _apply(kind: String, slot: int, data: Array) -> void:
+	if kind == "state":
+		var k: KartController = kart_by_slot(slot)
+		if k != null:
+			k.apply_net_state(data)
+	elif kind == "item":
+		var k2: KartController = kart_by_slot(slot)
+		if k2 != null:
+			ItemDefs.spawn(k2, int(data[0]), int(data[1]))
+	elif kind == "hit":
+		for n in get_tree().get_nodes_in_group("net_items"):
+			if int(n.get("net_id")) == int(data[0]):
+				n.queue_free()
+
+
 @rpc("any_peer", "call_remote", "reliable")
 func net_ready() -> void:
 	if multiplayer.is_server():
@@ -278,23 +329,6 @@ func net_ready() -> void:
 @rpc("authority", "call_remote", "reliable")
 func net_go() -> void:
 	_begin()
-
-
-## Um jogador usou um item: os outros peers criam a cópia para ver/colidir com seus próprios karts.
-@rpc("any_peer", "call_remote", "reliable")
-func net_item(slot: int, type: int, id: int) -> void:
-	if type == ItemDefs.Type.SANDUICHE:
-		return # o turbo já aparece pelo estado do kart
-	var k: KartController = kart_by_slot(slot)
-	if k != null:
-		ItemDefs.spawn(k, type, id)
-
-
-@rpc("any_peer", "call_remote", "reliable")
-func net_item_hit(id: int) -> void:
-	for n in get_tree().get_nodes_in_group("net_items"):
-		if int(n.get("net_id")) == id:
-			n.queue_free()
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -319,7 +353,7 @@ func net_takeover(slot: int) -> void:
 		k.set_multiplayer_authority(1)
 
 
-## Anfitrião: um jogador saiu no meio da corrida e seu kart vira bot.
+## Servidor: um jogador saiu no meio da corrida e o kart dele vira bot.
 func _on_peer_left(id: int) -> void:
 	if not multiplayer.is_server():
 		return
