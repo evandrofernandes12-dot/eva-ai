@@ -31,6 +31,7 @@ var _ataque: StringName = &""   # animação de ataque do modelo (urso: levanta 
 const PASSOS := {"urso": [["Walk", 1.1], ["Trot", 4.5], ["Run", 8.0]]}
 ## Giro do .glb para o pet olhar para -Z (a maioria olha para +Z; o lobo original olha para -X).
 const GIRO := {"lobo": -PI / 2.0}
+const URSO_COR := Color(0.72, 0.71, 0.7)   # multiplica a textura do urso (1 = original, claro demais)
 const ATAQUE_DURA := 1.7     # duração da patada do urso (s)
 const ATAQUE_ACERTA := 0.55  # quando a patada acerta, contado do começo (s)
 
@@ -182,6 +183,23 @@ func _ready() -> void:
 			for mi: MeshInstance3D in meshes:
 				mi.material_override = mv
 			_asas_penas(Vector3(0.24, 1.42, -0.25), 1.15)
+		elif tipo == "urso":   # pelo fosco e um pouco mais escuro (brilhava demais no tablet)
+			var ms: Array = []
+			Fit._collect(m, ms)
+			for mi: MeshInstance3D in ms:
+				if mi.mesh == null:
+					continue
+				for i in mi.mesh.get_surface_count():
+					var orig := mi.mesh.surface_get_material(i) as StandardMaterial3D
+					if orig == null:
+						continue
+					var fosco := orig.duplicate() as StandardMaterial3D
+					fosco.albedo_color = URSO_COR
+					fosco.roughness = 1.0
+					fosco.metallic = 0.0
+					fosco.metallic_specular = 0.1
+					fosco.emission_enabled = false
+					mi.set_surface_override_material(i, fosco)
 	else:
 		match tipo:
 			"cavalo":
