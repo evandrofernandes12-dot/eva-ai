@@ -31,6 +31,24 @@ for f in sorted(glob.glob(os.path.join(pasta, '*.gltf'))):
     zn += 0.028 * np.sin(u * np.pi * 3.5) * (0.2 + t)   # dobras verticais
     yn = y + 0.03 * u ** 2 * (1 - t)           # borda sobe um pouco nos ombros
     Q = np.stack([xn, yn, zn], 1)
+    # folga: cada ponto fica atrás da roupa/corpo naquela altura (o manto do mago aparecia através da capa)
+    corpo = []
+    for me in j['meshes']:
+        if me['name'] in ('Capa', 'Capuz'): continue
+        for pr in me['primitives']:
+            a2, o2, d2, _ = vista(j, pr['attributes']['POSITION'])
+            corpo.append(np.frombuffer(b, d2, a2['count'] * 3, o2).reshape(-1, 3))
+    C = np.concatenate(corpo).astype(np.float64)
+    C = C[C[:, 2] < 0.05]
+    empurra = np.zeros(len(Q))
+    for k in range(len(Q)):
+        perto = C[(np.abs(C[:, 1] - Q[k, 1]) < 0.06) & (np.abs(C[:, 0] - Q[k, 0]) < 0.10)]
+        if len(perto):
+            folga = 0.035 + 0.09 * t[k]
+            empurra[k] = max(0.0, Q[k, 2] - (perto[:, 2].min() - folga))
+    viz = np.linalg.norm(Q[:, None, :2] - Q[None, :, :2], axis=2) < 0.07
+    empurra = np.array([empurra[viz[k]].max() for k in range(len(Q))])   # as duas faces do pano andam juntas
+    Q[:, 2] -= empurra
     N = np.zeros_like(Q)
     fn = np.cross(Q[I[:, 1]] - Q[I[:, 0]], Q[I[:, 2]] - Q[I[:, 0]])
     for k in range(3): np.add.at(N, I[:, k], fn)

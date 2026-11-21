@@ -10,9 +10,9 @@ const ESPADAO := ["Sword_Big.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.4, 0.5]
 const LANCA := ["Spear.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 2.3, 0.5, "lanca"]
 const BESTA := ["Besta.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 0.75, 0.0]
 # armas do Sketchfab (CC-BY): espada rúnica (Thomas Garzon), Excalibur (JuanWithOutAim), espada maldita (suddel)
-const ESPADA_RUNICA := ["Espada_Runica.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.3, 0.55]
-const EXCALIBUR := ["Excalibur.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.3, 0.55]
-const ESPADA_MALDITA := ["Espada_Maldita.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.1, 0.46]
+const ESPADA_RUNICA := ["Espada_Runica.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.3, 0.44]   # mão no meio do cabo
+const EXCALIBUR := ["Excalibur.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.3, 0.49]
+const ESPADA_MALDITA := ["Espada_Maldita.glb", "hand_r", MAO_D, Vector3(90, 0, 0), 1.1, 0.40]
 # arco (Sketchfab, CC-BY: Francisco Fischer Pioner): em pé na mão (comprimento no eixo Z do osso, que fica
 # vertical com o braço esticado na mira), corda virada para o arqueiro
 const ARCO := ["Arco.glb", "hand_l", MAO_E, Vector3.ZERO, 1.15, 0.0, "arco"]   # na mão esquerda, guiado por arco_ik.gd
@@ -105,6 +105,7 @@ static func montar(id: String, armado := true) -> Node3D:
 			_prender(sk, a)
 	return m
 
+const CABELO := Color(0.16, 0.09, 0.06)   # castanho escuro (sobrancelha e cabelo)
 const PELE := Color(0.66, 0.48, 0.38)   # multiplica a textura da pele (1,1,1 = original, que saía clara demais no tablet)
 
 ## Troca o material do corpo por um fosco, com cor de pele mais forte e sem brilho branco.
@@ -114,8 +115,17 @@ static func _pele(raiz: Node) -> void:
 	for mi: MeshInstance3D in malhas:
 		if mi.mesh == null:
 			continue
+		if mi.name == "Capa":   # pano fino de dupla face: a própria sombra fazia manchas e serrilhado
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		for i in mi.mesh.get_surface_count():
 			var orig := mi.mesh.surface_get_material(i) as StandardMaterial3D
+			if orig != null and orig.resource_name.begins_with("MI_Hair"):   # sobrancelha/cabelo: a cor vem no COLOR_1, que o Godot ignora
+				var cab := orig.duplicate() as StandardMaterial3D
+				cab.vertex_color_use_as_albedo = false
+				cab.albedo_color = CABELO
+				cab.metallic_specular = 0.2
+				mi.set_surface_override_material(i, cab)
+				continue
 			if orig == null or not orig.resource_name.begins_with("MI_Superhero"):
 				continue
 			var mat := orig.duplicate() as StandardMaterial3D

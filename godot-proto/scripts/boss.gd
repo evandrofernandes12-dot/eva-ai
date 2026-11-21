@@ -22,6 +22,7 @@ const PASSO := 2.1
 var max_hp := 500
 var hp := 500
 var damage := 22
+const FRACAO_GOLPE := 0.33   # o golpe mais forte (chifrada) tira até 1/3 da vida máxima do herói
 var nivel := 1
 var target: Node3D
 var jogo: Node
@@ -120,7 +121,6 @@ func _montar() -> void:
 		_mod = DUAS_MAOS.new()
 		sk.add_child(_mod)
 	Fit.play(_ap, &"AxeIdle")
-	Efeitos.realce(model, Color(1.0, 0.25, 0.1), 0.3)   # luz de borda vermelha no chefe
 
 ## Converte uma posição dada no espaço do modelo (pose de descanso) para o espaço local do osso.
 func _no_osso(sk: Skeleton3D, osso: String, no_modelo: Transform3D) -> Transform3D:
@@ -199,6 +199,9 @@ func _mudar(novo: String) -> void:
 
 func _acertar(alcance: float, dano: int) -> void:
 	if target.get("hp") > 0 and target.global_position.distance_to(global_position) < alcance:
+		var vmax = target.get("max_hp")
+		if vmax != null:   # golpe mais forte tira no máximo FRACAO_GOLPE da vida máxima (antes matava em 2 golpes)
+			dano = mini(dano, int(ceil(float(vmax) * FRACAO_GOLPE * dano / (damage * 1.7))))
 		target.call("hurt", dano)
 
 ## O machado se despedaça na mão dele e some.
