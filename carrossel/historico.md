@@ -1,11 +1,12 @@
 # Histórico e controle de rotação (não repetir)
 
 ## Controle de rotação
-- proximo_tema_psicanalise: 8   (ver temas-psicanalise.md; os nº 4 e 7 já foram feitos)
-- pular_na_rotacao: 5, 6       (já publicados fora de ordem: 6 inveja e comparação em 16/11; 5 angústia de domingo em 17/11). O nº 4 (culpa inconsciente) vem a seguir; depois do 4, seguir do 7.
+- proximo_tema_psicanalise: 9   (ver temas-psicanalise.md; os nº 4, 5, 6 e 7 já foram feitos; nº 8 feito em 21/11)
+- pular_na_rotacao: (nenhum; 4, 5, 6 e 7 já foram feitos)
 - proximo_tema_fe: 4            (ver temas-fe.md)
 
 ## Já publicados
+- 2026-11-21 (sábado, comum, com reel): "Sabotagem amorosa" (temas-psicanalise.md nº 8). Pacote (ZIP com carrossel, reel, 2 stories e legendas) entregue na manhã de 21/11 para postagem manual (o aviso das 19:00 de 20/11 só chegou à sessão em 21/11 às 06:33).
 - 2026-11-20 (sexta, comum, sem reel): "Burnout e cobrança" (temas-psicanalise.md nº 7, burnout e ideal do eu). Pacote entregue ao usuário na noite de 19/11 para postagem manual (Zapier sem créditos até virar o mês).
 - 2026-11-19 (quinta, comum, com reel): "Culpa inconsciente" (temas-psicanalise.md nº 4). Pacote entregue ao usuário na noite de 18/11 para postagem manual (Zapier sem créditos até virar o mês).
 - 2026-11-18 (quarta, fé, sem reel): "Ansiedade e confiança" (temas-fe.md nº 3). Carrossel publicado em 18/11 (id 17910741924669546, não conferido pelo limite do Zapier). Story da manhã: contêiner STORIES criado (id 18648287542036093) mas NÃO publicado, porque o Zapier atingiu o limite de tarefas do período. Vídeos dos stories guardados em media-517667ae88b5d7fe (manha e noite) para postagem manual ou nova tentativa quando o limite do Zapier for resolvido. Versículo: 1 Pedro 5:7 (NVI), redação 'tem cuidado de vocês' (há edição que traz 'cuida de vocês').
