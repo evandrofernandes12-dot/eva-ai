@@ -3,9 +3,10 @@
 ## Controle de rotação
 - proximo_tema_psicanalise: 9   (ver temas-psicanalise.md; os nº 4, 5, 6 e 7 já foram feitos; nº 8 feito em 21/11)
 - pular_na_rotacao: (nenhum; 4, 5, 6 e 7 já foram feitos)
-- proximo_tema_fe: 4            (ver temas-fe.md)
+- proximo_tema_fe: 5            (ver temas-fe.md)
 
 ## Já publicados
+- 2026-11-22 (domingo, fé, sem reel): "Fé e dúvida" (temas-fe.md nº 4). Pacote (ZIP) entregue na noite de 21/11 para postagem manual. Versículo: Marcos 9:24 (NVI), redação "Eu creio; ajuda-me a vencer a minha incredulidade!" (bible.com); o Bíblia Online traz "Creio, ajuda-me..." (só pontuação/"Eu").
 - 2026-11-21 (sábado, comum, com reel): "Sabotagem amorosa" (temas-psicanalise.md nº 8). Pacote (ZIP com carrossel, reel, 2 stories e legendas) entregue na manhã de 21/11 para postagem manual (o aviso das 19:00 de 20/11 só chegou à sessão em 21/11 às 06:33).
 - 2026-11-20 (sexta, comum, sem reel): "Burnout e cobrança" (temas-psicanalise.md nº 7, burnout e ideal do eu). Pacote entregue ao usuário na noite de 19/11 para postagem manual (Zapier sem créditos até virar o mês).
 - 2026-11-19 (quinta, comum, com reel): "Culpa inconsciente" (temas-psicanalise.md nº 4). Pacote entregue ao usuário na noite de 18/11 para postagem manual (Zapier sem créditos até virar o mês).
