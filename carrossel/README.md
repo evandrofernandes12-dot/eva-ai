@@ -1,0 +1,70 @@
+# Conteúdo diário de psicanálise (Instagram)
+
+Conta: `evandro_fernandes.fe_psique` (ID Instagram `17841401082763268`). Conexão Zapier "#2":
+`024a3d45-f321-8b91-b4af-e3c2864fa55d` (app Instagram for Business, `InstagramBusinessCLIAPI`).
+
+## Calendário
+| Dia | Carrossel | Story manhã | Story noite | Reel |
+|---|---|---|---|---|
+| Seg | psicanálise | psicanálise | psicanálise | não |
+| Ter | psicanálise | psicanálise | psicanálise | sim |
+| Qua | **psicanálise e fé** | fé | fé | não |
+| Qui | psicanálise | psicanálise | psicanálise | sim |
+| Sex | psicanálise | psicanálise | psicanálise | não |
+| Sáb | psicanálise | psicanálise | psicanálise | sim |
+| Dom | **psicanálise e fé** | fé | fé | não |
+
+Dias comuns: `temas-psicanalise.md` (30 temas, em ordem). Dias de fé: `temas-fe.md` (17 temas, em ordem, com regras).
+O controle de rotação e os temas já publicados ficam em `historico.md`.
+Os stories do dia seguem o tema do carrossel do mesmo dia. O Reel dos dias Ter/Qui/Sáb usa o tema do carrossel do dia.
+
+## Ferramentas
+- Carrossel: `node carrossel/render.js slides.json <pasta>` (PNG 1080x1440). Exemplo: `exemplos/falso-self.json`.
+- Story em vídeo (com música): `node carrossel/story-video.js story.json saida.mp4` (mp4 1080x1920, ~18 s). TRÊS banners que passam um para o outro
+  (transição escurecendo, sem texto sobreposto), zoom suave e a mesma trilha instrumental. Manhã: 1 gancho (6 s), 2 virada/ideia com o autor (7 s), 3 'HOJE NO FEED' com o tema do carrossel do dia e convite para salvar (5 s).
+  Noite: 1 contexto (6 s), 2 a pergunta (7 s), 3 'ATÉ AMANHÃ' (boa noite e convite para seguir) (5 s). `"segundos"` define a duração de cada banner. Exemplos: `exemplos/story-manha.json` e `story-noite.json`.
+- Story em imagem: mesmo script do carrossel com `"format": "vertical"` e um único slide (PNG 1080x1920). Exemplos: `exemplos/story-manha.json`
+  (rótulo "BOM DIA · ...", frase curta provocativa) e `exemplos/story-noite.json` (rótulo "PARA A NOITE", uma pergunta).
+- Reel: `node carrossel/reel.js reel.json saida.mp4` (mp4 1080x1920, 30 a 45 s, sem voz, transições suaves, com trilha
+  instrumental original gerada por `musica.js`, sem direitos de terceiros). Campo `"musica"` do reel.json: `"reflexivo"`
+  (tom menor, dias comuns), `"esperanca"` (tom maior, dias de fé) ou `"nenhuma"`.
+  Campo `"estilo"`: `"calmo"` (PADRÃO, escolhido pelo usuário: pad suave e notas soltas) ou `"melodico"` (mais rápido, com melodia; o usuário não gostou).
+  Exemplo: `exemplos/reel.json` (`segundos` = duração de cada cena). Fica dentro da zona segura do Instagram.
+
+## Publicação (somente após aprovação explícita do usuário)
+Subir mídia numa pasta `media-<hex aleatório>` na branch de trabalho e usar as URLs
+`https://raw.githubusercontent.com/<dono>/<repo>/<branch>/<pasta>/<arquivo>`. Depois de postar, apagar a pasta.
+
+- **Carrossel:** ação `publish_media_v2` (1 a 10 imagens, `caption`, `instagramPageId`).
+- **Reel:** ação `publish_video` (`video` = URL do mp4, `caption`). Pode falhar com 'Video is still processing'; nesse caso NÃO repetir às cegas (risco de duplicar): conferir se saiu e publicar pela API: POST /media com `media_type=REELS`, `video_url`, `caption`; esperar `status_code=FINISHED`; POST /media_publish.
+- **Story:** não há ação pronta, usar a API do Instagram pelo Zapier (testado, funciona):
+  1. POST `https://graph.facebook.com/v21.0/17841401082763268/media` com `media_type=STORIES` e `video_url=<URL do mp4>`
+     (story em vídeo com música, gerado por `story-video.js`; para imagem parada usar `image_url=<URL do png>`)
+     (ação `_zap_raw_request` mutating, `querystring`). Retorna `id` do contêiner. Testado com vídeo: funciona.
+  2. Conferir com GET `https://graph.facebook.com/v21.0/<id>?fields=status_code` até `FINISHED`.
+  3. POST `https://graph.facebook.com/v21.0/17841401082763268/media_publish` com `creation_id=<id>`.
+  Se algo falhar, entregar a imagem do story ao usuário (caminho completo do PNG) para postar manualmente.
+- Depois, conferir com a ação `new_media`, apagar a pasta de mídia e atualizar `historico.md` (commit e push).
+
+## Tema do dia e conferência (obrigatório antes de mostrar o pacote)
+- Todo JSON do dia (carrossel, story manhã, story noite, reel) tem o campo `"tema"`: o nome CURTO do tema do dia
+  (até 4 palavras, minúsculas, ex.: `"luto e esperança"`), IDÊNTICO nos quatro arquivos.
+- O banner 3 do story da manhã ("HOJE NO FEED") nunca leva o tema escrito à mão: usa `{{tema}}`, que o `render.js` troca pelo campo `tema`.
+- Rodar `node carrossel/conferir.js carrossel.json story-manha.json story-noite.json [reel.json]`. Se acusar problema, corrigir antes de mostrar.
+  Ele pega tema diferente entre os arquivos e texto de exemplo esquecido (ex.: "falso self" num dia de outro tema).
+- Os arquivos de `exemplos/` são só modelos de formato: nunca reaproveitar o texto deles.
+
+## Regras de conteúdo
+- Gancho curto e provocativo; combater o viés de concordância (mostrar o ganho inconsciente).
+- Linguagem neutra em gênero; sem tom de coach; sem promessas de cura nem diagnóstico.
+- Fidelidade teórica: atribuir cada ideia ao autor certo e incluir nuances.
+- Neurociência só com linguagem cautelosa ("estudos sugerem").
+- Legenda com pergunta final, aviso "Conteúdo educativo, não substitui acompanhamento psicológico." e 8 a 10 hashtags de nicho.
+- Carrossel: 8 a 9 slides, no máximo ~30 palavras por slide. Story: no máximo ~15 palavras. Reel: 6 a 8 cenas.
+- Dias de fé: seguir as regras de `temas-fe.md` (sem substituir terapia, sem culpar falta de fé, no máximo um versículo com referência). Versículos SEMPRE na tradução NVI, com o texto conferido.
+
+## Tipos de slide (`kind`) e blocos
+`cover`, `text`, `quote`, `cta`. Blocos: `h1`, `h2`, `p`, `s`, `big`, `orn`, `box`. Destaque dourado: `<b class="g">`.
+
+## Limite do Zapier
+Se qualquer chamada do Zapier responder 'reached its task limit', PARAR (não insistir): registrar no histórico, manter os arquivos na branch e entregar ao usuário os caminhos completos dos arquivos para postagem manual. Cada postagem consome várias tarefas (publicar, contêiner, status, conferir).
