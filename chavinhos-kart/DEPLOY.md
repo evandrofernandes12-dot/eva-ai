@@ -6,7 +6,7 @@ Assim funciona:
 
 ## 1. Publicar a versão web (GitHub Pages)
 1. No repositório, vá em **Settings → Pages**.
-2. Em **Build and deployment → Source**, escolha **GitHub Actions**.
+2. Em **Build and deployment → Source**, escolha **Deploy from a branch**, depois a branch **gh-pages** e a pasta **/ (root)**. Salve.
 3. Faça um envio para a branch (ou clique em *Run workflow* na aba **Actions**). O workflow *Publicar versão web* gera e publica o jogo.
 
 ## 2. Criar o servidor (Render, gratuito)
