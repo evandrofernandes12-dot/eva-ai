@@ -1,6 +1,6 @@
 name: Publicar versão web
 
-# A cada envio para as branches abaixo, exporta o jogo para navegador e publica no GitHub Pages.
+# A cada envio, exporta o jogo para navegador e publica na branch gh-pages (servida pelo GitHub Pages).
 on:
   push:
     branches: [ccr-62111919-vl22sn, main]
@@ -8,8 +8,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -43,21 +41,3 @@ jobs:
           publish_dir: chavinhos-kart/build/web
           publish_branch: gh-pages
           force_orphan: true
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: chavinhos-kart/build/web
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - id: deployment
-        uses: actions/deploy-pages@v4
