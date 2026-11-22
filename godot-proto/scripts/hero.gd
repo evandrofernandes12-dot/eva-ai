@@ -37,7 +37,7 @@ static func lista() -> Dictionary:
 		"M4": {"classe": "mago", "sexo": "f", "nome": "Robe verde, capuz e ombreiras", "armas": [CAJADO_N("Cajado_Cristal.glb"), ORBE("Verde")]},
 		"A1": {"classe": "arqueiro", "sexo": "m", "nome": "Toda de verde, com capuz e capa", "armas": [ARCO, ALJAVA]},
 		"A2": {"classe": "arqueiro", "sexo": "m", "nome": "Couro marrom, sem capuz", "armas": [ARCO, ALJAVA]},
-		"A4": {"classe": "arqueiro", "sexo": "f", "nome": "Toda de verde, com capuz e capa", "armas": [ARCO, ALJAVA]},
+		"A4": {"classe": "arqueiro", "sexo": "f", "nome": "Verde com corpete de couro, saia longa e detalhes dourados", "armas": [ARCO, ALJAVA]},
 		"A3": {"classe": "arqueiro", "sexo": "f", "nome": "Couro marrom, sem capuz", "armas": [ARCO, ALJAVA]},
 		"L1": {"classe": "lanceiro", "sexo": "m", "nome": "Armadura e elmo, lança e escudo", "armas": [LANCA, ESC_REDONDO]},
 		"L2": {"classe": "lanceiro", "sexo": "m", "nome": "Couro e capa vermelha, lança", "armas": [LANCA]},
