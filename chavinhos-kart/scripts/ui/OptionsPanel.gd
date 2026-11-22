@@ -37,7 +37,7 @@ func _ready() -> void:
 	mode.select(int(Save.get_setting("touch_mode", 0)))
 	mode.item_selected.connect(func(i: int) -> void: Save.set_setting("touch_mode", i))
 	col.add_child(_row("Botões de toque", mode))
-	col.add_child(_row("Tamanho dos botões", _make_slider("touch_scale", 1.0, 0.7, 1.4)))
+	col.add_child(_row("Tamanho dos botões", _make_slider("touch_scale", 1.0, 0.5, 1.4)))
 	col.add_child(_row("Opacidade dos botões", _make_slider("touch_alpha", 1.0, 0.3, 1.0)))
 
 	var back: Button = UIStyle.button("VOLTAR", 28, Vector2(260, 58))

@@ -35,6 +35,7 @@ var _net_rot: float = 0.0
 var _net_speed: float = 0.0
 var _net_steer: float = 0.0
 var _item_counter: int = 0
+var _mood_t: float = 0.0
 
 # ---- Entradas (preenchidas pelo jogador ou pela IA)
 var in_throttle: float = 0.0
@@ -207,6 +208,7 @@ func _physics_process(delta: float) -> void:
 	_handle_collisions(before)
 
 	# ---- visuais e áudio
+	_update_mood(delta)
 	if visuals != null:
 		visuals.update_visuals(delta, speed, steer, drifting, drift_dir, drift_level,
 			boost_timer > 0.0, spinning, offroad, stats.max_speed)
@@ -322,6 +324,8 @@ func _separate_from_karts() -> void:
 				var other_share: float = other.stats.weight / (stats.weight + other.stats.weight)
 				speed *= 1.0 - 0.12 * other_share
 				bumped.emit()
+				if visuals != null:
+					visuals.react_bump()
 				if is_player or other.is_player:
 					AudioManager.play_sfx("hit", -8.0, 1.4)
 
@@ -441,6 +445,37 @@ func _remote_step(delta: float) -> void:
 	rotation.y = lerp_angle(rotation.y, _net_rot, t)
 	speed = _net_speed
 	_update_track_position()
+	_update_mood(delta)
 	if visuals != null:
 		visuals.update_visuals(delta, speed, _net_steer, drifting, drift_dir, drift_level,
 			boost_timer > 0.0, spin_timer > 0.0, offroad, stats.max_speed)
+
+
+# ===================================================================== humor do piloto (animações)
+
+## Comemora depois da chegada e dá uma olhada para trás quando um rival encosta.
+func _update_mood(delta: float) -> void:
+	if visuals == null:
+		return
+	visuals.celebrating = finished
+	_mood_t -= delta
+	if _mood_t > 0.0:
+		return
+	_mood_t = 0.25
+	var fwd: Vector3 = -global_transform.basis.z
+	var right: Vector3 = global_transform.basis.x
+	var found: bool = false
+	var side_sign: float = 1.0
+	for node in get_tree().get_nodes_in_group("karts"):
+		var other: KartController = node as KartController
+		if other == null or other == self or other.eliminated:
+			continue
+		var rel: Vector3 = other.global_position - global_position
+		rel.y = 0.0
+		var dist: float = rel.length()
+		if dist > 0.5 and dist < 11.0 and rel.dot(fwd) < -1.0:
+			found = true
+			side_sign = 1.0 if rel.dot(right) < 0.0 else -1.0
+			break
+	visuals.look_back = found
+	visuals.look_side = side_sign

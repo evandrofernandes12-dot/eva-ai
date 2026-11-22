@@ -26,6 +26,24 @@ var _spin_angle: float = 0.0
 var _lean: float = 0.0
 var _steer_vis: float = 0.0
 
+# ---- animação do piloto
+var look_back: bool = false     # um rival está colado atrás
+var look_side: float = 1.0      # 1 = olha por cima do ombro esquerdo, -1 = direito
+var celebrating: bool = false   # cruzou a chegada / pódio
+var _driver: Node3D
+var _driver_base_y: float = 0.0
+var _head: Node3D
+var _cheer: Node3D              # braço levantado (comemoração)
+var _arm_r: Array[Node3D] = []  # braço direito normal (some na comemoração)
+var _stars: Node3D              # estrelinhas de tontura
+var _trophy: Node3D
+var _anim_t: float = 0.0
+var _head_yaw: float = 0.0
+var _hit_t: float = 0.0
+var _jolt: float = 0.0
+var _look_active: float = 0.0
+var _look_cd: float = 0.0
+
 
 func build(s: RacerStats) -> void:
 	stats = s
@@ -37,9 +55,18 @@ func build(s: RacerStats) -> void:
 	_spin_radii.clear()
 	_prop = null
 	_hover = false
+	_driver = null
+	_head = null
+	_cheer = null
+	_stars = null
+	_trophy = null
+	_arm_r.clear()
 	_body = Node3D.new()
 	_body.name = "Body"
 	add_child(_body)
+	if _try_custom_model(s.id):
+		_build_fx()
+		return
 	var seat: Vector3 = _build_kart(s.kart_style, s.body_color, s.accent_color)
 	var rig: Dictionary = _rig(s.kart_style, seat)
 	_build_controls(rig, s.id)
@@ -84,6 +111,8 @@ func update_visuals(delta: float, speed: float, steer: float, drifting: bool, dr
 			if absf(_spin_angle) < 0.01:
 				_spin_angle = 0.0
 			rotation.y = _spin_angle
+
+	_animate_driver(delta, steer, drifting, drift_dir, spinning)
 
 	if _hover:
 		_bob_t += delta * 3.0
@@ -457,11 +486,11 @@ func _build_controls(rig: Dictionary, id: String) -> void:
 
 
 ## Cilindro de pontas arredondadas (cápsula) ligando os pontos a e b. Usado em braços, pernas e colunas.
-func _limb(parent: Node3D, a: Vector3, b: Vector3, radius: float, color: Color) -> void:
+func _limb(parent: Node3D, a: Vector3, b: Vector3, radius: float, color: Color) -> MeshInstance3D:
 	var dvec: Vector3 = b - a
 	var length: float = dvec.length()
 	if length < 0.001:
-		return
+		return null
 	var y: Vector3 = dvec / length
 	var ref: Vector3 = Vector3.UP if absf(y.dot(Vector3.UP)) < 0.95 else Vector3.RIGHT
 	var x: Vector3 = y.cross(ref).normalized()
@@ -476,6 +505,7 @@ func _limb(parent: Node3D, a: Vector3, b: Vector3, radius: float, color: Color) 
 	mi.material_override = ProcMesh.mat(color)
 	mi.transform = Transform3D(Basis(x, y, z), (a + b) * 0.5)
 	parent.add_child(mi)
+	return mi
 
 
 # ===================================================================== piloto
@@ -486,6 +516,16 @@ func _build_driver(id: String, rig: Dictionary) -> void:
 	d.name = "Driver"
 	d.position = seat
 	_body.add_child(d)
+	_driver = d
+	_driver_base_y = seat.y
+	# pivô no pescoço: tudo da cabeça (chapéu, cabelo, olhos, bigode...) gira junto
+	_head = Node3D.new()
+	_head.name = "Head"
+	_head.position = Vector3(0, 0.6, 0)
+	d.add_child(_head)
+	var hd := Node3D.new()
+	hd.position = Vector3(0, -0.6, 0) # permite usar as mesmas coordenadas do piloto
+	_head.add_child(hd)
 	var shirt: Color = Color(0.9, 0.9, 0.9)
 	var hair: Color = Color(0.25, 0.15, 0.1)
 	match id:
@@ -514,77 +554,78 @@ func _build_driver(id: String, rig: Dictionary) -> void:
 	if id == "girafales" or id == "barriga":
 		ProcMesh.rbox(d, Vector3(0.1, 0.35, 0.05), Vector3(0, 0.38, -0.2), Color(0.8, 0.1, 0.12) if id == "girafales" else Color(0.1, 0.1, 0.1)) # gravata
 	# cabeça
-	ProcMesh.sphere(d, 0.27 * big, Vector3(0, 0.82, 0), SKIN)
-	ProcMesh.sphere(d, 0.285 * big, Vector3(0, 0.87, 0.05), hair, Vector3(1, 0.95, 0.95))
+	ProcMesh.sphere(hd, 0.27 * big, Vector3(0, 0.82, 0), SKIN)
+	ProcMesh.sphere(hd, 0.285 * big, Vector3(0, 0.87, 0.05), hair, Vector3(1, 0.95, 0.95))
 	for sx: float in [-0.1, 0.1]:
-		ProcMesh.sphere(d, 0.055, Vector3(sx, 0.85, -0.25 * big), Color.WHITE)
-		ProcMesh.sphere(d, 0.03, Vector3(sx, 0.85, -0.295 * big), Color.BLACK)
-	ProcMesh.sphere(d, 0.05, Vector3(0, 0.78, -0.28 * big), Color(0.95, 0.65, 0.5)) # nariz
+		ProcMesh.sphere(hd, 0.055, Vector3(sx, 0.85, -0.25 * big), Color.WHITE)
+		ProcMesh.sphere(hd, 0.03, Vector3(sx, 0.85, -0.295 * big), Color.BLACK)
+	ProcMesh.sphere(hd, 0.05, Vector3(0, 0.78, -0.28 * big), Color(0.95, 0.65, 0.5)) # nariz
 	_build_limbs(d, id, rig, shirt, big)
+	_build_stars()
 	# acessórios por personagem
 	match id:
 		"chaves":
 			var green: Color = Color(0.3, 0.6, 0.25)
-			ProcMesh.rbox(d, Vector3(0.62, 0.2, 0.6), Vector3(0, 1.07, 0.0), green)
-			ProcMesh.rbox(d, Vector3(0.5, 0.05, 0.25), Vector3(0, 1.0, -0.38), green.darkened(0.2))
+			ProcMesh.rbox(hd, Vector3(0.62, 0.2, 0.6), Vector3(0, 1.07, 0.0), green)
+			ProcMesh.rbox(hd, Vector3(0.5, 0.05, 0.25), Vector3(0, 1.0, -0.38), green.darkened(0.2))
 			for sx: float in [-0.32, 0.32]:
-				ProcMesh.rbox(d, Vector3(0.08, 0.34, 0.42), Vector3(sx, 0.85, 0.0), green)
+				ProcMesh.rbox(hd, Vector3(0.08, 0.34, 0.42), Vector3(sx, 0.85, 0.0), green)
 			ProcMesh.rbox(d, Vector3(0.12, 0.45, 0.04), Vector3(-0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15)) # suspensório
 			ProcMesh.rbox(d, Vector3(0.12, 0.45, 0.04), Vector3(0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15))
 		"chiquinha":
-			ProcMesh.sphere(d, 0.13, Vector3(-0.36, 0.98, 0.05), hair)
-			ProcMesh.sphere(d, 0.13, Vector3(0.36, 0.98, 0.05), hair)
-			ProcMesh.sphere(d, 0.05, Vector3(-0.3, 0.98, 0.05), Color(0.95, 0.85, 0.2))
-			ProcMesh.sphere(d, 0.05, Vector3(0.3, 0.98, 0.05), Color(0.95, 0.85, 0.2))
+			ProcMesh.sphere(hd, 0.13, Vector3(-0.36, 0.98, 0.05), hair)
+			ProcMesh.sphere(hd, 0.13, Vector3(0.36, 0.98, 0.05), hair)
+			ProcMesh.sphere(hd, 0.05, Vector3(-0.3, 0.98, 0.05), Color(0.95, 0.85, 0.2))
+			ProcMesh.sphere(hd, 0.05, Vector3(0.3, 0.98, 0.05), Color(0.95, 0.85, 0.2))
 			for sx: float in [-0.12, 0.12]:
-				ProcMesh.torus(d, 0.075, 0.115, Vector3(sx, 0.86, -0.27), Color.BLACK, Vector3(90, 0, 0))
+				ProcMesh.torus(hd, 0.075, 0.115, Vector3(sx, 0.86, -0.27), Color.BLACK, Vector3(90, 0, 0))
 		"quico":
-			ProcMesh.sphere(d, 0.3, Vector3(0, 1.0, 0.0), Color(0.2, 0.35, 0.8), Vector3(1, 0.7, 1))
-			ProcMesh.rbox(d, Vector3(0.18, 0.2, 0.55), Vector3(0, 1.08, 0.0), Color(0.95, 0.8, 0.15))
-			ProcMesh.rbox(d, Vector3(0.18, 0.18, 0.5), Vector3(-0.2, 1.05, 0.0), Color(0.85, 0.15, 0.15))
+			ProcMesh.sphere(hd, 0.3, Vector3(0, 1.0, 0.0), Color(0.2, 0.35, 0.8), Vector3(1, 0.7, 1))
+			ProcMesh.rbox(hd, Vector3(0.18, 0.2, 0.55), Vector3(0, 1.08, 0.0), Color(0.95, 0.8, 0.15))
+			ProcMesh.rbox(hd, Vector3(0.18, 0.18, 0.5), Vector3(-0.2, 1.05, 0.0), Color(0.85, 0.15, 0.15))
 			_prop = Node3D.new()
 			_prop.position = Vector3(0, 1.33, 0.0)
-			d.add_child(_prop)
-			ProcMesh.cyl(d, 0.015, 0.1, Vector3(0, 1.26, 0.0), Color.BLACK)
+			hd.add_child(_prop)
+			ProcMesh.cyl(hd, 0.015, 0.1, Vector3(0, 1.26, 0.0), Color.BLACK)
 			ProcMesh.rbox(_prop, Vector3(0.8, 0.02, 0.09), Vector3.ZERO, Color(0.2, 0.4, 0.85))
 			ProcMesh.rbox(d, Vector3(0.34, 0.07, 0.05), Vector3(0, 0.62, -0.2), Color(0.85, 0.12, 0.15)) # lenço
 		"nhonho":
 			pass
 		"popis":
-			ProcMesh.sphere(d, 0.13, Vector3(-0.15, 1.12, 0.0), Color(1.0, 0.45, 0.7), Vector3(1.3, 1, 0.6))
-			ProcMesh.sphere(d, 0.13, Vector3(0.15, 1.12, 0.0), Color(1.0, 0.45, 0.7), Vector3(1.3, 1, 0.6))
-			ProcMesh.sphere(d, 0.07, Vector3(0, 1.12, 0.0), Color(0.95, 0.3, 0.55))
+			ProcMesh.sphere(hd, 0.13, Vector3(-0.15, 1.12, 0.0), Color(1.0, 0.45, 0.7), Vector3(1.3, 1, 0.6))
+			ProcMesh.sphere(hd, 0.13, Vector3(0.15, 1.12, 0.0), Color(1.0, 0.45, 0.7), Vector3(1.3, 1, 0.6))
+			ProcMesh.sphere(hd, 0.07, Vector3(0, 1.12, 0.0), Color(0.95, 0.3, 0.55))
 		"madruga":
-			ProcMesh.cyl(d, 0.3, 0.22, Vector3(0, 1.08, 0.0), Color(0.45, 0.62, 0.85), Vector3.ZERO, 0.26)
-			ProcMesh.cyl(d, 0.44, 0.04, Vector3(0, 0.98, 0.0), Color(0.4, 0.57, 0.8))
-			ProcMesh.rbox(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.72, -0.27), Color(0.1, 0.07, 0.05)) # bigode
+			ProcMesh.cyl(hd, 0.3, 0.22, Vector3(0, 1.08, 0.0), Color(0.45, 0.62, 0.85), Vector3.ZERO, 0.26)
+			ProcMesh.cyl(hd, 0.44, 0.04, Vector3(0, 0.98, 0.0), Color(0.4, 0.57, 0.8))
+			ProcMesh.rbox(hd, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.72, -0.27), Color(0.1, 0.07, 0.05)) # bigode
 		"jaiminho":
-			ProcMesh.cyl(d, 0.3, 0.2, Vector3(0, 1.06, 0.0), Color(0.28, 0.38, 0.58), Vector3.ZERO, 0.28)
-			ProcMesh.rbox(d, Vector3(0.45, 0.05, 0.25), Vector3(0, 0.99, -0.34), Color(0.15, 0.2, 0.3))
-			ProcMesh.rbox(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.72, -0.27), Color(0.75, 0.75, 0.78))
+			ProcMesh.cyl(hd, 0.3, 0.2, Vector3(0, 1.06, 0.0), Color(0.28, 0.38, 0.58), Vector3.ZERO, 0.28)
+			ProcMesh.rbox(hd, Vector3(0.45, 0.05, 0.25), Vector3(0, 0.99, -0.34), Color(0.15, 0.2, 0.3))
+			ProcMesh.rbox(hd, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.72, -0.27), Color(0.75, 0.75, 0.78))
 			ProcMesh.rbox(d, Vector3(0.45, 0.4, 0.18), Vector3(0.38, 0.2, 0.15), Color(0.5, 0.32, 0.18)) # bolsa de cartas
 			ProcMesh.rbox(d, Vector3(0.3, 0.12, 0.05), Vector3(0.38, 0.45, 0.06), Color(0.95, 0.92, 0.8))
 		"florinda":
 			var cols: Array[Color] = [Color(0.95, 0.4, 0.65), Color(0.95, 0.85, 0.3)]
 			for i in 7:
 				var ang: float = TAU * float(i) / 7.0
-				ProcMesh.cyl(d, 0.075, 0.2, Vector3(sin(ang) * 0.27, 1.02, cos(ang) * 0.24), cols[i % 2], Vector3(0, 0, 90) if i % 2 == 0 else Vector3(90, 0, 0))
+				ProcMesh.cyl(hd, 0.075, 0.2, Vector3(sin(ang) * 0.27, 1.02, cos(ang) * 0.24), cols[i % 2], Vector3(0, 0, 90) if i % 2 == 0 else Vector3(90, 0, 0))
 			ProcMesh.rbox(d, Vector3(0.6, 0.35, 0.05), Vector3(0, 0.28, -0.2), Color(0.95, 0.9, 0.8)) # avental
 		"girafales":
-			ProcMesh.cyl(d, 0.44, 0.04, Vector3(0, 0.99, 0.0), Color(0.35, 0.22, 0.14))
-			ProcMesh.cyl(d, 0.26, 0.26, Vector3(0, 1.12, 0.0), Color(0.35, 0.22, 0.14))
-			ProcMesh.cyl(d, 0.025, 0.28, Vector3(0.06, 0.7, -0.36), Color(0.45, 0.28, 0.14), Vector3(90, 0, 0)) # charuto
-			ProcMesh.sphere(d, 0.03, Vector3(0.06, 0.7, -0.5), Color(1.0, 0.5, 0.1), Vector3.ONE, 0.5, 2.0)
-			ProcMesh.rbox(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.74, -0.27), Color(0.6, 0.6, 0.62))
+			ProcMesh.cyl(hd, 0.44, 0.04, Vector3(0, 0.99, 0.0), Color(0.35, 0.22, 0.14))
+			ProcMesh.cyl(hd, 0.26, 0.26, Vector3(0, 1.12, 0.0), Color(0.35, 0.22, 0.14))
+			ProcMesh.cyl(hd, 0.025, 0.28, Vector3(0.06, 0.7, -0.36), Color(0.45, 0.28, 0.14), Vector3(90, 0, 0)) # charuto
+			ProcMesh.sphere(hd, 0.03, Vector3(0.06, 0.7, -0.5), Color(1.0, 0.5, 0.1), Vector3.ONE, 0.5, 2.0)
+			ProcMesh.rbox(hd, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.74, -0.27), Color(0.6, 0.6, 0.62))
 		"barriga":
-			ProcMesh.rbox(d, Vector3(0.32, 0.06, 0.05), Vector3(0, 0.72, -0.31), Color(0.1, 0.07, 0.05))
+			ProcMesh.rbox(hd, Vector3(0.32, 0.06, 0.05), Vector3(0, 0.72, -0.31), Color(0.1, 0.07, 0.05))
 			for sx: float in [-0.12, 0.12]:
-				ProcMesh.torus(d, 0.07, 0.11, Vector3(sx, 0.87, -0.31), Color.BLACK, Vector3(90, 0, 0))
+				ProcMesh.torus(hd, 0.07, 0.11, Vector3(sx, 0.87, -0.31), Color.BLACK, Vector3(90, 0, 0))
 		"bruxa":
-			ProcMesh.cyl(d, 0.58, 0.04, Vector3(0, 0.99, 0.0), Color(0.18, 0.3, 0.55))
-			ProcMesh.cyl(d, 0.32, 0.65, Vector3(0, 1.32, 0.0), Color(0.18, 0.3, 0.55), Vector3.ZERO, 0.05)
-			ProcMesh.cyl(d, 0.34, 0.1, Vector3(0, 1.08, 0.0), Color(0.45, 0.25, 0.6))
-			ProcMesh.cyl(d, 0.06, 0.28, Vector3(0, 0.74, -0.38), SKIN, Vector3(-90, 0, 0), 0.01) # nariz de bruxa
+			ProcMesh.cyl(hd, 0.58, 0.04, Vector3(0, 0.99, 0.0), Color(0.18, 0.3, 0.55))
+			ProcMesh.cyl(hd, 0.32, 0.65, Vector3(0, 1.32, 0.0), Color(0.18, 0.3, 0.55), Vector3.ZERO, 0.05)
+			ProcMesh.cyl(hd, 0.34, 0.1, Vector3(0, 1.08, 0.0), Color(0.45, 0.25, 0.6))
+			ProcMesh.cyl(hd, 0.06, 0.28, Vector3(0, 0.74, -0.38), SKIN, Vector3(-90, 0, 0), 0.01) # nariz de bruxa
 			ProcMesh.sphere(d, 0.2, Vector3(0.1, 1.0, 0.45), Color(0.05, 0.05, 0.07), Vector3(1, 0.8, 1.3)) # gato preto
 			for sx: float in [0.02, 0.18]:
 				ProcMesh.cyl(d, 0.05, 0.1, Vector3(sx, 1.2, 0.4), Color(0.05, 0.05, 0.07), Vector3.ZERO, 0.0)
@@ -663,9 +704,127 @@ func _build_limbs(d: Node3D, id: String, rig: Dictionary, shirt: Color, big: flo
 		var shoulder := Vector3(side * 0.31 * big, 0.48, -0.02)
 		var hand := Vector3(grip.x + side * gw, grip.y, grip.z + 0.03)
 		var elbow: Vector3 = shoulder.lerp(hand, 0.5) + Vector3(side * 0.09, -0.1, 0.04)
-		_limb(d, shoulder, elbow, 0.07 * big, shirt)
-		_limb(d, elbow, hand, 0.06 * big, SKIN if bare_forearm else shirt)
-		ProcMesh.sphere(d, 0.075, hand, SKIN)
+		var parts: Array[Node3D] = [
+			_limb(d, shoulder, elbow, 0.07 * big, shirt),
+			_limb(d, elbow, hand, 0.06 * big, SKIN if bare_forearm else shirt),
+			ProcMesh.sphere(d, 0.075, hand, SKIN),
+		]
+		if side > 0.0:
+			for p in parts:
+				if p != null:
+					_arm_r.append(p)
+	# braço levantado para comemorar (escondido até cruzar a chegada)
+	_cheer = Node3D.new()
+	_cheer.position = Vector3(0.31 * big, 0.48, -0.02)
+	_cheer.visible = false
+	d.add_child(_cheer)
+	_limb(_cheer, Vector3.ZERO, Vector3(0.14, 0.28, 0.0), 0.07 * big, shirt)
+	_limb(_cheer, Vector3(0.14, 0.28, 0.0), Vector3(0.1, 0.58, -0.02), 0.06 * big, SKIN if bare_forearm else shirt)
+	ProcMesh.sphere(_cheer, 0.085, Vector3(0.1, 0.62, -0.02), SKIN)
+
+
+# ===================================================================== animação do piloto
+
+func _build_stars() -> void:
+	_stars = Node3D.new()
+	_stars.position = Vector3(0, 0.62, 0)
+	_stars.visible = false
+	_head.add_child(_stars)
+	for i in 3:
+		var a: float = TAU * float(i) / 3.0
+		ProcMesh.sphere(_stars, 0.07, Vector3(cos(a) * 0.32, 0.0, sin(a) * 0.32), Color(1.0, 0.9, 0.2), Vector3.ONE, 0.3, 2.5)
+
+
+## Tranco rápido da cabeça (batida entre karts).
+func react_bump() -> void:
+	_jolt = 1.0
+
+
+## Usado no pódio: o piloto ergue um troféu dourado.
+func give_trophy() -> void:
+	celebrating = true
+	if _cheer == null or _trophy != null:
+		return
+	var gold: Color = Color(0.98, 0.8, 0.22)
+	_trophy = Node3D.new()
+	_trophy.position = Vector3(0.1, 0.68, -0.02)
+	_cheer.add_child(_trophy)
+	ProcMesh.cyl(_trophy, 0.08, 0.07, Vector3.ZERO, Color(0.25, 0.15, 0.08))
+	ProcMesh.cyl(_trophy, 0.025, 0.14, Vector3(0, 0.1, 0), gold, Vector3.ZERO, -1.0, 0.25, 0.9)
+	ProcMesh.cyl(_trophy, 0.08, 0.24, Vector3(0, 0.29, 0), gold, Vector3.ZERO, 0.16, 0.25, 0.9, 0.3)
+	for sx: float in [-1.0, 1.0]:
+		ProcMesh.torus(_trophy, 0.025, 0.08, Vector3(sx * 0.16, 0.3, 0), gold, Vector3(0, 0, 90), 0.9)
+
+
+## Animação sem kart andando (pódio, prévia).
+func animate_idle(delta: float) -> void:
+	_animate_driver(delta, 0.0, false, 0.0, false)
+
+
+func _animate_driver(delta: float, steer: float, drifting: bool, drift_dir: float, spinning: bool) -> void:
+	_anim_t += delta
+	if spinning:
+		_hit_t = 0.9
+	elif _hit_t > 0.0:
+		_hit_t -= delta
+	_jolt = maxf(_jolt - delta * 2.5, 0.0)
+	# olhada para trás: dura ~1 s e só repete depois de um tempo
+	_look_cd -= delta
+	_look_active -= delta
+	if look_back and _look_cd <= 0.0:
+		_look_active = 1.0
+		_look_cd = 3.5
+	var yaw: float = -steer * 0.5          # olha para o lado da curva
+	if drifting:
+		yaw = -drift_dir * 0.75
+	var pitch: float = 0.0
+	var roll: float = 0.0
+	if _look_active > 0.0:
+		yaw = 1.9 * look_side
+	if celebrating:
+		yaw = sin(_anim_t * 3.0) * 0.35
+		pitch = -0.15 + sin(_anim_t * 8.0) * 0.12
+	if _hit_t > 0.0: # atingido: cabeça balançando, tonto
+		var k: float = clampf(_hit_t, 0.0, 1.0)
+		yaw = sin(_anim_t * 11.0) * 0.5 * k
+		roll = sin(_anim_t * 17.0) * 0.35 * k
+	roll += sin(_anim_t * 40.0) * _jolt * 0.25
+	var t: float = clampf(delta * 8.0, 0.0, 1.0)
+	if _head != null:
+		_head_yaw = lerp_angle(_head_yaw, yaw, t)
+		_head.rotation = Vector3(lerpf(_head.rotation.x, pitch, t), _head_yaw, lerpf(_head.rotation.z, roll, clampf(delta * 12.0, 0.0, 1.0)))
+	if _cheer != null:
+		_cheer.visible = celebrating
+		for n in _arm_r:
+			n.visible = not celebrating
+		if celebrating:
+			_cheer.rotation.z = sin(_anim_t * 6.0) * 0.35
+	if _driver != null:
+		_driver.position.y = _driver_base_y + (absf(sin(_anim_t * 6.0)) * 0.12 if celebrating else 0.0)
+	if _stars != null:
+		_stars.visible = _hit_t > 0.0
+		if _stars.visible:
+			_stars.rotation.y += delta * 6.0
+
+
+## Se existir res://assets/models/<id>.glb, usa o modelo 3D real no lugar do procedural.
+## No modelo: um nó chamado "Head" gira com as animações; nós cujo nome começa com "Wheel" giram como rodas.
+func _try_custom_model(id: String) -> bool:
+	var path: String = "res://assets/models/%s.glb" % id
+	if not ResourceLoader.exists(path):
+		return false
+	var scene: PackedScene = load(path) as PackedScene
+	if scene == null:
+		return false
+	var inst: Node3D = scene.instantiate() as Node3D
+	if inst == null:
+		return false
+	_body.add_child(inst)
+	_head = inst.find_child("Head", true, false) as Node3D
+	for n in inst.find_children("Wheel*", "Node3D", true, false):
+		_spin_nodes.append(n as Node3D)
+		_spin_radii.append(0.4)
+	return true
 
 
 # ===================================================================== efeitos

@@ -12,15 +12,15 @@ var _buttons: Array[TouchButton] = []
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# esquerda: volante
-	_add("", "steer_left", 30, 40, 180, false).arrow = -1
-	_add("", "steer_right", 230, 40, 180, false).arrow = 1
-	_add("VOLTAR", "reset_kart", 30, 240, 100, false, 18)
+	_add("", "steer_left", 20, 24, 132, false).arrow = -1
+	_add("", "steer_right", 166, 24, 132, false).arrow = 1
+	_add("VOLTAR", "reset_kart", 20, 172, 78, false, 15)
 	# direita: pedais e ações
-	_add("ACEL", "accelerate", 30, 30, 200, true)
-	_add("FREIO", "brake", 250, 30, 150, true)
-	_add("DRIFT", "drift", 30, 250, 150, true)
-	_add("ITEM", "use_item", 200, 215, 130, true, 24)
-	var pause: TouchButton = _add("II", "", 0, 0, 76, false, 30)
+	_add("ACEL", "accelerate", 20, 20, 150, true, 24)
+	_add("FREIO", "brake", 184, 20, 112, true, 20)
+	_add("DRIFT", "drift", 20, 186, 112, true, 20)
+	_add("ITEM", "use_item", 148, 182, 98, true, 19)
+	var pause: TouchButton = _add("II", "", 0, 0, 62, false, 24)
 	pause.from_top = 20.0
 	pause.center_x = true
 	pause.tapped.connect(func() -> void: pause_pressed.emit())

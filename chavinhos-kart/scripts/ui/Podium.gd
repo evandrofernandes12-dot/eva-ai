@@ -5,6 +5,7 @@ extends Node3D
 
 var _cup_final: bool = false
 var _trophy_kind: String = ""
+var _podium_visuals: Array[KartVisuals] = []
 
 
 func _ready() -> void:
@@ -97,6 +98,11 @@ func _build_block(entry: Dictionary, lay: Vector2, rank_idx: int) -> void:
 	visuals.rotation.y = PI + (0.3 if lay.x < 0.0 else (-0.3 if lay.x > 0.0 else 0.0))
 	add_child(visuals)
 	visuals.build(entry["stats"] as RacerStats)
+	if rank_idx == 0:
+		visuals.give_trophy() # o vencedor ergue o troféu
+	else:
+		visuals.celebrating = true
+	_podium_visuals.append(visuals)
 	var tag := Label3D.new()
 	tag.text = str(entry["name"])
 	tag.font_size = 72
@@ -251,3 +257,8 @@ func _fake_results() -> Array[Dictionary]:
 	for i in mini(Global.TOTAL_RACERS, Global.racers.size()):
 		out.append({"stats": Global.racers[i], "name": Global.racers[i].display_name, "place": i + 1, "time": 80.0 + float(i) * 2.3, "is_player": i == 0, "score_text": ""})
 	return out
+
+
+func _process(delta: float) -> void:
+	for v in _podium_visuals:
+		v.animate_idle(delta)
