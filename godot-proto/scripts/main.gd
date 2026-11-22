@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v29"
+const VERSAO := "v30"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -174,6 +174,9 @@ func _ready() -> void:
 		p.upgraded.connect(_on_upgraded)
 	_scatter_forest()
 	_ceu()
+	_aldeia_extra()
+	for c in $Aldeia.get_children():
+		Construcoes.estilo_casa(c)
 	Efeitos.chao($Chao/Malha, load("res://models/grass_albedo.jpg"))
 	player.attacked.connect(_on_player_attack)
 	player.died.connect(_on_player_died)
@@ -212,6 +215,50 @@ func _ready() -> void:
 	_boss_hud()
 	if not _load():
 		say("Ande com o direcional. Bata em árvores, rochas e arbustos para coletar.", 7.0)
+
+## Detalhes da aldeia montados por código (caminhos, lampiões, placa, feno, lenha, varal, cocho, banca).
+func _aldeia_extra() -> void:
+	var r := Node3D.new()
+	r.name = "Detalhes"
+	add_child(r)
+	var praca := MeshInstance3D.new()   # praça de terra batida
+	var pc := CylinderMesh.new()
+	pc.top_radius = 8.5
+	pc.bottom_radius = 8.5
+	pc.height = 0.02
+	pc.radial_segments = 32
+	pc.material = Construcoes.mat(Color(0.56, 0.47, 0.35))
+	praca.mesh = pc
+	praca.position.y = 0.02
+	praca.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	r.add_child(praca)
+	Construcoes.caminho(r, Vector3(0, 0, 8), Vector3(0, 0, MURO_R + 1), 3.2)
+	Construcoes.caminho(r, Vector3(0, 0, -8), Vector3(0, 0, -21), 3.2)
+	Construcoes.caminho(r, Vector3(8, 0, 0), Vector3(MURO_R + 1, 0, 0), 3.2)
+	Construcoes.caminho(r, Vector3(-8, 0, 0), Vector3(-MURO_R - 1, 0, 0), 3.2)
+	var por := func(n: Node3D, pos: Vector3, giro: float) -> void:
+		n.position = pos
+		n.rotation.y = giro
+		r.add_child(n)
+	for p in [Vector3(7, 0, -6), Vector3(-7, 0, -6), Vector3(-8, 0, 4), Vector3(2.5, 0, 16), Vector3(-2.5, 0, 28), Vector3(16, 0, -2.5), Vector3(-16, 0, 2.5), Vector3(-2.5, 0, -15), Vector3(2.5, 0, -15)]:
+		por.call(Construcoes.lampiao(), p, atan2(-p.x, -p.z) + PI / 2.0)
+	var alvos := {"Salão do Rei": Vector3(0, 0, -27), "Forja": Vector3(27, 0, 4), "Moinho": Vector3(29, 0, -13), "Portão Sul": Vector3(0, 0, 40)}
+	var pl := Vector3(3.5, 0, 6.5)
+	var giros: Array = []
+	for k in alvos:
+		var d: Vector3 = alvos[k] - pl
+		giros.append(atan2(d.x, d.z))
+	por.call(Construcoes.placa(alvos.keys(), giros), pl, 0.0)
+	por.call(Construcoes.feno(), Vector3(23, 0, -7), 0.4)
+	por.call(Construcoes.feno(), Vector3(21, 0, -21), -0.3)
+	por.call(Construcoes.lenha(), Vector3(22, 0, 9), 0.2)
+	por.call(Construcoes.lenha(), Vector3(-11, 0, -12), -0.6)
+	por.call(Construcoes.varal(Vector3(-21, 0, -10), Vector3(-21, 0, -5)), Vector3.ZERO, 0.0)
+	por.call(Construcoes.cocho(), Vector3(3.6, 0, -6.5), 0.3)
+	por.call(Construcoes.banca(Color(0.7, 0.15, 0.12)), Vector3(-3.5, 0, 13), PI)
+	por.call(Construcoes.banca(Color(0.15, 0.3, 0.6)), Vector3(-15, 0, 9), PI * 0.6)
+	for p in [Vector3(-12.5, 0, 13), Vector3(-13.3, 0, 13.6), Vector3(12.5, 0, 14.2), Vector3(-5.5, 0, -1.8)]:
+		por.call(Construcoes.caixote(0.6 + 0.15 * sin(p.x)), p, p.z)
 
 ## Céu: foto 360° (Sketchfab, CC-BY: Marcin Lubecki), no lugar do céu liso. A luz ambiente continua branca.
 func _ceu() -> void:

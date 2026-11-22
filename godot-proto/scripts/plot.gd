@@ -72,6 +72,7 @@ func construir(animar := true) -> void:
 		return
 	_b = Construcoes.torre_vigia() if efeito == "torre" else modelo.instantiate()   # torre: troncos e balista feitos por código
 	add_child(_b)
+	Construcoes.estilo_casa(_b)
 	Fit.to_height(_b, altura)
 	_base = _b.scale
 	var box := Fit.bounds(_b)
