@@ -121,10 +121,12 @@ func _wheel(pos: Vector3, radius: float, width: float, tire: Color, hub: Color, 
 	_body.add_child(pivot)
 	var spinner := Node3D.new()
 	pivot.add_child(spinner)
-	ProcMesh.cyl(spinner, radius, width, Vector3.ZERO, tire, Vector3(0, 0, 90), -1.0, 0.95)
-	ProcMesh.cyl(spinner, radius * 0.55, width + 0.03, Vector3.ZERO, hub, Vector3(0, 0, 90), -1.0, 0.4, 0.6)
+	# pneu redondo (anel) achatado para a largura da roda + cubo no meio
+	var tire_mesh: MeshInstance3D = ProcMesh.torus(spinner, radius * 0.5, radius, Vector3.ZERO, tire, Vector3(0, 0, 90))
+	tire_mesh.scale = Vector3(1.0, maxf(width / (radius * 0.5), 0.3), 1.0)
+	ProcMesh.cyl(spinner, radius * 0.6, width * 0.9, Vector3.ZERO, hub, Vector3(0, 0, 90), -1.0, 0.4, 0.6)
 	if spokes:
-		ProcMesh.box(spinner, Vector3(width + 0.05, radius * 1.7, 0.07), Vector3.ZERO, hub.darkened(0.35))
+		ProcMesh.rbox(spinner, Vector3(width + 0.05, radius * 1.7, 0.07), Vector3.ZERO, hub.darkened(0.35))
 	if steer:
 		_steer_pivots.append(pivot)
 	_spin_nodes.append(spinner)
@@ -132,10 +134,10 @@ func _wheel(pos: Vector3, radius: float, width: float, tire: Color, hub: Color, 
 
 
 func _engine(pos: Vector3, color: Color = Color(0.2, 0.2, 0.22)) -> void:
-	ProcMesh.box(_body, Vector3(0.6, 0.5, 0.55), pos, color, Vector3.ZERO, 0.6, 0.4)
-	ProcMesh.box(_body, Vector3(0.5, 0.18, 0.45), pos + Vector3(0, 0.33, 0), METAL, Vector3.ZERO, 0.4, 0.7)
+	ProcMesh.rbox(_body, Vector3(0.6, 0.5, 0.55), pos, color, Vector3.ZERO, 0.6, 0.4)
+	ProcMesh.rbox(_body, Vector3(0.5, 0.18, 0.45), pos + Vector3(0, 0.33, 0), METAL, Vector3.ZERO, 0.4, 0.7)
 	for i in 3:
-		ProcMesh.box(_body, Vector3(0.62, 0.04, 0.5), pos + Vector3(0, -0.05 + 0.1 * float(i), 0), DARK)
+		ProcMesh.rbox(_body, Vector3(0.62, 0.04, 0.5), pos + Vector3(0, -0.05 + 0.1 * float(i), 0), DARK)
 
 
 func _exhaust(start: Vector3, color: Color = RUST) -> void:
@@ -167,7 +169,7 @@ func _style_barrel(wood: Color, _c2: Color) -> Vector3:
 	for z: float in [-0.65, 0.0, 0.7]:
 		ProcMesh.cyl(_body, 0.55, 0.12, Vector3(0, 0.62, z), DARK, Vector3(90, 0, 0), -1.0, 0.5, 0.5)
 	# tábuas (frisos) no tampo frontal
-	ProcMesh.box(_body, Vector3(0.05, 0.9, 0.04), Vector3(0, 0.62, -0.92), wood.darkened(0.3))
+	ProcMesh.rbox(_body, Vector3(0.05, 0.9, 0.04), Vector3(0, 0.62, -0.92), wood.darkened(0.3))
 	_engine(Vector3(0, 0.8, 1.25), RUST)
 	_exhaust(Vector3(0.45, 1.0, 1.0))
 	_wheel(Vector3(-0.8, 0.3, -0.8), 0.3, 0.2, DARK, wood.lightened(0.1), true)
@@ -178,7 +180,7 @@ func _style_barrel(wood: Color, _c2: Color) -> Vector3:
 
 
 func _style_plank(wood: Color, accent: Color) -> Vector3:
-	ProcMesh.box(_body, Vector3(1.1, 0.12, 2.5), Vector3(0, 0.36, 0.05), wood)
+	ProcMesh.rbox(_body, Vector3(1.1, 0.12, 2.5), Vector3(0, 0.36, 0.05), wood)
 	for i in 5: # adesivos coloridos
 		var cols: Array[Color] = [Color(0.9, 0.3, 0.8), Color(0.3, 0.8, 0.4), Color(0.95, 0.8, 0.2), Color(0.3, 0.6, 0.95), Color(0.95, 0.4, 0.2)]
 		ProcMesh.cyl(_body, 0.1, 0.02, Vector3(-0.35 + 0.17 * float(i), 0.43, -0.5 + 0.35 * float(i % 3)), cols[i])
@@ -186,11 +188,11 @@ func _style_plank(wood: Color, accent: Color) -> Vector3:
 	ProcMesh.cyl(_body, 0.04, 0.8, Vector3(0, 0.78, -0.85), METAL, Vector3(-15, 0, 0), -1.0, 0.4, 0.7)
 	ProcMesh.cyl(_body, 0.035, 0.75, Vector3(0, 1.14, -0.95), METAL, Vector3(0, 0, 90), -1.0, 0.4, 0.7)
 	# cadeira escolar atrás
-	ProcMesh.box(_body, Vector3(0.7, 0.07, 0.6), Vector3(0, 0.78, 0.55), wood.lightened(0.1))
-	ProcMesh.box(_body, Vector3(0.7, 0.55, 0.07), Vector3(0, 1.05, 0.88), wood.lightened(0.1))
+	ProcMesh.rbox(_body, Vector3(0.7, 0.07, 0.6), Vector3(0, 0.78, 0.55), wood.lightened(0.1))
+	ProcMesh.rbox(_body, Vector3(0.7, 0.55, 0.07), Vector3(0, 1.05, 0.88), wood.lightened(0.1))
 	for sx: float in [-0.3, 0.3]:
 		ProcMesh.cyl(_body, 0.03, 0.45, Vector3(sx, 0.55, 0.5), METAL)
-	ProcMesh.box(_body, Vector3(0.5, 0.4, 0.5), Vector3(0, 0.62, 1.1), accent.darkened(0.5), Vector3.ZERO, 0.5, 0.5)
+	ProcMesh.rbox(_body, Vector3(0.5, 0.4, 0.5), Vector3(0, 0.62, 1.1), accent.darkened(0.5), Vector3.ZERO, 0.5, 0.5)
 	_exhaust(Vector3(0.35, 0.8, 1.0), RUST)
 	_wheel(Vector3(-0.5, 0.2, -1.05), 0.2, 0.15, DARK, Color(0.85, 0.7, 0.2), true, false)
 	_wheel(Vector3(0.5, 0.2, -1.05), 0.2, 0.15, DARK, Color(0.85, 0.7, 0.2), true, false)
@@ -200,16 +202,16 @@ func _style_plank(wood: Color, accent: Color) -> Vector3:
 
 
 func _style_trike(red: Color, gold: Color) -> Vector3:
-	ProcMesh.box(_body, Vector3(0.75, 0.38, 1.6), Vector3(0, 0.62, 0.35), red, Vector3.ZERO, 0.25, 0.3)
-	ProcMesh.box(_body, Vector3(0.7, 0.04, 1.62), Vector3(0, 0.82, 0.35), gold, Vector3.ZERO, 0.3, 0.8)
+	ProcMesh.rbox(_body, Vector3(0.75, 0.38, 1.6), Vector3(0, 0.62, 0.35), red, Vector3.ZERO, 0.25, 0.3)
+	ProcMesh.rbox(_body, Vector3(0.7, 0.04, 1.62), Vector3(0, 0.82, 0.35), gold, Vector3.ZERO, 0.3, 0.8)
 	# garfo + guidão cromado
 	ProcMesh.cyl(_body, 0.05, 0.8, Vector3(0, 0.62, -0.95), red, Vector3(0, 0, 0), -1.0, 0.25, 0.3)
 	ProcMesh.cyl(_body, 0.035, 1.0, Vector3(0, 1.08, -0.95), METAL.lightened(0.3), Vector3(0, 0, 90), -1.0, 0.2, 0.9)
 	ProcMesh.cyl(_body, 0.07, 0.3, Vector3(-0.2, 1.22, -0.95), Color(0.75, 0.78, 0.8), Vector3(0, 0, 0), 0.12, 0.2, 0.9) # buzina
 	ProcMesh.sphere(_body, 0.1, Vector3(0.28, 1.08, -0.95), Color.BLACK)
 	# para-lamas
-	ProcMesh.box(_body, Vector3(0.3, 0.05, 0.9), Vector3(-0.78, 0.9, 0.9), red, Vector3.ZERO, 0.25, 0.3)
-	ProcMesh.box(_body, Vector3(0.3, 0.05, 0.9), Vector3(0.78, 0.9, 0.9), red, Vector3.ZERO, 0.25, 0.3)
+	ProcMesh.rbox(_body, Vector3(0.3, 0.05, 0.9), Vector3(-0.78, 0.9, 0.9), red, Vector3.ZERO, 0.25, 0.3)
+	ProcMesh.rbox(_body, Vector3(0.3, 0.05, 0.9), Vector3(0.78, 0.9, 0.9), red, Vector3.ZERO, 0.25, 0.3)
 	ProcMesh.cyl(_body, 0.05, 0.6, Vector3(0.42, 0.9, 1.35), METAL.lightened(0.3), Vector3(90, 0, 0), -1.0, 0.2, 0.9)
 	_exhaust_pos = Vector3(0.42, 0.92, 1.7)
 	_wheel(Vector3(0, 0.42, -0.95), 0.42, 0.22, DARK, METAL.lightened(0.3), true)
@@ -219,26 +221,26 @@ func _style_trike(red: Color, gold: Color) -> Vector3:
 
 
 func _style_armored(steel: Color, trim: Color) -> Vector3:
-	ProcMesh.box(_body, Vector3(1.5, 0.7, 1.4), Vector3(0, 0.85, -0.45), steel, Vector3.ZERO, 0.5, 0.6)  # capô
-	ProcMesh.box(_body, Vector3(1.0, 0.1, 0.2), Vector3(0, 0.92, -1.17), trim, Vector3.ZERO, 0.4, 0.8)    # grade dourada
-	ProcMesh.box(_body, Vector3(0.9, 0.35, 0.05), Vector3(0, 0.92, -1.17), DARK)
-	ProcMesh.box(_body, Vector3(1.55, 0.2, 0.3), Vector3(0, 0.45, -1.3), METAL, Vector3.ZERO, 0.4, 0.7)   # para-choque
+	ProcMesh.rbox(_body, Vector3(1.5, 0.7, 1.4), Vector3(0, 0.85, -0.45), steel, Vector3.ZERO, 0.5, 0.6)  # capô
+	ProcMesh.rbox(_body, Vector3(1.0, 0.1, 0.2), Vector3(0, 0.92, -1.17), trim, Vector3.ZERO, 0.4, 0.8)    # grade dourada
+	ProcMesh.rbox(_body, Vector3(0.9, 0.35, 0.05), Vector3(0, 0.92, -1.17), DARK)
+	ProcMesh.rbox(_body, Vector3(1.55, 0.2, 0.3), Vector3(0, 0.45, -1.3), METAL, Vector3.ZERO, 0.4, 0.7)   # para-choque
 	for sx: float in [-0.6, 0.6]:
-		ProcMesh.box(_body, Vector3(0.25, 0.22, 0.1), Vector3(sx, 1.05, -1.17), Color(1.0, 0.95, 0.7), Vector3.ZERO, 0.2, 0.0, 1.5)
-	ProcMesh.box(_body, Vector3(1.5, 0.12, 1.3), Vector3(0, 0.55, 0.85), steel.darkened(0.2), Vector3.ZERO, 0.5, 0.6) # base traseira
+		ProcMesh.rbox(_body, Vector3(0.25, 0.22, 0.1), Vector3(sx, 1.05, -1.17), Color(1.0, 0.95, 0.7), Vector3.ZERO, 0.2, 0.0, 1.5)
+	ProcMesh.rbox(_body, Vector3(1.5, 0.12, 1.3), Vector3(0, 0.55, 0.85), steel.darkened(0.2), Vector3.ZERO, 0.5, 0.6) # base traseira
 	# gaiola traseira
 	for sx: float in [-0.7, 0.7]:
 		for sz: float in [0.3, 1.4]:
 			ProcMesh.cyl(_body, 0.045, 1.0, Vector3(sx, 1.15, sz), trim.darkened(0.2), Vector3.ZERO, -1.0, 0.5, 0.6)
 	for i in 4:
 		ProcMesh.cyl(_body, 0.03, 1.1, Vector3(-0.7 + 0.0, 1.15, 0.3 + 0.37 * float(i)), METAL)
-	ProcMesh.box(_body, Vector3(1.5, 0.08, 1.2), Vector3(0, 1.68, 0.85), steel, Vector3.ZERO, 0.5, 0.6)
-	ProcMesh.box(_body, Vector3(0.45, 0.4, 0.4), Vector3(0, 0.9, 1.1), Color(0.85, 0.7, 0.3)) # saco de dinheiro
+	ProcMesh.rbox(_body, Vector3(1.5, 0.08, 1.2), Vector3(0, 1.68, 0.85), steel, Vector3.ZERO, 0.5, 0.6)
+	ProcMesh.rbox(_body, Vector3(0.45, 0.4, 0.4), Vector3(0, 0.9, 1.1), Color(0.85, 0.7, 0.3)) # saco de dinheiro
 	# escapamentos duplos
 	_exhaust(Vector3(0.6, 0.95, 1.2))
 	ProcMesh.cyl(_body, 0.08, 0.7, Vector3(0.78, 0.95, 1.2), RUST, Vector3(90, 0, 0), -1.0, 0.7, 0.5)
 	# faixa lateral
-	ProcMesh.box(_body, Vector3(1.56, 0.1, 0.9), Vector3(0, 0.62, 0.0), trim)
+	ProcMesh.rbox(_body, Vector3(1.56, 0.1, 0.9), Vector3(0, 0.62, 0.0), trim)
 	_wheel(Vector3(-0.85, 0.5, -0.8), 0.5, 0.45, DARK, METAL, true)
 	_wheel(Vector3(0.85, 0.5, -0.8), 0.5, 0.45, DARK, METAL, true)
 	_wheel(Vector3(-0.85, 0.5, 0.9), 0.5, 0.45, DARK, METAL, false)
@@ -247,16 +249,16 @@ func _style_armored(steel: Color, trim: Color) -> Vector3:
 
 
 func _style_pinkcar(pink: Color, lilac: Color) -> Vector3:
-	ProcMesh.box(_body, Vector3(1.3, 0.45, 2.3), Vector3(0, 0.55, 0.0), pink, Vector3.ZERO, 0.3)
+	ProcMesh.rbox(_body, Vector3(1.3, 0.45, 2.3), Vector3(0, 0.55, 0.0), pink, Vector3.ZERO, 0.3)
 	ProcMesh.sphere(_body, 0.65, Vector3(0, 0.62, -0.95), pink, Vector3(1.0, 0.55, 1.0), 0.3)
 	for sx: float in [-0.45, 0.45]:
 		ProcMesh.sphere(_body, 0.16, Vector3(sx, 0.7, -1.5), Color(1.0, 0.92, 0.4), Vector3.ONE, 0.2, 1.0)
-	ProcMesh.box(_body, Vector3(0.7, 0.2, 0.06), Vector3(0, 0.55, -1.62), lilac)
-	ProcMesh.box(_body, Vector3(1.0, 0.8, 0.2), Vector3(0, 1.05, 0.95), pink.lightened(0.15), Vector3(-10, 0, 0), 0.4) # encosto
-	ProcMesh.box(_body, Vector3(0.9, 0.08, 0.7), Vector3(0, 0.82, 0.55), pink.darkened(0.1))
+	ProcMesh.rbox(_body, Vector3(0.7, 0.2, 0.06), Vector3(0, 0.55, -1.62), lilac)
+	ProcMesh.rbox(_body, Vector3(1.0, 0.8, 0.2), Vector3(0, 1.05, 0.95), pink.lightened(0.15), Vector3(-10, 0, 0), 0.4) # encosto
+	ProcMesh.rbox(_body, Vector3(0.9, 0.08, 0.7), Vector3(0, 0.82, 0.55), pink.darkened(0.1))
 	for sx: float in [-0.65, 0.65]: # corações
 		ProcMesh.sphere(_body, 0.1, Vector3(sx, 0.62, -0.1), Color(0.95, 0.2, 0.4), Vector3(1, 1, 0.3))
-	ProcMesh.box(_body, Vector3(0.45, 0.4, 0.5), Vector3(0, 0.8, 1.2), Color(0.8, 0.15, 0.4), Vector3.ZERO, 0.4, 0.2)
+	ProcMesh.rbox(_body, Vector3(0.45, 0.4, 0.5), Vector3(0, 0.8, 1.2), Color(0.8, 0.15, 0.4), Vector3.ZERO, 0.4, 0.2)
 	_exhaust(Vector3(0.4, 0.75, 1.2), lilac)
 	_wheel(Vector3(-0.72, 0.33, -0.85), 0.33, 0.26, DARK, pink.lightened(0.2), true)
 	_wheel(Vector3(0.72, 0.33, -0.85), 0.33, 0.26, DARK, pink.lightened(0.2), true)
@@ -268,17 +270,17 @@ func _style_pinkcar(pink: Color, lilac: Color) -> Vector3:
 func _style_crate(frame: Color, wood: Color, mail: bool) -> Vector3:
 	# triciclo estilo bicicleta (2 rodas dianteiras) + caixote de madeira + motor traseiro
 	var crate_z: float = -0.25 if mail else 0.15
-	ProcMesh.box(_body, Vector3(1.0, 0.5, 0.9), Vector3(0, 0.65, crate_z), wood, Vector3.ZERO, 0.9)
+	ProcMesh.rbox(_body, Vector3(1.0, 0.5, 0.9), Vector3(0, 0.65, crate_z), wood, Vector3.ZERO, 0.9)
 	for i in 3:
-		ProcMesh.box(_body, Vector3(1.02, 0.05, 0.92), Vector3(0, 0.52 + 0.14 * float(i), crate_z), wood.darkened(0.25), Vector3.ZERO, 0.9)
+		ProcMesh.rbox(_body, Vector3(1.02, 0.05, 0.92), Vector3(0, 0.52 + 0.14 * float(i), crate_z), wood.darkened(0.25), Vector3.ZERO, 0.9)
 	if mail: # cartas e pacotes
-		ProcMesh.box(_body, Vector3(0.5, 0.12, 0.35), Vector3(0.0, 0.95, crate_z), Color(0.95, 0.92, 0.8), Vector3(0, 12, 0))
-		ProcMesh.box(_body, Vector3(0.4, 0.3, 0.35), Vector3(-0.25, 1.0, crate_z + 0.1), Color(0.75, 0.6, 0.4))
+		ProcMesh.rbox(_body, Vector3(0.5, 0.12, 0.35), Vector3(0.0, 0.95, crate_z), Color(0.95, 0.92, 0.8), Vector3(0, 12, 0))
+		ProcMesh.rbox(_body, Vector3(0.4, 0.3, 0.35), Vector3(-0.25, 1.0, crate_z + 0.1), Color(0.75, 0.6, 0.4))
 	# quadro da bicicleta
 	ProcMesh.cyl(_body, 0.04, 1.8, Vector3(0, 0.7, -0.2), frame, Vector3(90, 0, 0), -1.0, 0.5, 0.3)
 	ProcMesh.cyl(_body, 0.04, 0.9, Vector3(0, 0.98, -0.95), frame, Vector3(-25, 0, 0), -1.0, 0.5, 0.3)
 	ProcMesh.cyl(_body, 0.035, 0.9, Vector3(0, 1.3, -1.05), METAL, Vector3(0, 0, 90), -1.0, 0.4, 0.7)
-	ProcMesh.box(_body, Vector3(0.3, 0.07, 0.4), Vector3(0, 1.0, 0.6), Color(0.45, 0.28, 0.15))
+	ProcMesh.rbox(_body, Vector3(0.3, 0.07, 0.4), Vector3(0, 1.0, 0.6), Color(0.45, 0.28, 0.15))
 	_engine(Vector3(0, 0.8, 1.2), Color(0.8, 0.15, 0.1))
 	ProcMesh.cyl(_body, 0.1, 0.25, Vector3(-0.15, 1.12, 1.15), Color(0.4, 0.5, 0.3)) # tanque
 	_exhaust(Vector3(0.4, 0.95, 1.05), RUST)
@@ -296,13 +298,13 @@ func _style_teacup(blue: Color, pink: Color) -> Vector3:
 	ProcMesh.cyl(_body, 0.62, 0.05, Vector3(0, 1.0, 0.1), Color(0.3, 0.1, 0.1))                                    # interior escuro
 	ProcMesh.torus(_body, 0.08, 0.3, Vector3(0.0, 0.85, 1.05), porcelain, Vector3(0, 90, 0))                       # alça
 	ProcMesh.cyl(_body, 0.2, 0.7, Vector3(0, 0.8, -0.9), porcelain, Vector3(-70, 0, 0), 0.1, 0.2, 0.2)             # bico do bule
-	ProcMesh.box(_body, Vector3(0.8, 0.5, 0.06), Vector3(0, 0.75, -0.6), Color(0.7, 0.72, 0.75), Vector3.ZERO, 0.3, 0.8)  # grade
-	ProcMesh.box(_body, Vector3(1.4, 0.05, 0.5), Vector3(0, 1.3, 1.3), porcelain, Vector3(-10, 0, 0), 0.2, 0.2)   # aerofólio
+	ProcMesh.rbox(_body, Vector3(0.8, 0.5, 0.06), Vector3(0, 0.75, -0.6), Color(0.7, 0.72, 0.75), Vector3.ZERO, 0.3, 0.8)  # grade
+	ProcMesh.rbox(_body, Vector3(1.4, 0.05, 0.5), Vector3(0, 1.3, 1.3), porcelain, Vector3(-10, 0, 0), 0.2, 0.2)   # aerofólio
 	for sx: float in [-0.5, 0.5]:
-		ProcMesh.box(_body, Vector3(0.05, 0.4, 0.05), Vector3(sx, 1.1, 1.3), METAL)
+		ProcMesh.rbox(_body, Vector3(0.05, 0.4, 0.05), Vector3(sx, 1.1, 1.3), METAL)
 	for sx: float in [-0.6, 0.6]:
 		ProcMesh.sphere(_body, 0.1, Vector3(sx, 0.55, -0.6), pink, Vector3(1, 1, 0.4))
-	ProcMesh.box(_body, Vector3(0.7, 0.45, 0.15), Vector3(0, 1.0, 0.8), Color(0.65, 0.12, 0.18)) # banco
+	ProcMesh.rbox(_body, Vector3(0.7, 0.45, 0.15), Vector3(0, 1.0, 0.8), Color(0.65, 0.12, 0.18)) # banco
 	_exhaust_pos = Vector3(-0.6, 0.6, 1.2)
 	_wheel(Vector3(-0.85, 0.4, -0.85), 0.4, 0.3, DARK, pink, true)
 	_wheel(Vector3(0.85, 0.4, -0.85), 0.4, 0.3, DARK, pink, true)
@@ -312,15 +314,15 @@ func _style_teacup(blue: Color, pink: Color) -> Vector3:
 
 
 func _style_vintage(burgundy: Color, _c2: Color) -> Vector3:
-	ProcMesh.box(_body, Vector3(0.95, 0.65, 1.7), Vector3(0, 0.75, -0.55), burgundy, Vector3.ZERO, 0.25, 0.4)    # capô longo
-	ProcMesh.box(_body, Vector3(0.7, 0.55, 0.1), Vector3(0, 0.78, -1.45), METAL.lightened(0.3), Vector3.ZERO, 0.2, 0.9) # radiador
+	ProcMesh.rbox(_body, Vector3(0.95, 0.65, 1.7), Vector3(0, 0.75, -0.55), burgundy, Vector3.ZERO, 0.25, 0.4)    # capô longo
+	ProcMesh.rbox(_body, Vector3(0.7, 0.55, 0.1), Vector3(0, 0.78, -1.45), METAL.lightened(0.3), Vector3.ZERO, 0.2, 0.9) # radiador
 	for i in 5:
-		ProcMesh.box(_body, Vector3(0.03, 0.5, 0.05), Vector3(-0.25 + 0.125 * float(i), 0.78, -1.5), DARK)
+		ProcMesh.rbox(_body, Vector3(0.03, 0.5, 0.05), Vector3(-0.25 + 0.125 * float(i), 0.78, -1.5), DARK)
 	for sx: float in [-0.5, 0.5]:
 		ProcMesh.sphere(_body, 0.17, Vector3(sx, 0.95, -1.45), Color(0.85, 0.7, 0.25), Vector3.ONE, 0.2, 0.0)
 		ProcMesh.cyl(_body, 0.03, 0.35, Vector3(sx, 0.75, -1.25), DARK)
-	ProcMesh.box(_body, Vector3(1.0, 0.45, 1.2), Vector3(0, 0.6, 0.8), burgundy.darkened(0.3), Vector3.ZERO, 0.25, 0.4)  # cockpit
-	ProcMesh.box(_body, Vector3(0.7, 0.55, 0.15), Vector3(0, 1.0, 1.25), Color(0.4, 0.25, 0.12))                          # banco
+	ProcMesh.rbox(_body, Vector3(1.0, 0.45, 1.2), Vector3(0, 0.6, 0.8), burgundy.darkened(0.3), Vector3.ZERO, 0.25, 0.4)  # cockpit
+	ProcMesh.rbox(_body, Vector3(0.7, 0.55, 0.15), Vector3(0, 1.0, 1.25), Color(0.4, 0.25, 0.12))                          # banco
 	ProcMesh.cyl(_body, 0.1, 0.25, Vector3(0.58, 1.0, -0.25), Color(0.85, 0.7, 0.25), Vector3(0, 0, 90), 0.18, 0.2, 0.9) # buzina
 	ProcMesh.cyl(_body, 0.06, 1.6, Vector3(0.6, 0.35, 0.3), METAL.lightened(0.3), Vector3(90, 0, 0), -1.0, 0.2, 0.9)     # escapamento lateral
 	_exhaust_pos = Vector3(0.6, 0.35, 1.15)
@@ -340,18 +342,18 @@ func _style_broom(navy: Color, purple: Color) -> Vector3:
 	ProcMesh.sphere(_body, 0.2, Vector3(0, 0.6, -1.3), wood.lightened(0.1))
 	ProcMesh.cyl(_body, 0.5, 1.0, Vector3(0, 0.6, 1.6), Color(0.72, 0.55, 0.25), Vector3(-90, 0, 0), 0.15, 1.0)  # cerdas
 	ProcMesh.cyl(_body, 0.22, 0.25, Vector3(0, 0.6, 1.0), Color(0.55, 0.4, 0.2), Vector3(90, 0, 0), -1.0, 1.0)    # amarra
-	ProcMesh.box(_body, Vector3(0.8, 0.1, 0.8), Vector3(0, 0.82, 0.3), Color(0.25, 0.15, 0.1))                     # plataforma
-	ProcMesh.box(_body, Vector3(0.7, 0.8, 0.1), Vector3(0, 1.3, 0.75), navy.darkened(0.2))                         # encosto da cadeira
-	ProcMesh.box(_body, Vector3(0.25, 0.25, 0.04), Vector3(0.15, 1.35, 0.69), Color(0.7, 0.55, 0.3))               # remendo
-	ProcMesh.box(_body, Vector3(0.7, 0.1, 0.65), Vector3(0, 0.95, 0.3), navy.darkened(0.2))                        # assento
+	ProcMesh.rbox(_body, Vector3(0.8, 0.1, 0.8), Vector3(0, 0.82, 0.3), Color(0.25, 0.15, 0.1))                     # plataforma
+	ProcMesh.rbox(_body, Vector3(0.7, 0.8, 0.1), Vector3(0, 1.3, 0.75), navy.darkened(0.2))                         # encosto da cadeira
+	ProcMesh.rbox(_body, Vector3(0.25, 0.25, 0.04), Vector3(0.15, 1.35, 0.69), Color(0.7, 0.55, 0.3))               # remendo
+	ProcMesh.rbox(_body, Vector3(0.7, 0.1, 0.65), Vector3(0, 0.95, 0.3), navy.darkened(0.2))                        # assento
 	for sx: float in [-0.35, 0.35]:
-		ProcMesh.box(_body, Vector3(0.06, 0.8, 0.06), Vector3(sx, 1.3, 0.75), wood)
+		ProcMesh.rbox(_body, Vector3(0.06, 0.8, 0.06), Vector3(sx, 1.3, 0.75), wood)
 	# caldeirão roxo borbulhante
 	ProcMesh.sphere(_body, 0.45, Vector3(0, 1.15, 1.2), Color(0.18, 0.2, 0.25), Vector3(1, 0.85, 1), 0.4)
 	ProcMesh.cyl(_body, 0.34, 0.05, Vector3(0, 1.5, 1.2), purple.lightened(0.3), Vector3.ZERO, -1.0, 0.2, 0.0, 2.0)
 	# cristais roxos brilhantes
 	for sx: float in [-0.3, 0.3]:
-		ProcMesh.box(_body, Vector3(0.18, 0.18, 0.7), Vector3(sx, 0.4, -0.7), purple, Vector3(10, sx * 40.0, 0), 0.2, 0.0, 2.5)
+		ProcMesh.rbox(_body, Vector3(0.18, 0.18, 0.7), Vector3(sx, 0.4, -0.7), purple, Vector3(10, sx * 40.0, 0), 0.2, 0.0, 2.5)
 	# lanternas penduradas
 	for sx: float in [-0.45, 0.45]:
 		ProcMesh.cyl(_body, 0.01, 0.35, Vector3(sx, 0.4, -0.35), METAL)
@@ -387,13 +389,13 @@ func _build_driver(id: String, seat: Vector3) -> void:
 		hair = Color(0.08, 0.06, 0.05)
 	var big: float = 1.15 if (id == "nhonho" or id == "barriga") else 1.0
 	# corpo
-	ProcMesh.box(d, Vector3(0.55 * big, 0.55, 0.38 * big), Vector3(0, 0.3, 0), shirt)
+	ProcMesh.rbox(d, Vector3(0.55 * big, 0.55, 0.38 * big), Vector3(0, 0.3, 0), shirt)
 	if id == "nhonho": # camiseta listrada
 		var stripes: Array[Color] = [Color(0.95, 0.8, 0.15), Color(0.2, 0.7, 0.3), Color(0.25, 0.5, 0.9)]
 		for i in 3:
-			ProcMesh.box(d, Vector3(0.6 * big, 0.08, 0.42 * big), Vector3(0, 0.15 + 0.14 * float(i), 0), stripes[i])
+			ProcMesh.rbox(d, Vector3(0.6 * big, 0.08, 0.42 * big), Vector3(0, 0.15 + 0.14 * float(i), 0), stripes[i])
 	if id == "girafales" or id == "barriga":
-		ProcMesh.box(d, Vector3(0.1, 0.35, 0.05), Vector3(0, 0.38, -0.2), Color(0.8, 0.1, 0.12) if id == "girafales" else Color(0.1, 0.1, 0.1)) # gravata
+		ProcMesh.rbox(d, Vector3(0.1, 0.35, 0.05), Vector3(0, 0.38, -0.2), Color(0.8, 0.1, 0.12) if id == "girafales" else Color(0.1, 0.1, 0.1)) # gravata
 	# cabeça
 	ProcMesh.sphere(d, 0.27 * big, Vector3(0, 0.82, 0), SKIN)
 	ProcMesh.sphere(d, 0.285 * big, Vector3(0, 0.87, 0.05), hair, Vector3(1, 0.95, 0.95))
@@ -403,18 +405,18 @@ func _build_driver(id: String, seat: Vector3) -> void:
 	ProcMesh.sphere(d, 0.05, Vector3(0, 0.78, -0.28 * big), Color(0.95, 0.65, 0.5)) # nariz
 	# braços até o volante
 	for sx: float in [-0.34, 0.34]:
-		ProcMesh.box(d, Vector3(0.13, 0.13, 0.55), Vector3(sx * big, 0.42, -0.3), shirt)
+		ProcMesh.rbox(d, Vector3(0.13, 0.13, 0.55), Vector3(sx * big, 0.42, -0.3), shirt)
 		ProcMesh.sphere(d, 0.08, Vector3(sx * big, 0.42, -0.6), SKIN)
 	# acessórios por personagem
 	match id:
 		"chaves":
 			var green: Color = Color(0.3, 0.6, 0.25)
-			ProcMesh.box(d, Vector3(0.62, 0.2, 0.6), Vector3(0, 1.07, 0.0), green)
-			ProcMesh.box(d, Vector3(0.5, 0.05, 0.25), Vector3(0, 1.0, -0.38), green.darkened(0.2))
+			ProcMesh.rbox(d, Vector3(0.62, 0.2, 0.6), Vector3(0, 1.07, 0.0), green)
+			ProcMesh.rbox(d, Vector3(0.5, 0.05, 0.25), Vector3(0, 1.0, -0.38), green.darkened(0.2))
 			for sx: float in [-0.32, 0.32]:
-				ProcMesh.box(d, Vector3(0.08, 0.34, 0.42), Vector3(sx, 0.85, 0.0), green)
-			ProcMesh.box(d, Vector3(0.12, 0.45, 0.04), Vector3(-0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15)) # suspensório
-			ProcMesh.box(d, Vector3(0.12, 0.45, 0.04), Vector3(0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15))
+				ProcMesh.rbox(d, Vector3(0.08, 0.34, 0.42), Vector3(sx, 0.85, 0.0), green)
+			ProcMesh.rbox(d, Vector3(0.12, 0.45, 0.04), Vector3(-0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15)) # suspensório
+			ProcMesh.rbox(d, Vector3(0.12, 0.45, 0.04), Vector3(0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15))
 		"chiquinha":
 			ProcMesh.sphere(d, 0.13, Vector3(-0.36, 0.98, 0.05), hair)
 			ProcMesh.sphere(d, 0.13, Vector3(0.36, 0.98, 0.05), hair)
@@ -422,48 +424,48 @@ func _build_driver(id: String, seat: Vector3) -> void:
 			ProcMesh.sphere(d, 0.05, Vector3(0.3, 0.98, 0.05), Color(0.95, 0.85, 0.2))
 			for sx: float in [-0.12, 0.12]:
 				ProcMesh.torus(d, 0.075, 0.115, Vector3(sx, 0.86, -0.27), Color.BLACK, Vector3(90, 0, 0))
-			ProcMesh.box(d, Vector3(0.62, 0.06, 0.4), Vector3(0, 0.6, 0.0), Color(0.2, 0.6, 0.3)) # saia verde
+			ProcMesh.rbox(d, Vector3(0.62, 0.06, 0.4), Vector3(0, 0.6, 0.0), Color(0.2, 0.6, 0.3)) # saia verde
 		"quico":
 			ProcMesh.sphere(d, 0.3, Vector3(0, 1.0, 0.0), Color(0.2, 0.35, 0.8), Vector3(1, 0.7, 1))
-			ProcMesh.box(d, Vector3(0.18, 0.2, 0.55), Vector3(0, 1.08, 0.0), Color(0.95, 0.8, 0.15))
-			ProcMesh.box(d, Vector3(0.18, 0.18, 0.5), Vector3(-0.2, 1.05, 0.0), Color(0.85, 0.15, 0.15))
+			ProcMesh.rbox(d, Vector3(0.18, 0.2, 0.55), Vector3(0, 1.08, 0.0), Color(0.95, 0.8, 0.15))
+			ProcMesh.rbox(d, Vector3(0.18, 0.18, 0.5), Vector3(-0.2, 1.05, 0.0), Color(0.85, 0.15, 0.15))
 			_prop = Node3D.new()
 			_prop.position = Vector3(0, 1.33, 0.0)
 			d.add_child(_prop)
 			ProcMesh.cyl(d, 0.015, 0.1, Vector3(0, 1.26, 0.0), Color.BLACK)
-			ProcMesh.box(_prop, Vector3(0.8, 0.02, 0.09), Vector3.ZERO, Color(0.2, 0.4, 0.85))
-			ProcMesh.box(d, Vector3(0.34, 0.07, 0.05), Vector3(0, 0.62, -0.2), Color(0.85, 0.12, 0.15)) # lenço
+			ProcMesh.rbox(_prop, Vector3(0.8, 0.02, 0.09), Vector3.ZERO, Color(0.2, 0.4, 0.85))
+			ProcMesh.rbox(d, Vector3(0.34, 0.07, 0.05), Vector3(0, 0.62, -0.2), Color(0.85, 0.12, 0.15)) # lenço
 		"nhonho":
 			pass
 		"popis":
 			ProcMesh.sphere(d, 0.13, Vector3(-0.15, 1.12, 0.0), Color(1.0, 0.45, 0.7), Vector3(1.3, 1, 0.6))
 			ProcMesh.sphere(d, 0.13, Vector3(0.15, 1.12, 0.0), Color(1.0, 0.45, 0.7), Vector3(1.3, 1, 0.6))
 			ProcMesh.sphere(d, 0.07, Vector3(0, 1.12, 0.0), Color(0.95, 0.3, 0.55))
-			ProcMesh.box(d, Vector3(0.68, 0.06, 0.45), Vector3(0, 0.58, 0.0), Color(1.0, 0.7, 0.85)) # saia rodada
+			ProcMesh.rbox(d, Vector3(0.68, 0.06, 0.45), Vector3(0, 0.58, 0.0), Color(1.0, 0.7, 0.85)) # saia rodada
 		"madruga":
 			ProcMesh.cyl(d, 0.3, 0.22, Vector3(0, 1.08, 0.0), Color(0.45, 0.62, 0.85), Vector3.ZERO, 0.26)
 			ProcMesh.cyl(d, 0.44, 0.04, Vector3(0, 0.98, 0.0), Color(0.4, 0.57, 0.8))
-			ProcMesh.box(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.72, -0.27), Color(0.1, 0.07, 0.05)) # bigode
+			ProcMesh.rbox(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.72, -0.27), Color(0.1, 0.07, 0.05)) # bigode
 		"jaiminho":
 			ProcMesh.cyl(d, 0.3, 0.2, Vector3(0, 1.06, 0.0), Color(0.28, 0.38, 0.58), Vector3.ZERO, 0.28)
-			ProcMesh.box(d, Vector3(0.45, 0.05, 0.25), Vector3(0, 0.99, -0.34), Color(0.15, 0.2, 0.3))
-			ProcMesh.box(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.72, -0.27), Color(0.75, 0.75, 0.78))
-			ProcMesh.box(d, Vector3(0.45, 0.4, 0.18), Vector3(0.38, 0.2, 0.15), Color(0.5, 0.32, 0.18)) # bolsa de cartas
-			ProcMesh.box(d, Vector3(0.3, 0.12, 0.05), Vector3(0.38, 0.45, 0.06), Color(0.95, 0.92, 0.8))
+			ProcMesh.rbox(d, Vector3(0.45, 0.05, 0.25), Vector3(0, 0.99, -0.34), Color(0.15, 0.2, 0.3))
+			ProcMesh.rbox(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.72, -0.27), Color(0.75, 0.75, 0.78))
+			ProcMesh.rbox(d, Vector3(0.45, 0.4, 0.18), Vector3(0.38, 0.2, 0.15), Color(0.5, 0.32, 0.18)) # bolsa de cartas
+			ProcMesh.rbox(d, Vector3(0.3, 0.12, 0.05), Vector3(0.38, 0.45, 0.06), Color(0.95, 0.92, 0.8))
 		"florinda":
 			var cols: Array[Color] = [Color(0.95, 0.4, 0.65), Color(0.95, 0.85, 0.3)]
 			for i in 7:
 				var ang: float = TAU * float(i) / 7.0
 				ProcMesh.cyl(d, 0.075, 0.2, Vector3(sin(ang) * 0.27, 1.02, cos(ang) * 0.24), cols[i % 2], Vector3(0, 0, 90) if i % 2 == 0 else Vector3(90, 0, 0))
-			ProcMesh.box(d, Vector3(0.6, 0.35, 0.05), Vector3(0, 0.28, -0.2), Color(0.95, 0.9, 0.8)) # avental
+			ProcMesh.rbox(d, Vector3(0.6, 0.35, 0.05), Vector3(0, 0.28, -0.2), Color(0.95, 0.9, 0.8)) # avental
 		"girafales":
 			ProcMesh.cyl(d, 0.44, 0.04, Vector3(0, 0.99, 0.0), Color(0.35, 0.22, 0.14))
 			ProcMesh.cyl(d, 0.26, 0.26, Vector3(0, 1.12, 0.0), Color(0.35, 0.22, 0.14))
 			ProcMesh.cyl(d, 0.025, 0.28, Vector3(0.06, 0.7, -0.36), Color(0.45, 0.28, 0.14), Vector3(90, 0, 0)) # charuto
 			ProcMesh.sphere(d, 0.03, Vector3(0.06, 0.7, -0.5), Color(1.0, 0.5, 0.1), Vector3.ONE, 0.5, 2.0)
-			ProcMesh.box(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.74, -0.27), Color(0.6, 0.6, 0.62))
+			ProcMesh.rbox(d, Vector3(0.3, 0.06, 0.05), Vector3(0, 0.74, -0.27), Color(0.6, 0.6, 0.62))
 		"barriga":
-			ProcMesh.box(d, Vector3(0.32, 0.06, 0.05), Vector3(0, 0.72, -0.31), Color(0.1, 0.07, 0.05))
+			ProcMesh.rbox(d, Vector3(0.32, 0.06, 0.05), Vector3(0, 0.72, -0.31), Color(0.1, 0.07, 0.05))
 			for sx: float in [-0.12, 0.12]:
 				ProcMesh.torus(d, 0.07, 0.11, Vector3(sx, 0.87, -0.31), Color.BLACK, Vector3(90, 0, 0))
 		"bruxa":

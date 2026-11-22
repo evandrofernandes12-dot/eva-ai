@@ -23,13 +23,13 @@ func _build_visual() -> void:
 	add_child(_mesh_root)
 	if kind == "bola":
 		# bola "quadrada": cubo com faixas vermelha / amarela / azul
-		ProcMesh.box(_mesh_root, Vector3(0.3, 0.9, 0.9), Vector3(-0.3, 0, 0), Color(0.9, 0.2, 0.2), Vector3.ZERO, 0.4)
-		ProcMesh.box(_mesh_root, Vector3(0.3, 0.9, 0.9), Vector3(0.0, 0, 0), Color(0.95, 0.8, 0.15), Vector3.ZERO, 0.4)
-		ProcMesh.box(_mesh_root, Vector3(0.3, 0.9, 0.9), Vector3(0.3, 0, 0), Color(0.2, 0.4, 0.9), Vector3.ZERO, 0.4)
+		ProcMesh.rbox(_mesh_root, Vector3(0.3, 0.9, 0.9), Vector3(-0.3, 0, 0), Color(0.9, 0.2, 0.2), Vector3.ZERO, 0.4)
+		ProcMesh.rbox(_mesh_root, Vector3(0.3, 0.9, 0.9), Vector3(0.0, 0, 0), Color(0.95, 0.8, 0.15), Vector3.ZERO, 0.4)
+		ProcMesh.rbox(_mesh_root, Vector3(0.3, 0.9, 0.9), Vector3(0.3, 0, 0), Color(0.2, 0.4, 0.9), Vector3.ZERO, 0.4)
 	else:
 		# chinelo: sola + tira
 		ProcMesh.cyl(_mesh_root, 0.28, 0.08, Vector3(0, 0, 0), Color(0.2, 0.55, 0.85), Vector3.ZERO, -1.0, 0.8).scale = Vector3(1.0, 1.0, 1.9)
-		ProcMesh.box(_mesh_root, Vector3(0.5, 0.06, 0.12), Vector3(0, 0.07, -0.1), Color(0.95, 0.9, 0.9))
+		ProcMesh.rbox(_mesh_root, Vector3(0.5, 0.06, 0.12), Vector3(0, 0.07, -0.1), Color(0.95, 0.9, 0.9))
 
 
 func activate(kart: KartController) -> void:

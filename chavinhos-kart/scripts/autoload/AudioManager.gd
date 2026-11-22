@@ -19,6 +19,7 @@ var _target_freq: float = 50.0
 var _target_vol: float = 0.0
 var sfx_volume: float = 1.0
 var engine_volume: float = 0.6
+var _wave: PackedFloat32Array = PackedFloat32Array()
 
 
 ## Lê o volume salvo (Opções) e aplica no barramento principal.
@@ -37,6 +38,7 @@ func _ready() -> void:
 		add_child(p)
 		_voices.append(p)
 	_build_sfx()
+	_build_wave()
 	_setup_engine()
 	apply_settings()
 
@@ -114,13 +116,30 @@ func _build_sfx() -> void:
 
 # ---------------------------------------------------------------- Motor
 
+## Uma volta da onda do motor: soma de harmônicos (som "cheio" que aparece em alto-falante pequeno,
+## sem o chiado de uma onda serrilhada crua).
+func _build_wave() -> void:
+	var n: int = 512
+	_wave.resize(n)
+	var peak: float = 0.0
+	for i in n:
+		var ph: float = TAU * float(i) / float(n)
+		var v: float = 0.0
+		for hrm in range(1, 9):
+			v += sin(ph * float(hrm)) / pow(float(hrm), 1.1)
+		_wave[i] = v
+		peak = maxf(peak, absf(v))
+	for i in n:
+		_wave[i] /= peak
+
+
 func _setup_engine() -> void:
 	var gen := AudioStreamGenerator.new()
 	gen.mix_rate = float(MIX_RATE)
 	gen.buffer_length = 0.3 if OS.has_feature("web") else 0.12 # navegador: buffer maior evita estalos
 	_engine_player = AudioStreamPlayer.new()
 	_engine_player.stream = gen
-	_engine_player.volume_db = -12.0
+	_engine_player.volume_db = -8.0
 	add_child(_engine_player)
 	_engine_player.play()
 	_engine_playback = _engine_player.get_stream_playback() as AudioStreamGeneratorPlayback
@@ -128,8 +147,8 @@ func _setup_engine() -> void:
 
 ## ratio: 0 (parado) .. ~1.2 (turbo). active=false silencia o motor.
 func set_engine(ratio: float, active: bool) -> void:
-	_target_freq = 48.0 + 120.0 * clampf(ratio, 0.0, 1.3)
-	_target_vol = (0.12 + 0.3 * clampf(ratio, 0.0, 1.0)) * engine_volume if active else 0.0
+	_target_freq = 85.0 + 190.0 * clampf(ratio, 0.0, 1.3)
+	_target_vol = (0.18 + 0.32 * clampf(ratio, 0.0, 1.0)) * engine_volume if active else 0.0
 
 
 func _process(delta: float) -> void:
@@ -146,6 +165,9 @@ func _process(delta: float) -> void:
 		return
 	for i in frames:
 		_engine_phase = fmod(_engine_phase + _engine_freq / float(MIX_RATE), 1.0)
-		var ph: float = _engine_phase * TAU
-		var s: float = (sin(ph) * 0.6 + sin(ph * 2.0) * 0.25 + sin(ph * 3.0) * 0.1) * _engine_vol
+		var idx: float = _engine_phase * 512.0
+		var i0: int = int(idx) % 512
+		var fr: float = idx - floorf(idx)
+		var w: float = lerpf(_wave[i0], _wave[(i0 + 1) % 512], fr)
+		var s: float = w * 0.7 * _engine_vol
 		_engine_playback.push_frame(Vector2(s, s))

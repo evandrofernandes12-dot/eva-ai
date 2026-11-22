@@ -17,10 +17,10 @@ func _ready() -> void:
 	_visual = Node3D.new()
 	_visual.position.y = 1.4
 	add_child(_visual)
-	ProcMesh.box(_visual, Vector3(1.3, 1.3, 1.3), Vector3.ZERO, Color(0.62, 0.4, 0.18), Vector3.ZERO, 0.8)
+	ProcMesh.rbox(_visual, Vector3(1.3, 1.3, 1.3), Vector3.ZERO, Color(0.62, 0.4, 0.18), Vector3.ZERO, 0.8)
 	for sx: float in [-0.65, 0.65]:
 		for sz: float in [-0.65, 0.65]:
-			ProcMesh.box(_visual, Vector3(0.18, 1.4, 0.18), Vector3(sx, 0, sz), Color(0.35, 0.35, 0.4), Vector3.ZERO, 0.5, 0.6)
+			ProcMesh.rbox(_visual, Vector3(0.18, 1.4, 0.18), Vector3(sx, 0, sz), Color(0.35, 0.35, 0.4), Vector3.ZERO, 0.5, 0.6)
 	for i in 4:
 		var pivot := Node3D.new()
 		pivot.rotation.y = float(i) * PI / 2.0
