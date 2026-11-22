@@ -159,7 +159,7 @@ func _perna(pos: Vector3, c1: float, c2: float, r1: float, r2: float, mat: Mater
 	_pernas.append([q, j, fase])
 
 func _olhos(pai: Node3D, y: float, z: float, x: float, tam: float) -> void:
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		_elip(pai, Vector3(lado * x, y, z), Vector3.ONE * tam, liso(Color(0.04, 0.03, 0.02), 0.2))
 
 # ---------- construção de cada pet ----------
@@ -222,7 +222,7 @@ func _lobo() -> void:
 	_elip(_corpo, Vector3(0, 0.88, -0.78), Vector3(0.2, 0.2, 0.28), pl)                   # cabeça
 	_elip(_corpo, Vector3(0, 0.83, -0.97), Vector3(0.11, 0.1, 0.24), barriga)             # focinho
 	_elip(_corpo, Vector3(0, 0.86, -1.09), Vector3(0.06, 0.05, 0.05), escuro)             # nariz
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		_cone(_corpo, Vector3(lado * 0.075, 1.04, -0.72), 0.05, 0.16, pl, Vector3(-10, 0, -lado * 8))   # orelhas
 	_olhos(_corpo, 0.91, -0.9, 0.075, 0.035)
 	for p in [[-0.14, -0.38, 0.0], [0.14, -0.38, PI], [-0.14, 0.36, PI], [0.14, 0.36, 0.0]]:
@@ -242,7 +242,7 @@ func _urso() -> void:
 	_elip(_corpo, Vector3(0, 1.0, -1.05), Vector3(0.46, 0.46, 0.5), pl)                    # cabeça
 	_elip(_corpo, Vector3(0, 0.9, -1.38), Vector3(0.24, 0.2, 0.32), cinza)                 # focinho
 	_elip(_corpo, Vector3(0, 0.96, -1.55), Vector3(0.1, 0.07, 0.08), preto)                # nariz
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		_elip(_corpo, Vector3(lado * 0.2, 1.27, -0.95), Vector3(0.14, 0.14, 0.1), pl)      # orelhas redondas
 	_olhos(_corpo, 1.05, -1.3, 0.14, 0.04)
 	for p in [[-0.28, -0.55, 0.0], [0.28, -0.55, PI], [-0.28, 0.8, PI], [0.28, 0.8, 0.0]]:
@@ -264,7 +264,7 @@ func _cavalo() -> void:
 	_elip(_corpo, Vector3(0, 2.1, -1.38), Vector3(0.27, 0.3, 0.62), pl, Vector3(-24, 0, 0))   # cabeça
 	_elip(_corpo, Vector3(0, 1.98, -1.66), Vector3(0.17, 0.17, 0.34), pl, Vector3(-24, 0, 0))   # focinho
 	_elip(_corpo, Vector3(0, 1.93, -1.82), Vector3(0.1, 0.07, 0.07), preto)
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		_cone(_corpo, Vector3(lado * 0.09, 2.38, -1.27), 0.06, 0.2, pl, Vector3(-10, 0, -lado * 6))
 	_olhos(_corpo, 2.15, -1.46, 0.14, 0.04)
 	for i in 6:   # crina pelo alto do pescoço
@@ -286,7 +286,7 @@ func _cavalo() -> void:
 func _asas_penas(pos: Vector3, tam: float) -> void:
 	var mp := _mat_pena()
 	var vao := 2.1   # envergadura de cada asa (antes ~1,5)
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		var pivo := Node3D.new()
 		pivo.position = Vector3(lado * pos.x, pos.y, pos.z)
 		pivo.scale = Vector3(lado * tam, tam, tam)   # a esquerda é a direita espelhada

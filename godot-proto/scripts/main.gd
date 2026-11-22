@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v34"
+const VERSAO := "v35"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -922,7 +922,7 @@ func _criar_portao(d: Vector3, altura: float, nivel: int) -> void:
 	var vao := MURO_R * 0.30                    # largura da abertura deixada na paliçada
 	var h := altura + 1.2
 	# dois pilares e a viga de cima
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		var pil := MeshInstance3D.new()
 		var bm := BoxMesh.new()
 		bm.size = Vector3(1.0, h + 0.8, 1.0)
@@ -939,7 +939,7 @@ func _criar_portao(d: Vector3, altura: float, nivel: int) -> void:
 	raiz.add_child(viga)
 	# duas folhas que giram nas dobradiças
 	var folhas: Array = []
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		var dob := Node3D.new()
 		dob.position = Vector3(lado * (vao * 0.5 - 0.5), 0, 0)
 		raiz.add_child(dob)

@@ -12,7 +12,7 @@ Godot 4.3, renderizador Compatibilidade, testado em tablet Android. Idioma do c�
 - `models/` (GLB/glTF), `models/armas/`, `models/herois/`. Scripts do Blender ficam em `../scripts/`.
 
 ## Regras
-- Não dá para rodar o Godot neste ambiente: revise o GDScript com cuidado (tipagem com `:=` só quando o tipo é inferível; `Variant` precisa de tipo explícito).
+- Não dá para rodar o Godot neste ambiente: revise o GDScript com cuidado (tipagem com `:=` só quando o tipo é inferível; `Variant` precisa de tipo explícito). Laço sobre lista literal deve ter tipo: `for x: float in [-1.0, 1.0]` (senão `var y := x * 2` não compila). O usuário roda Godot 4.7.
 - Mudanças pequenas e focadas. Não reescreva arquivos grandes; use edição pontual.
 - Valores ajustáveis ficam em `const`/`@export` com comentário (ex.: `alcance_machado`, `ZOOM_MIN`).
 - Compatibilidade (tablet): evite muitas luzes por sala (máx. ~6) e sombras extras.

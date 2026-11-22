@@ -117,7 +117,7 @@ static func torre_vigia() -> Node3D:
 	tel.rotation.y = PI / 4.0
 	r.add_child(tel)
 	# escada de mão (lado +X)
-	for z in [-0.32, 0.32]:
+	for z: float in [-0.32, 0.32]:
 		tora(r, Vector3(2.45, 0, z), Vector3(1.55, 6.5, z), 0.06, m)
 	for k in 15:
 		var t := (k + 1) / 16.0
@@ -146,10 +146,10 @@ static func balista() -> Node3D:
 	var me := mat(MADEIRA_ESCURA)
 	tora(b, Vector3(0, 0, 0), Vector3(0, 0.85, 0), 0.09, me)
 	caixa(b, Vector3(0, 0.95, 0.1), Vector3(0.18, 0.14, 1.5), m)
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		tora(b, Vector3(0, 0.98, 0.7), Vector3(lado * 0.85, 1.0, 0.45), 0.045, me)
 	var corda := mat(CORDA, false)
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		tora(b, Vector3(lado * 0.85, 1.0, 0.45), Vector3(0, 1.0, -0.1), 0.01, corda)
 	tora(b, Vector3(0, 1.05, -0.1), Vector3(0, 1.05, 0.95), 0.025, mat(Color(0.3, 0.3, 0.32), false, 0.5))
 	var ponta := Marker3D.new()
@@ -224,7 +224,7 @@ static func feno() -> Node3D:
 		var p: Vector3 = pos[i]
 		var gy := 0.15 * sin(i * 2.3)
 		caixa(r, p, Vector3(1.0, 0.6, 0.62), m, gy)
-		for dx in [-0.25, 0.25]:
+		for dx: float in [-0.25, 0.25]:
 			var f := caixa(r, p + Vector3(dx, 0, 0).rotated(Vector3.UP, gy), Vector3(0.04, 0.62, 0.64), corda, gy)
 			f.scale = Vector3.ONE
 	solido(r, Vector3(0.4, 0.6, 0.3), Vector3(2.2, 1.2, 1.8))
@@ -236,8 +236,8 @@ static func caixote(tam := 0.7) -> Node3D:
 	var m := mat(MADEIRA)
 	var me := mat(MADEIRA_ESCURA)
 	caixa(r, Vector3(0, tam * 0.5, 0), Vector3.ONE * tam, m)
-	for sx in [-1.0, 1.0]:
-		for sz in [-1.0, 1.0]:
+	for sx: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
 			caixa(r, Vector3(sx * tam * 0.48, tam * 0.5, sz * tam * 0.48), Vector3(0.07, tam + 0.02, 0.07), me)
 	caixa(r, Vector3(0, tam * 0.5, tam * 0.5), Vector3(tam * 0.95, 0.07, 0.03), me).rotation.z = PI / 4.0
 	return r
@@ -252,7 +252,7 @@ static func lenha() -> Node3D:
 			var x := (k - (4 - fila) * 0.5) * 0.32
 			var y := 0.15 + fila * 0.27
 			tora(r, Vector3(x, y, -0.6), Vector3(x, y, 0.6), 0.14, m)
-			for z in [-0.6, 0.6]:
+			for z: float in [-0.6, 0.6]:
 				caixa(r, Vector3(x, y, z), Vector3(0.24, 0.24, 0.01), corte)
 	tora(r, Vector3(1.2, 0, 0.2), Vector3(1.2, 0.5, 0.2), 0.28, m)
 	tora(r, Vector3(1.2, 0.5, 0.2), Vector3(1.4, 1.05, 0.25), 0.03, mat(MADEIRA_ESCURA))
@@ -279,7 +279,7 @@ static func cocho() -> Node3D:
 	var r := Node3D.new()
 	var m := mat(MADEIRA)
 	caixa(r, Vector3(0, 0.25, 0), Vector3(1.8, 0.08, 0.6), m)
-	for s in [-1.0, 1.0]:
+	for s: float in [-1.0, 1.0]:
 		caixa(r, Vector3(0, 0.45, s * 0.28), Vector3(1.8, 0.45, 0.06), m)
 		caixa(r, Vector3(s * 0.88, 0.45, 0), Vector3(0.06, 0.45, 0.6), m)
 	var agua := StandardMaterial3D.new()
@@ -295,8 +295,8 @@ static func banca(cor: Color) -> Node3D:
 	var r := Node3D.new()
 	var m := mat(MADEIRA)
 	var me := mat(MADEIRA_ESCURA)
-	for sx in [-1.2, 1.2]:
-		for sz in [-0.7, 0.7]:
+	for sx: float in [-1.2, 1.2]:
+		for sz: float in [-0.7, 0.7]:
 			tora(r, Vector3(sx, 0, sz), Vector3(sx, 2.3 if sz < 0 else 2.0, sz), 0.06, me)
 	caixa(r, Vector3(0, 0.9, 0.2), Vector3(2.5, 0.1, 1.0), m)
 	caixa(r, Vector3(0, 0.5, 0.68), Vector3(2.5, 0.8, 0.05), m)
@@ -393,10 +393,10 @@ static func ponte(comp: float, larg: float, pedra: bool) -> Node3D:
 			for k in 3:   # frestas entre as tábuas
 				var fr := caixa(r, meio + Vector3((k - 1) * seg / 3.0, 0.165, 0), Vector3(0.03, 0.01, larg), me)
 				fr.rotation.z = incl
-			for s in [-1.0, 1.0]:   # vigas em arco por baixo das bordas
+			for s: float in [-1.0, 1.0]:   # vigas em arco por baixo das bordas
 				var vg := caixa(r, meio + Vector3(0, -0.12, s * (larg * 0.5 - 0.15)), Vector3(seg + 0.02, 0.25, 0.22), me)
 				vg.rotation.z = incl
-		for s in [-1.0, 1.0]:   # corrimão (madeira) ou mureta (pedra)
+		for s: float in [-1.0, 1.0]:   # corrimão (madeira) ou mureta (pedra)
 			if pedra:
 				var mu := caixa(r, meio + Vector3(0, 0.55, s * (larg * 0.5 - 0.2)), Vector3(seg + 0.02, 0.7, 0.4), me)
 				mu.rotation.z = incl
@@ -414,7 +414,7 @@ static func ponte(comp: float, larg: float, pedra: bool) -> Node3D:
 		sb.rotation.z = incl
 		r.add_child(sb)
 	if pedra:   # pilares nas margens
-		for s in [-1.0, 1.0]:
+		for s: float in [-1.0, 1.0]:
 			caixa(r, Vector3(s * comp * 0.36, -0.2, 0), Vector3(0.8, 0.8, larg + 0.2), me)
 	return r
 
@@ -442,7 +442,7 @@ static func riacho(raio: Callable, larg: float) -> Node3D:
 			var y: float = camada[1]
 			var q := [Vector3(cos(a0) * (r0 - lw * 0.5), y, sin(a0) * (r0 - lw * 0.5)), Vector3(cos(a0) * (r0 + lw * 0.5), y, sin(a0) * (r0 + lw * 0.5)),
 				Vector3(cos(a1) * (r1 - lw * 0.5), y, sin(a1) * (r1 - lw * 0.5)), Vector3(cos(a1) * (r1 + lw * 0.5), y, sin(a1) * (r1 + lw * 0.5))]
-			for k in [0, 2, 1, 1, 2, 3]:
+			for k: int in [0, 2, 1, 1, 2, 3]:
 				st.set_normal(Vector3.UP)
 				st.set_uv(Vector2(float(i) / 8.0, float(k % 2)))
 				st.add_vertex(q[k])

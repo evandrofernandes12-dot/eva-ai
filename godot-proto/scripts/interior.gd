@@ -162,12 +162,12 @@ static func construir(id: String) -> Node3D:
 	caixa(raiz, Vector3(0, 1.2, d * 0.5 - 0.3), Vector3(1.8, 2.4, 0.08), MADEIRA.darkened(0.25))       # porta (folha)
 	if castelo:   # nas casas, sem verga nem batentes de madeira escura (pareciam vigas)
 		caixa(raiz, Vector3(0, 2.5, d * 0.5 - 0.3), Vector3(2.2, 0.2, 0.12), Color(0.2, 0.12, 0.06))       # verga
-		for sx in [-1.0, 1.0]:
+		for sx: float in [-1.0, 1.0]:
 			caixa(raiz, Vector3(sx, 1.25, d * 0.5 - 0.3), Vector3(0.15, 2.5, 0.12), Color(0.2, 0.12, 0.06)) # batentes
 	caixa(raiz, Vector3(0.6, 1.1, d * 0.5 - 0.35), Vector3(0.1, 0.1, 0.1), OURO)                        # maçaneta
 	caixa(raiz, Vector3(0, 0.02, d * 0.5 - 1.3), Vector3(2.4, 0.04, 1.4), Color(0.3, 0.12, 0.1))       # capacho
 	var janelas := 2 if id != "SalaoDoChefe" else 4
-	for lado in [-1.0, 1.0]:                                                                    # janelas luminosas
+	for lado: float in [-1.0, 1.0]:                                                                    # janelas luminosas
 		for i in janelas:
 			var z := -d * 0.5 + (i + 1.0) * d / (janelas + 1.0)
 			caixa(raiz, Vector3(lado * (w * 0.5 - 0.27), alt * 0.55, z), Vector3(0.05, alt * 0.35, 1.2), Color(0.75, 0.88, 1.0), false, true, true)
@@ -191,8 +191,8 @@ static func construir(id: String) -> Node3D:
 ## Casa: cama, lareira, quadros, sofá, mesa com 4 cadeiras. Faixa da porta (|x| < 2,2 e z > 2,2) livre; `tap` = cor do estofado.
 static func _cadeira(r: Node3D, x: float, z: float, olha: float) -> void:   # olha: 1 = encosto ao sul, -1 = ao norte
 	caixa(r, Vector3(x, 0.45, z), Vector3(0.5, 0.06, 0.5), MADEIRA.lightened(0.1), true)
-	for dx in [-0.21, 0.21]:
-		for dz in [-0.21, 0.21]:
+	for dx: float in [-0.21, 0.21]:
+		for dz: float in [-0.21, 0.21]:
 			caixa(r, Vector3(x + dx, 0.21, z + dz), Vector3(0.05, 0.42, 0.05), MADEIRA.darkened(0.2))
 	caixa(r, Vector3(x, 0.78, z + 0.23 * olha), Vector3(0.5, 0.6, 0.05), MADEIRA.lightened(0.1))
 
@@ -232,18 +232,18 @@ static func _casa(r: Node3D, w: float, d: float, alt: float, tap: Color) -> void
 	caixa(r, Vector3(lx, 0.25, sz), Vector3(3.0, 0.5, 1.0), tap.darkened(0.15), true)
 	caixa(r, Vector3(lx, 0.55, sz), Vector3(2.7, 0.2, 0.85), tap)
 	caixa(r, Vector3(lx, 0.8, sz + 0.5), Vector3(3.0, 0.7, 0.22), tap.darkened(0.1), true)
-	for sx in [-1.4, 1.4]:
+	for sx: float in [-1.4, 1.4]:
 		caixa(r, Vector3(lx + sx, 0.45, sz), Vector3(0.25, 0.7, 1.0), tap.darkened(0.2), true)
 	# mesa com 4 cadeiras (leste, entre o sofá e a parede da frente)
 	var mx := 4.3
 	var mz := 2.1
 	caixa(r, Vector3(mx, 0.78, mz), Vector3(1.7, 0.08, 1.0), MADEIRA, true)
-	for dx in [-0.75, 0.75]:
-		for dz in [-0.4, 0.4]:
+	for dx: float in [-0.75, 0.75]:
+		for dz: float in [-0.4, 0.4]:
 			caixa(r, Vector3(mx + dx, 0.37, mz + dz), Vector3(0.08, 0.74, 0.08), MADEIRA.darkened(0.2))
 	cilindro(r, Vector3(mx - 0.3, 0.82, mz), 0.18, 0.07, Color(0.85, 0.65, 0.3))
 	cilindro(r, Vector3(mx + 0.4, 0.82, mz + 0.1), 0.07, 0.13, Color(0.75, 0.75, 0.8))
-	for cx in [-0.45, 0.45]:
+	for cx: float in [-0.45, 0.45]:
 		_cadeira(r, mx + cx, mz - 0.95, 1.0)
 		_cadeira(r, mx + cx, mz + 0.95, -1.0)
 	# parede oeste: quadro grande e baú; barris junto à porta
@@ -305,7 +305,7 @@ static func _forja(r: Node3D, w: float, d: float, alt: float) -> void:
 	caixa(r, Vector3(2.4, 0.6, zf - 0.55), Vector3(0.12, 0.12, 0.6), ferro)
 	# pedra de amolar: roda de pedra num cavalete, com manivela
 	var px := 3.6
-	for sz in [-0.35, 0.35]:
+	for sz: float in [-0.35, 0.35]:
 		caixa(r, Vector3(px, 0.45, 1.6 + sz), Vector3(0.12, 0.9, 0.12), MADEIRA)
 	var roda := MeshInstance3D.new()
 	var rm := CylinderMesh.new()
@@ -321,7 +321,7 @@ static func _forja(r: Node3D, w: float, d: float, alt: float) -> void:
 	caixa(r, Vector3(px, 0.25, 1.6), Vector3(0.9, 0.2, 0.5), MADEIRA.darkened(0.2), true)
 	# bancada com ferramentas e lingotes; suporte de tenazes e martelos na parede oeste
 	caixa(r, Vector3(-w * 0.5 + 0.9, 0.9, -1.2), Vector3(1.2, 0.12, 2.6), MADEIRA, true)
-	for sz in [-1.1, 1.1]:
+	for sz: float in [-1.1, 1.1]:
 		caixa(r, Vector3(-w * 0.5 + 0.9, 0.42, -1.2 + sz), Vector3(1.0, 0.85, 0.12), MADEIRA.darkened(0.2))
 	for i in 4:
 		caixa(r, Vector3(-w * 0.5 + 0.8, 1.0, -2.2 + i * 0.3), Vector3(0.3, 0.08, 0.14), [Color(0.6, 0.62, 0.65), Color(0.72, 0.45, 0.25), Color(0.6, 0.62, 0.65), Color(0.85, 0.7, 0.3)][i])
@@ -346,7 +346,7 @@ static func _forja(r: Node3D, w: float, d: float, alt: float) -> void:
 static func _alquimia(r: Node3D, w: float, d: float, alt: float, tap: Color) -> void:
 	var cores := [Color(0.2, 0.85, 0.3), Color(0.25, 0.45, 1.0), Color(0.75, 0.3, 0.95), Color(1.0, 0.3, 0.4), Color(1.0, 0.75, 0.2), Color(0.3, 0.9, 0.9)]
 	# duas estantes de poções na parede do fundo
-	for ex in [-3.2, 3.2]:
+	for ex: float in [-3.2, 3.2]:
 		caixa(r, Vector3(ex, 1.5, -d * 0.5 + 0.5), Vector3(3.0, 3.0, 0.5), MADEIRA.darkened(0.15), true)
 		for prat in 4:
 			var y := 0.4 + prat * 0.7
@@ -375,8 +375,8 @@ static func _alquimia(r: Node3D, w: float, d: float, alt: float, tap: Color) -> 
 	# mesa de trabalho com livro aberto, velas, almofariz e crânio
 	var mx := -w * 0.5 + 1.6
 	caixa(r, Vector3(mx, 0.85, 0.6), Vector3(1.6, 0.1, 2.6), MADEIRA, true)
-	for sx in [-0.65, 0.65]:
-		for sz in [-1.15, 1.15]:
+	for sx: float in [-0.65, 0.65]:
+		for sz: float in [-1.15, 1.15]:
 			caixa(r, Vector3(mx + sx, 0.4, 0.6 + sz), Vector3(0.12, 0.8, 0.12), MADEIRA.darkened(0.2))
 	caixa(r, Vector3(mx, 0.93, 0.4), Vector3(0.55, 0.05, 0.8), Color(0.92, 0.88, 0.75))   # livro aberto
 	caixa(r, Vector3(mx, 0.92, 0.4), Vector3(0.6, 0.03, 0.85), Color(0.45, 0.15, 0.1))
@@ -427,8 +427,8 @@ static func _alquimia(r: Node3D, w: float, d: float, alt: float, tap: Color) -> 
 static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> void:
 	# tapete vermelho da porta até o altar
 	caixa(r, Vector3(0, 0.025, 1.5), Vector3(4.0, 0.05, d - 6.0), tap)
-	for z in [-3.0, 2.0, 7.0]:
-		for x in [-8.0, 8.0]:
+	for z: float in [-3.0, 2.0, 7.0]:
+		for x: float in [-8.0, 8.0]:
 			cilindro(r, Vector3(x, 0, z), 0.65, alt, Color(0.62, 0.6, 0.58), true)
 			caixa(r, Vector3(x, 3.6, z + 0.8), Vector3(0.9, 2.4, 0.06), AZUL_REAL)                              # estandarte azul
 			caixa(r, Vector3(x, 4.85, z + 0.8), Vector3(1.1, 0.08, 0.08), OURO)                                  # haste
@@ -438,18 +438,18 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 			if z == 2.0:   # só o par do meio tem luz de verdade (tablet: máx. ~6 luzes por sala)
 				luz(r, Vector3(x, 2.5, z), Color(1.0, 0.6, 0.25), 0.8, 9.0)
 	# mesas de banquete com bancos, dos dois lados
-	for x in [-5.0, 5.0]:
+	for x: float in [-5.0, 5.0]:
 		caixa(r, Vector3(x, 0.9, 4.0), Vector3(1.7, 0.14, 7.0), MADEIRA, true)
 		caixa(r, Vector3(x, 0.45, 4.0), Vector3(1.4, 0.9, 6.6), MADEIRA.darkened(0.2))
 		caixa(r, Vector3(x, 0.98, 4.0), Vector3(0.8, 0.02, 7.1), AZUL_REAL)                 # toalha azul no meio da mesa
-		for bx in [-1.25, 1.25]:   # cadeiras de espaldar alto, estofado azul
+		for bx: float in [-1.25, 1.25]:   # cadeiras de espaldar alto, estofado azul
 			for i in 5:
 				var cz := 1.3 + i * 1.35
 				caixa(r, Vector3(x + bx, 0.48, cz), Vector3(0.6, 0.1, 0.6), MADEIRA.darkened(0.1), true)
 				caixa(r, Vector3(x + bx, 0.56, cz), Vector3(0.5, 0.06, 0.5), AZUL_REAL)
 				caixa(r, Vector3(x + bx * 1.22, 1.15, cz), Vector3(0.08, 1.3, 0.6), MADEIRA.darkened(0.25))
 				caixa(r, Vector3(x + bx * 1.2, 1.2, cz), Vector3(0.04, 0.9, 0.44), AZUL_REAL)
-				for pz in [-0.25, 0.25]:
+				for pz: float in [-0.25, 0.25]:
 					caixa(r, Vector3(x + bx, 0.22, cz + pz), Vector3(0.07, 0.45, 0.07), MADEIRA.darkened(0.25))
 		for i in 4:   # taças, velas, livro e mapa
 			cilindro(r, Vector3(x + (0.45 if i % 2 == 0 else -0.45), 0.97, 1.8 + i * 1.6), 0.08, 0.2, Color(0.85, 0.7, 0.3))
@@ -459,7 +459,7 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 		caixa(r, Vector3(x, 1.0, 3.0), Vector3(0.6, 0.02, 0.8), Color(0.88, 0.8, 0.6))          # mapa aberto
 		caixa(r, Vector3(x - 0.3, 1.02, 6.3), Vector3(0.45, 0.1, 0.6), Color(0.15, 0.2, 0.45))  # livro
 	# dois lustres de ferro (aro com velas, preso por correntes) sobre as mesas
-	for lx in [-5.0, 5.0]:
+	for lx: float in [-5.0, 5.0]:
 		var ly := alt - 2.4
 		var aro := MeshInstance3D.new()
 		var tor := TorusMesh.new()
@@ -490,9 +490,9 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 			r.add_child(cor)
 		luz(r, Vector3(lx, ly - 0.3, 4.0), Color(1.0, 0.82, 0.5), 1.1, 11.0)
 	# tesouras de madeira no teto (o castelo pode ter vigas)
-	for z in [-7.0, -2.0, 3.0, 8.0]:
+	for z: float in [-7.0, -2.0, 3.0, 8.0]:
 		caixa(r, Vector3(0, alt - 0.35, z), Vector3(w - 0.6, 0.35, 0.4), MADEIRA.darkened(0.3))
-		for sx in [-1.0, 1.0]:
+		for sx: float in [-1.0, 1.0]:
 			var br := MeshInstance3D.new()
 			var bm := BoxMesh.new()
 			bm.size = Vector3(3.2, 0.25, 0.3)
@@ -502,7 +502,7 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 			br.rotation.z = sx * 0.55
 			r.add_child(br)
 	# janelas góticas com vitral azul (por cima das janelas claras das paredes laterais)
-	for lado in [-1.0, 1.0]:
+	for lado: float in [-1.0, 1.0]:
 		for i in 4:
 			var z := -d * 0.5 + (i + 1.0) * d / 5.0
 			var xw := lado * (w * 0.5 - 0.3)
@@ -510,7 +510,7 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 			for k in 3:   # chumbo do vitral
 				caixa(r, Vector3(xw - lado * 0.02, alt * 0.55 - alt * 0.12 + k * alt * 0.12, z), Vector3(0.03, 0.04, 1.22), Color(0.1, 0.1, 0.12))
 			caixa(r, Vector3(xw - lado * 0.02, alt * 0.55, z), Vector3(0.03, alt * 0.35, 0.04), Color(0.1, 0.1, 0.12))
-			for s2 in [-1.0, 1.0]:   # arco pontudo em cima
+			for s2: float in [-1.0, 1.0]:   # arco pontudo em cima
 				var ar := MeshInstance3D.new()
 				var am := BoxMesh.new()
 				am.size = Vector3(0.1, 0.12, 0.9)
@@ -520,7 +520,7 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 				ar.rotation.x = s2 * 0.75
 				r.add_child(ar)
 	# estantes de livros nos cantos perto da porta
-	for sx in [-1.0, 1.0]:
+	for sx: float in [-1.0, 1.0]:
 		var ex := sx * (w * 0.5 - 0.6)
 		caixa(r, Vector3(ex, 1.6, d * 0.5 - 2.6), Vector3(0.6, 3.2, 2.4), MADEIRA.darkened(0.2), true)
 		for prat in 4:
@@ -548,7 +548,7 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 	caixa(r, Vector3(0, ty + 2.2, zt - 1.25), Vector3(3.0, 4.4, 0.3), OURO.darkened(0.1), true)     # encosto
 	caixa(r, Vector3(0, ty + 4.5, zt - 1.25), Vector3(1.6, 0.6, 0.3), OURO)
 	caixa(r, Vector3(0, ty + 2.2, zt - 1.08), Vector3(2.2, 3.6, 0.06), AZUL_REAL)
-	for x in [-1.7, 1.7]:
+	for x: float in [-1.7, 1.7]:
 		caixa(r, Vector3(x, ty + 0.6, zt - 0.5), Vector3(0.3, 1.2, 1.2), OURO.darkened(0.15), true)   # braços
 		caixa(r, Vector3(x, ty + 1.22, zt - 0.5), Vector3(0.38, 0.1, 1.3), OURO)
 	caixa(r, Vector3(0, ty + 0.05, zt + 0.9), Vector3(2.4, 0.1, 0.9), AZUL_REAL)        # tapete dos pés

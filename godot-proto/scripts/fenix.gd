@@ -109,7 +109,7 @@ func _montar() -> void:
 	bico.position = Vector3(0, 0.17, -0.98)
 	bico.rotation_degrees = Vector3(-100, 0, 0)
 	_corpo.add_child(bico)
-	for lado in [-1.0, 1.0]:   # olhos acesos
+	for lado: float in [-1.0, 1.0]:   # olhos acesos
 		var olho := MeshInstance3D.new()
 		var so := SphereMesh.new()
 		so.radius = 0.03
@@ -125,7 +125,7 @@ func _montar() -> void:
 	var rubro := Color(0.8, 0.08, 0.02, 0.0)
 	for i in 5:    # penacho
 		_pena(_corpo, 0.5 - absf(i - 2) * 0.07, 0.08, amarelo, rubro, Vector3(0, 0.36, -0.72), Vector3(0, -90.0 + (i - 2) * 20.0, 60))
-	for lado in [-1.0, 1.0]:   # asas: 8 primárias + 6 secundárias + cobertura, em leque
+	for lado: float in [-1.0, 1.0]:   # asas: 8 primárias + 6 secundárias + cobertura, em leque
 		var pivo := Node3D.new()
 		pivo.position = Vector3(lado * 0.16, 0.1, -0.12)
 		pivo.scale.x = lado

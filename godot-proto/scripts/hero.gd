@@ -206,7 +206,7 @@ static func _prender(sk: Skeleton3D, x: Array) -> void:
 		var couro := StandardMaterial3D.new()
 		couro.albedo_color = Color(0.22, 0.12, 0.05)
 		couro.roughness = 0.8
-		for yy in [0.07, 0.19]:
+		for yy: float in [0.07, 0.19]:
 			var al := MeshInstance3D.new()
 			var tm := TorusMesh.new()
 			tm.inner_radius = 0.042
