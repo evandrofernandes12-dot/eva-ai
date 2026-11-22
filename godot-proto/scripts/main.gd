@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v42"
+const VERSAO := "v43"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -1435,7 +1435,9 @@ func vestir(id: String, salvar := true) -> void:
 	var info: Dictionary = Heroi.lista()[id]
 	heroi = id
 	classe = info.classe
-	var m := Heroi.montar(id, true, false, visual.get(id, {}))
+	var ex: Dictionary = (visual.get(id, {}) as Dictionary).duplicate()
+	ex.erase("acess")   # máscara e coroa foram tiradas (não ficaram boas)
+	var m := Heroi.montar(id, true, false, ex)
 	player.trocar_modelo(m, Heroi.ANIMS[classe])
 	player.model.visible = cam_modo != 1
 	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6), 0.1)   # luz de borda no herói
@@ -1571,12 +1573,9 @@ func _menu_classe() -> void:
 		rows.append({"t": ("✔ " if magia == "livro" else "") + "Cajado: raio mais forte num alvo só", "cb": func(): trocar_magia("livro"); _menu_classe()})
 		var v: Dictionary = visual.get(heroi, {})
 		var mao := String(v.get("mao", "orbe"))
-		var ace := String(v.get("acess", ""))
 		rows.append({"t": ("✔ " if mao == "orbe" else "") + "Mão esquerda: orbe flutuando", "cb": func(): _personalizar("mao", "orbe")})
 		rows.append({"t": ("✔ " if mao == "chama" else "") + "Mão esquerda: chama colorida", "cb": func(): _personalizar("mao", "chama")})
-		rows.append({"t": ("✔ " if ace == "" else "") + "Rosto: sem acessório", "cb": func(): _personalizar("acess", "")})
-		rows.append({"t": ("✔ " if ace == "mascara" else "") + "Rosto: máscara de chamas", "cb": func(): _personalizar("acess", "mascara")})
-		rows.append({"t": ("✔ " if ace == "coroa" else "") + "Cabeça: coroa de galhos dourada", "cb": func(): _personalizar("acess", "coroa")})
+
 	rows.append({"t": "Trocar de personagem ou de classe", "cb": func(): _menu_escolha()})
 	_abrir("Classe e arma", txt, rows)
 

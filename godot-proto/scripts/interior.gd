@@ -629,7 +629,7 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 	var zt := zc - 0.7
 	var ty := alt_a
 	var rei := _trono_com(r, Vector3(-1.5, ty, zt), 2.6, 1.0, Heroi.rei(), "Rei")
-	_trono_com(r, Vector3(1.5, ty, zt), 2.45, 0.92, Heroi.realeza("M3", 2.45, false, 0.85), "Rainha")
+	_trono_com(r, Vector3(1.5, ty, zt), 2.45, 0.92, Heroi.realeza("G4", 2.45, false, 0.85), "Rainha")   # corpo sem manto longo: sentada, a saia em cone deformava as pernas
 	_trono_com(r, Vector3(3.7, ty, zt + 0.2), 1.75, 0.68, Heroi.realeza("A2", 1.75, false, 0.6), "Príncipe")
 	_trono_com(r, Vector3(5.2, ty, zt + 0.2), 1.65, 0.65, Heroi.realeza("A3", 1.65, false, 0.6), "Princesa")
 	caixa(r, Vector3(0, ty + 0.05, zt + 0.9), Vector3(5.6, 0.1, 0.9), AZUL_REAL)        # tapete dos pés
