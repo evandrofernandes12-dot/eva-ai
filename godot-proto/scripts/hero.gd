@@ -90,7 +90,7 @@ static func _caixa(root: Node3D) -> AABB:
 	return box
 
 ## Monta o personagem pronto para o jogo (com AnimationPlayer e armas).
-static func montar(id: String, armado := true) -> Node3D:
+static func montar(id: String, armado := true, sem_nada := false) -> Node3D:   # sem_nada: nenhuma arma/escudo/orbe
 	var info: Dictionary = lista()[id]
 	var m: Node3D = load("res://models/herois/%s.gltf" % id).instantiate()
 	m.name = "Model"
@@ -101,6 +101,8 @@ static func montar(id: String, armado := true) -> Node3D:
 	_pele(m)
 	var sk := Fit.find_node_of(m, "Skeleton3D") as Skeleton3D
 	for a in info.armas:
+		if sem_nada:
+			break
 		if armado or a.size() > 6:   # desarmado: só fica o que não é arma de mão
 			_prender(sk, a)
 	return m
@@ -226,8 +228,10 @@ static func _prender(sk: Skeleton3D, x: Array) -> void:
 			tira.position = Vector3(-0.08, yy, 0)
 
 ## O Rei: corpo do G2 (mais forte e maior que os heróis), sentado, com armadura e coroa de ouro.
-static func rei() -> Node3D:
-	var m := montar("G2", false)
+## Família real (Salão do Rei): corpo de um herói, sem armas, com coroa (ou tiara) de ouro.
+## armadura: peças douradas no peito, ombros, braços e pernas (só o Rei).
+static func realeza(id: String, altura: float, armadura: bool, coroa_r: float) -> Node3D:
+	var m := montar(id, false, true)
 	var sk := Fit.find_node_of(m, "Skeleton3D") as Skeleton3D
 	var ouro := StandardMaterial3D.new()
 	ouro.albedo_color = Color(1.0, 0.8, 0.25)
@@ -235,28 +239,33 @@ static func rei() -> Node3D:
 	ouro.roughness = 0.25
 	ouro.emission_enabled = true
 	ouro.emission = Color(0.5, 0.35, 0.05)
-	_peca(sk, "spine_03", _esfera(ouro), Vector3(0, 0.02, 0.05), Vector3(0.36, 0.34, 0.25))     # peitoral
-	_peca(sk, "spine_01", _esfera(ouro), Vector3(0, 0.03, 0.04), Vector3(0.3, 0.3, 0.22))       # barriga blindada
-	for lado in ["l", "r"]:
-		_peca(sk, "upperarm_" + lado, _esfera(ouro), Vector3(0, 0.03, 0), Vector3(0.22, 0.2, 0.22))   # ombreira
-		_peca(sk, "lowerarm_" + lado, _esfera(ouro), Vector3(0, 0.12, 0), Vector3(0.1, 0.24, 0.1))    # braçadeira
-		_peca(sk, "thigh_" + lado, _esfera(ouro), Vector3(0, 0.15, 0), Vector3(0.17, 0.34, 0.17))     # coxote
-		_peca(sk, "calf_" + lado, _esfera(ouro), Vector3(0, 0.16, 0), Vector3(0.13, 0.32, 0.13))      # canela
+	if armadura:
+		_peca(sk, "spine_03", _esfera(ouro), Vector3(0, 0.02, 0.05), Vector3(0.36, 0.34, 0.25))     # peitoral
+		_peca(sk, "spine_01", _esfera(ouro), Vector3(0, 0.03, 0.04), Vector3(0.3, 0.3, 0.22))       # barriga blindada
+		for lado: String in ["l", "r"]:
+			_peca(sk, "upperarm_" + lado, _esfera(ouro), Vector3(0, 0.03, 0), Vector3(0.22, 0.2, 0.22))   # ombreira
+			_peca(sk, "lowerarm_" + lado, _esfera(ouro), Vector3(0, 0.12, 0), Vector3(0.1, 0.24, 0.1))    # braçadeira
+			_peca(sk, "thigh_" + lado, _esfera(ouro), Vector3(0, 0.15, 0), Vector3(0.17, 0.34, 0.17))     # coxote
+			_peca(sk, "calf_" + lado, _esfera(ouro), Vector3(0, 0.16, 0), Vector3(0.13, 0.32, 0.13))      # canela
 	var coroa := CylinderMesh.new()
-	coroa.top_radius = 0.115
-	coroa.bottom_radius = 0.095
-	coroa.height = 0.07
+	coroa.top_radius = 0.115 * coroa_r
+	coroa.bottom_radius = 0.095 * coroa_r
+	coroa.height = 0.07 * coroa_r
 	coroa.material = ouro
 	_peca(sk, "head", coroa, Vector3(0, 0.2, 0.01), Vector3.ONE)
 	for i in 5:   # pontas da coroa
 		var ponta := CylinderMesh.new()
 		ponta.top_radius = 0.0
-		ponta.bottom_radius = 0.02
-		ponta.height = 0.07
+		ponta.bottom_radius = 0.02 * coroa_r
+		ponta.height = 0.07 * coroa_r
 		ponta.material = ouro
 		var a := TAU * i / 5.0
-		_peca(sk, "head", ponta, Vector3(cos(a) * 0.105, 0.26, 0.01 + sin(a) * 0.105), Vector3.ONE)
-	Fit.to_height(m, 2.9)
+		_peca(sk, "head", ponta, Vector3(cos(a) * 0.105 * coroa_r, 0.2 + 0.06 * coroa_r, 0.01 + sin(a) * 0.105 * coroa_r), Vector3.ONE)
+	Fit.to_height(m, altura)
+	return m
+
+static func rei() -> Node3D:
+	var m := realeza("G2", 2.6, true, 1.0)
 	m.scale = Vector3(m.scale.x * 1.2, m.scale.y, m.scale.z * 1.2)   # mais forte
 	return m
 
@@ -268,8 +277,12 @@ static func _esfera(mat: Material) -> SphereMesh:
 	return sp
 
 static func _peca(sk: Skeleton3D, osso: String, malha: Mesh, pos: Vector3, esc: Vector3) -> void:
-	if sk == null or sk.find_bone(osso) < 0:
+	if sk == null:
 		return
+	if sk.find_bone(osso) < 0:
+		osso = osso.capitalize()   # nos heróis a cabeça é "Head" (a coroa sumia por isso)
+		if sk.find_bone(osso) < 0:
+			return
 	var ba := BoneAttachment3D.new()
 	ba.bone_name = osso
 	sk.add_child(ba)

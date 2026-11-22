@@ -510,3 +510,57 @@ static func textura_pedras() -> ImageTexture:
 	var t := ImageTexture.create_from_image(img)
 	_tex["pedras"] = t
 	return t
+
+## Torre redonda de pedra do castelo: corpo com pedras assentadas, ameias, telhado cônico azul,
+## janelinhas e um estandarte azul. Tem colisão.
+static func torre_pedra(raio: float, alt: float) -> Node3D:
+	var r := Node3D.new()
+	var pedra := StandardMaterial3D.new()
+	pedra.albedo_color = Color(0.68, 0.67, 0.66)
+	pedra.albedo_texture = textura_pedras()
+	pedra.uv1_triplanar = true
+	pedra.uv1_scale = Vector3.ONE * 0.42
+	pedra.roughness = 0.95
+	var corpo := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = raio
+	cm.bottom_radius = raio * 1.08
+	cm.height = alt
+	cm.radial_segments = 20
+	cm.material = pedra
+	corpo.mesh = cm
+	corpo.position.y = alt * 0.5
+	r.add_child(corpo)
+	var anel := MeshInstance3D.new()   # parapeito largo no alto
+	var am := CylinderMesh.new()
+	am.top_radius = raio * 1.15
+	am.bottom_radius = raio * 1.15
+	am.height = 0.6
+	am.radial_segments = 20
+	am.material = pedra
+	anel.mesh = am
+	anel.position.y = alt + 0.3
+	r.add_child(anel)
+	for i in 10:   # ameias
+		var a := TAU * i / 10.0
+		var me := caixa(r, Vector3(cos(a) * raio * 1.1, alt + 0.95, sin(a) * raio * 1.1), Vector3(0.55, 0.7, 0.4), pedra)
+		me.rotation.y = -a
+	var tel := MeshInstance3D.new()
+	var tm := CylinderMesh.new()
+	tm.top_radius = 0.0
+	tm.bottom_radius = raio * 1.2
+	tm.height = raio * 2.2
+	tm.radial_segments = 16
+	tm.material = mat(Color(0.24, 0.32, 0.5))
+	tel.mesh = tm
+	tel.position.y = alt + 1.3 + raio * 1.1
+	r.add_child(tel)
+	var escuro := mat(Color(0.08, 0.08, 0.1), false)
+	for k in 3:   # janelinhas (seteiras)
+		var a := 0.4 + k * 2.1
+		var j := caixa(r, Vector3(cos(a) * raio * 1.01, alt * (0.35 + k * 0.2), sin(a) * raio * 1.01), Vector3(0.18, 0.9, 0.5), escuro)
+		j.rotation.y = -a
+	tora(r, Vector3(0, alt + 1.3 + raio * 2.2, 0), Vector3(0, alt + 3.6 + raio * 2.2, 0), 0.05, mat(MADEIRA_ESCURA))
+	caixa(r, Vector3(0.55, alt + 3.0 + raio * 2.2, 0), Vector3(1.0, 0.65, 0.03), mat(Color(0.13, 0.22, 0.52), false, 1.0))
+	solido(r, Vector3(0, alt * 0.5, 0), Vector3(raio * 1.6, alt, raio * 1.6))
+	return r

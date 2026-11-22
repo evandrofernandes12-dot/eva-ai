@@ -19,12 +19,14 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v37"
+const VERSAO := "v38"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
 const RIO_R := 64.0              # raio médio do riacho em volta da aldeia (ondula ±3,5 m)
 const RIO_LARG := 5.0            # largura da água
+const VIRAR_PARA_PRACA := ["SalaoDoChefe", "Casa1", "Casa2", "Casa3", "Forja", "Moinho", "Barraca"]
+const ALTURA_CASTELO := 13.0     # castelo maior por fora (antes 10 m)
 const DIRS := [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
 const CAM_NOMES := ["3ª pessoa", "1ª pessoa", "Visão de águia"]
 
@@ -167,9 +169,15 @@ func _ready() -> void:
 	_rng.seed = 7
 	for b in $Aldeia.get_children():
 		if b is Node3D:
+			if String(b.name) in VIRAR_PARA_PRACA:   # porta (lado -Z do modelo) virada para o centro da aldeia
+				b.rotation.y = atan2(b.position.x, b.position.z)
+			if String(b.name) == "SalaoDoChefe":
+				b.set_meta("altura", ALTURA_CASTELO)
 			# "altura" (metadado do nó) define o tamanho da construção em metros
 			if b.has_meta("altura"):
 				Fit.to_height(b, float(b.get_meta("altura")))
+			if String(b.name) == "SalaoDoChefe":
+				_castelo_extra.call_deferred(b)
 			_add_collision(b)
 			var bx := Fit.bounds(b)
 			var centro: Vector3 = b.global_transform * bx.get_center()
@@ -238,6 +246,32 @@ func _ready() -> void:
 	_boss_hud()
 	if not _load():
 		say("Ande com o direcional. Bata em árvores, rochas e arbustos para coletar.", 7.0)
+
+## Castelo: duas torres redondas de pedra nas laterais da frente e dois guardas na porta.
+func _castelo_extra(b: Node3D) -> void:
+	var bx := Fit.bounds(b)
+	var c: Vector3 = b.global_transform * bx.get_center()
+	var meia_l := bx.size.x * 0.5 * b.scale.x
+	var meia_p := bx.size.z * 0.5 * b.scale.z
+	var frente := c.z + meia_p                    # a porta olha para o centro (+Z)
+	for sx: float in [-1.0, 1.0]:
+		var t := Construcoes.torre_pedra(2.2, ALTURA_CASTELO * 1.05)
+		t.position = Vector3(c.x + sx * (meia_l + 1.6), 0, frente - 2.0)
+		add_child(t)
+		var g := Heroi.montar("G1")
+		g.position = Vector3(c.x + sx * 2.6, 0.05, frente + 1.6)
+		add_child(g)
+		var ap := Fit.find_node_of(g, "AnimationPlayer") as AnimationPlayer
+		Fit.play(ap, &"Idle_Shield")
+		var rot := Label3D.new()
+		rot.text = "Guarda"
+		rot.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		rot.font_size = 32
+		rot.outline_size = 8
+		rot.pixel_size = 0.01
+		rot.position.y = 2.2
+		rot.visibility_range_end = 25.0
+		g.add_child(rot)
 
 ## Detalhes da aldeia montados por código (caminhos, lampiões, placa, feno, lenha, varal, cocho, banca).
 func _aldeia_extra() -> void:

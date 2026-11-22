@@ -624,36 +624,44 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 	escada(r, Vector3(-6.0, alt_a, zc), Vector3(-1, 0, 0), 3.0, alt_a, 4.0, Color(0.58, 0.56, 0.58))
 	escada(r, Vector3(6.0, alt_a, zc), Vector3(1, 0, 0), 3.0, alt_a, 4.0, Color(0.58, 0.56, 0.58))
 	luz(r, Vector3(0, alt_a + 3.5, zc + 1.0), Color(1.0, 0.9, 0.65), 1.4, 10.0)
-	# trono dourado. A animação de sentar põe a pélvis atrás da origem do Rei e as canelas à frente dela:
-	# o assento fica só sob a pélvis (do encosto até um pouco depois da origem), para as pernas aparecerem.
+	# tronos da família real em cima do altar: Rei e Rainha no meio, os dois filhos ao lado da Rainha.
+	# A animação de sentar põe a pélvis atrás da origem e as canelas à frente: o assento fica só sob a pélvis.
 	var zt := zc - 0.7
 	var ty := alt_a
-	caixa(r, Vector3(0, ty + 0.35, zt - 0.5), Vector3(2.8, 0.7, 1.2), OURO.darkened(0.15), true)
-	caixa(r, Vector3(0, ty + 0.72, zt - 0.5), Vector3(2.5, 0.06, 1.1), AZUL_REAL)      # almofada
-	caixa(r, Vector3(0, ty + 2.2, zt - 1.25), Vector3(3.0, 4.4, 0.3), OURO.darkened(0.1), true)     # encosto
-	caixa(r, Vector3(0, ty + 4.5, zt - 1.25), Vector3(1.6, 0.6, 0.3), OURO)
-	caixa(r, Vector3(0, ty + 2.2, zt - 1.08), Vector3(2.2, 3.6, 0.06), AZUL_REAL)
-	for x: float in [-1.7, 1.7]:
-		caixa(r, Vector3(x, ty + 0.6, zt - 0.5), Vector3(0.3, 1.2, 1.2), OURO.darkened(0.15), true)   # braços
-		caixa(r, Vector3(x, ty + 1.22, zt - 0.5), Vector3(0.38, 0.1, 1.3), OURO)
-	caixa(r, Vector3(0, ty + 0.05, zt + 0.9), Vector3(2.4, 0.1, 0.9), AZUL_REAL)        # tapete dos pés
-	# Excalibur cravada na pedra, ao pé da escada (Sketchfab, CC-BY: JuanWithOutAim)
+	var rei := _trono_com(r, Vector3(-1.5, ty, zt), 2.6, 1.0, Heroi.rei(), "Rei")
+	_trono_com(r, Vector3(1.5, ty, zt), 2.45, 0.92, Heroi.realeza("M3", 2.45, false, 0.85), "Rainha")
+	_trono_com(r, Vector3(3.7, ty, zt + 0.2), 1.75, 0.68, Heroi.realeza("A2", 1.75, false, 0.6), "Príncipe")
+	_trono_com(r, Vector3(5.2, ty, zt + 0.2), 1.65, 0.65, Heroi.realeza("A3", 1.65, false, 0.6), "Princesa")
+	caixa(r, Vector3(0, ty + 0.05, zt + 0.9), Vector3(5.6, 0.1, 0.9), AZUL_REAL)        # tapete dos pés
+	# Excalibur cravada na pedra, em cima do altar, à esquerda do Rei (Sketchfab, CC-BY: JuanWithOutAim)
 	if ResourceLoader.exists("res://models/Excalibur_Pedra.glb"):
-		modelo(r, load("res://models/Excalibur_Pedra.glb"), Vector3(4.5, 0, zc + 5.0), 1.7)
-	var rei := Node3D.new()
-	rei.name = "Rei"
-	rei.position = Vector3(0, ty, zt)
-	r.add_child(rei)
-	var m := Heroi.rei()
-	rei.add_child(m)
-	var ap := Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer
+		modelo(r, load("res://models/Excalibur_Pedra.glb"), Vector3(-4.6, ty, zc + 0.6), 1.5)
+	r.set_meta("rei", rei)
+
+## Trono dourado (tamanho `k`; 1 = do Rei) com uma figura sentada e o nome em cima. Devolve o nó da figura.
+static func _trono_com(r: Node3D, p: Vector3, altura: float, k: float, figura: Node3D, nome_txt: String) -> Node3D:
+	var assento := 0.75 * altura / 2.9
+	caixa(r, p + Vector3(0, assento * 0.47, -0.5 * k), Vector3(2.0 * k, assento * 0.94, 1.1 * k), OURO.darkened(0.15), true)
+	caixa(r, p + Vector3(0, assento * 0.97, -0.5 * k), Vector3(1.8 * k, 0.06, 1.0 * k), AZUL_REAL)        # almofada
+	caixa(r, p + Vector3(0, 1.6 * k, -1.1 * k), Vector3(2.1 * k, 3.2 * k, 0.25), OURO.darkened(0.1), true)   # encosto
+	caixa(r, p + Vector3(0, 3.3 * k, -1.1 * k), Vector3(1.1 * k, 0.4 * k, 0.25), OURO)
+	caixa(r, p + Vector3(0, 1.6 * k, -0.96 * k), Vector3(1.5 * k, 2.6 * k, 0.05), AZUL_REAL)
+	for sx: float in [-1.0, 1.0]:
+		caixa(r, p + Vector3(sx * 1.05 * k, 0.55 * k, -0.5 * k), Vector3(0.22 * k, 1.1 * k, 1.1 * k), OURO.darkened(0.15), true)   # braços
+		caixa(r, p + Vector3(sx * 1.05 * k, 1.12 * k, -0.5 * k), Vector3(0.3 * k, 0.08, 1.2 * k), OURO)
+	var no := Node3D.new()
+	no.name = nome_txt
+	no.position = p
+	r.add_child(no)
+	no.add_child(figura)
+	var ap := Fit.find_node_of(figura, "AnimationPlayer") as AnimationPlayer
 	Fit.play(ap, Fit.find_anim(ap, ["Sitting_Idle", "Sitting"]))
 	var nome := Label3D.new()
-	nome.text = "Rei"
+	nome.text = nome_txt
 	nome.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	nome.font_size = 72
-	nome.outline_size = 14
+	nome.font_size = 64 if k >= 0.9 else 48
+	nome.outline_size = 12
 	nome.modulate = Color(1.0, 0.88, 0.4)
-	nome.position = Vector3(0, 3.9, 0)
-	rei.add_child(nome)
-	r.set_meta("rei", rei)
+	nome.position = Vector3(0, altura * 1.2 + 0.4, 0)
+	no.add_child(nome)
+	return no

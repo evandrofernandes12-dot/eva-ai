@@ -72,6 +72,8 @@ func construir(animar := true) -> void:
 		return
 	_b = Construcoes.torre_vigia() if efeito == "torre" else modelo.instantiate()   # torre: troncos e balista feitos por código
 	add_child(_b)
+	if efeito != "torre":   # porta virada para o centro da aldeia
+		_b.rotation.y = atan2(global_position.x, global_position.z)
 	Construcoes.estilo_casa(_b)
 	Fit.to_height(_b, altura)
 	_base = _b.scale
