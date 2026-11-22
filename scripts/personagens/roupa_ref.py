@@ -27,7 +27,7 @@ def troca(nome, m):
     if nome in O: o = O[nome]; o.data.materials.clear(); o.data.materials.append(m)
 def remove(nome):
     if nome in O: bpy.data.objects.remove(O.pop(nome))
-def fatia(src, nome, keep, off, m, toca=False):
+def fatia(src, nome, keep, off, m, toca=False, radial=False):
     o = src.copy(); o.data = src.data.copy(); o.name = nome; bpy.context.collection.objects.link(o)
     bm = bmesh.new(); bm.from_mesh(o.data)
     if toca:
@@ -36,7 +36,12 @@ def fatia(src, nome, keep, off, m, toca=False):
     else:
         bmesh.ops.delete(bm, geom=[v for v in bm.verts if not keep(o.matrix_world @ v.co)], context='VERTS')
     bm.normal_update()
-    for v in bm.verts: v.co += v.normal * off
+    for v in bm.verts:
+        if radial:   # saia: normais podem apontar para dentro; empurra para fora a partir do eixo do corpo
+            d = Vector((v.co.x, v.co.y - 0.03, 0.0))
+            v.co += (d.normalized() if d.length > 1e-6 else Vector((0, -1, 0))) * off
+        else:
+            v.co += v.normal * off
     bm.to_mesh(o.data); bm.free(); o.data.materials.clear(); o.data.materials.append(m)
     return o
 def borda(src, nome, off, m, filtro=None):
@@ -116,9 +121,9 @@ def broche(nome, pos, r, m, osso):
     for v in bm.verts: v.co.y *= 0.5; v.co += pos
     return novo(nome, bm, m, lambda p: {osso: 1.0})
 
-def anel(nome, src, z, h, filtro, osso, folga, m):
+def anel(nome, src, z, h, filtro, osso, folga, m, tol=0.015):
     pts = [src.matrix_world @ v.co for v in src.data.vertices]
-    pts = [p for p in pts if abs(p.z - z) < 0.015 and filtro(p)]
+    pts = [p for p in pts if abs(p.z - z) < tol and filtro(p)]
     cx = (max(p.x for p in pts) + min(p.x for p in pts)) / 2; rx = (max(p.x for p in pts) - min(p.x for p in pts)) / 2 + folga
     cy = (max(p.y for p in pts) + min(p.y for p in pts)) / 2; ry = (max(p.y for p in pts) - min(p.y for p in pts)) / 2 + folga
     bm = bmesh.new(); seg = 28; rr = []
@@ -126,6 +131,47 @@ def anel(nome, src, z, h, filtro, osso, folga, m):
         rr.append([bm.verts.new((cx + math.cos(2 * math.pi * j / seg) * rx, cy + math.sin(2 * math.pi * j / seg) * ry, z + dz)) for j in range(seg)])
     for j in range(seg): bm.faces.new((rr[0][j], rr[0][(j + 1) % seg], rr[1][(j + 1) % seg], rr[1][j]))
     return novo(nome, bm, m, lambda p: {osso: 1.0})
+
+def peso_saia(p):
+    z0, z1 = P('pelvis').z + 0.07, 0.07
+    t = max(0.0, min(1.0, (z0 - p.z) / (z0 - z1)))
+    side = max(-1.0, min(1.0, p.x / 0.25))
+    L = 0.85 * t * min(1.0, abs(side) * 1.3)
+    perna = ('thigh_l', 'calf_l') if side > 0 else ('thigh_r', 'calf_r')
+    kj = 0.0 if p.z > P('calf_l').z else min(1.0, (P('calf_l').z - p.z) / 0.3) * 0.5
+    return {'pelvis': 1 - L, perna[0]: L * (1 - kj), perna[1]: L * kj}
+def raio_em(pts, z, ang, cy=0.03):
+    """raio da superfície da peça na altura z e no ângulo ang (em volta do eixo do corpo)"""
+    viz = [p for p in pts if abs(p.z - z) < 0.025]
+    if not viz: return None
+    melhor = None
+    for p in viz:
+        a = math.atan2(p.y - cy, p.x); d = abs((a - ang + math.pi) % (2 * math.pi) - math.pi)
+        r = math.hypot(p.x, p.y - cy)
+        if melhor is None or d < melhor[0]: melhor = (d, r)
+    return melhor[1]
+def faixa_vertical(nome, src, ang, larg, z0, z1, m, folga=0.008, cy=0.03):
+    pts = [src.matrix_world @ v.co for v in src.data.vertices]
+    bm = bmesh.new(); rows = []; n = 24
+    for i in range(n + 1):
+        z = z0 + (z1 - z0) * i / n
+        r = raio_em(pts, z, ang, cy)
+        if r is None: continue
+        r += folga; c = Vector((math.cos(ang) * r, cy + math.sin(ang) * r, z)); tg = Vector((-math.sin(ang), math.cos(ang), 0))
+        rows.append((bm.verts.new(c - tg * larg / 2), bm.verts.new(c + tg * larg / 2)))
+    for a, b in zip(rows, rows[1:]): bm.faces.new((a[0], a[1], b[1], b[0]))
+    return novo(nome, bm, m, peso_saia)
+def faixa_anel(nome, src, z, h, m, folga=0.008, cy=0.03):
+    pts = [src.matrix_world @ v.co for v in src.data.vertices]
+    bm = bmesh.new(); seg = 40; rr = []
+    for dz in (-h / 2, h / 2):
+        ring = []
+        for j in range(seg):
+            a = 2 * math.pi * j / seg; r = (raio_em(pts, z + dz, a, cy) or 0.25) + folga
+            ring.append(bm.verts.new((math.cos(a) * r, cy + math.sin(a) * r, z + dz)))
+        rr.append(ring)
+    for j in range(seg): bm.faces.new((rr[0][j], rr[0][(j + 1) % seg], rr[1][(j + 1) % seg], rr[1][j]))
+    return novo(nome, bm, m, peso_saia)
 
 z_pel = P('pelvis').z; z_sp1 = P('spine_01').z; z_sp3 = P('spine_03').z
 if HID == 'M3':
@@ -164,26 +210,42 @@ elif HID == 'A1':
         ombreira(lado, ACO); joelheira(lado, ACO)
     tabardo('Tabardo', [O['Saiote'], O['Calca']], z_pel + 0.04, P('calf_l').z + 0.08, 0.22, VERDE, 0.014, pontas=1)
     tabardo('Tabardo_Faixa', [O['Saiote'], O['Calca']], z_pel + 0.0, P('calf_l').z + 0.12, 0.08, CLARO, 0.022, pontas=1)
-elif HID == 'M1':   # mago azul-marinho e ouro com pedras turquesa
-    MARINHO = mat('marinho', (0.012, 0.02, 0.06), 0, 0.85)
-    OURO = mat('ouro', (0.6, 0.42, 0.13), 0.9, 0.3)
-    TURQ = mat('turquesa', (0.05, 0.6, 0.65), 0.2, 0.15, emit=(0.02, 0.35, 0.4))
-    TEAL = mat('azul_turquesa', (0.015, 0.09, 0.12), 0, 0.7)
-    for n in ('Tunica', 'Saia', 'Capa', 'Capuz'): troca(n, MARINHO)
-    troca('Barra', OURO); troca('Cinto', OURO); troca('Braceletes', OURO)
-    borda(O['Capa'], 'Capa_Borda', 0.006, OURO); borda(O['Capuz'], 'Capuz_Borda', 0.004, OURO)
-    tun = O['Tunica']
-    manto = fatia(tun, 'Pelerine', lambda p: p.z > z_sp3 + 0.07 and abs(p.x) < 0.32, 0.035, MARINHO)
-    borda(manto, 'Pelerine_Borda', 0.006, OURO)
-    for xs in (-0.12, 0.12):
-        fatia(O['Saia'], 'Saia_Friso', lambda p, xs=xs: abs(p.x - xs) < 0.012 and p.y < -0.05, 0.01, OURO, True)
-    yf = frente_em(tun, z_sp3 + 0.02) or -0.13
-    broche('Pingente', Vector((0, yf - 0.025, z_sp3 + 0.02)), 0.026, TURQ, 'spine_03')
-    anel('Corrente', tun, P('neck_01').z - 0.01, 0.012, lambda p: abs(p.x) < 0.12, 'spine_03', 0.012, OURO)
-    yc = frente_em(O['Cinto'], z_pel + 0.075) or -0.16
-    broche('Fivela', Vector((0, yc - 0.015, z_pel + 0.075)), 0.03, TURQ, 'pelvis')
-    tabardo('Tabardo', [O['Saia']], z_pel + 0.03, P('calf_l').z - 0.2, 0.22, TEAL, 0.014, pontas=1)
-    tabardo('Tabardo_Ouro', [O['Saia']], z_pel - 0.05, P('calf_l').z - 0.1, 0.05, OURO, 0.02, pontas=1)
+elif HID == 'M1':   # mago do vídeo do usuário: manto azul com frisos prateados, cinto de couro com bolsa, braçadeiras de couro
+    AZUL = mat('azul_manto', (0.01, 0.025, 0.11), 0, 0.8)
+    PRATA = mat('prata', (0.7, 0.72, 0.75), 0.75, 0.35)
+    COURO = mat('couro', (0.09, 0.05, 0.025), 0.05, 0.55)
+    COURO_ESC = mat('couro_escuro', (0.05, 0.028, 0.014), 0.05, 0.6)
+    for n in ('Tunica', 'Saia', 'Capa', 'Capuz'): troca(n, AZUL)
+    troca('Barra', PRATA); troca('Cinto', COURO); troca('Braceletes', COURO_ESC); troca('Botas', COURO_ESC)
+    borda(O['Capa'], 'Capa_Borda', 0.006, PRATA); borda(O['Capuz'], 'Capuz_Borda', 0.004, PRATA)
+    tun = O['Tunica']; saia = O['Saia']
+    zt, zb = z_pel + 0.0, 0.12
+    for k, ang in enumerate((-math.pi / 2 - 0.42, -math.pi / 2 + 0.42, -math.pi / 2 - 0.62, -math.pi / 2 + 0.62, 0.15, math.pi - 0.15)):   # faixas prateadas finas na frente e nas laterais
+        faixa_vertical('Friso_%d' % k, saia, ang, 0.022 if k < 2 else 0.012, zt, zb, PRATA)
+    faixa_anel('Friso_Barra', saia, 0.2, 0.025, PRATA)
+    for k, ang in enumerate((-math.pi / 2 - 0.3, -math.pi / 2 + 0.3)):   # frisos no peito
+        o = faixa_vertical('Friso_Peito_%d' % k, tun, ang, 0.018, z_sp1 - 0.02, z_sp3 + 0.16, PRATA, 0.01, 0.0)
+        for g in list(o.vertex_groups): o.vertex_groups.remove(g)
+        gg = o.vertex_groups.new(name='spine_03'); gg.add(list(range(len(o.data.vertices))), 1.0, 'REPLACE')
+    faixa_anel('Friso_Barra2', saia, 0.26, 0.01, PRATA)
+    for lado, s_ in (('l', 1), ('r', -1)):   # frisos nas mangas
+        xa = (P('upperarm_' + lado).x + P('lowerarm_' + lado).x) / 2
+        fatia(tun, 'Friso_Manga', lambda p, xa=xa: abs(p.x - xa) < 0.014, 0.012, PRATA, True)
+    for k in range(3):   # fechos prateados no peito
+        yf = frente_em(tun, z_sp3 + 0.1 - k * 0.07) or -0.13
+        broche('Fecho_%d' % k, Vector((0, yf - 0.012, z_sp3 + 0.1 - k * 0.07)), 0.016, PRATA, 'spine_03')
+    for s_ in (-1, 1):
+        yf = frente_em(tun, z_sp3 + 0.14) or -0.12
+        broche('Botao_%d' % s_, Vector((s_ * 0.045, yf - 0.01, z_sp3 + 0.14)), 0.02, PRATA, 'spine_03')
+    tabardo('Faixa_Frente', [saia], z_pel + 0.0, 0.25, 0.1, AZUL, 0.014, pontas=1)
+    tabardo('Faixa_Ornamento', [saia], z_pel - 0.05, 0.3, 0.035, PRATA, 0.02, pontas=1)
+    zs = [(O['Cinto'].matrix_world @ v.co).z for v in O['Cinto'].data.vertices]
+    zcin = (max(zs) + min(zs)) / 2
+    yb = min((O['Cinto'].matrix_world @ v.co).y for v in O['Cinto'].data.vertices)
+    anel('Cinto_Largo', O['Cinto'], zcin, 0.075, lambda p: True, 'pelvis', 0.008, COURO, 0.06)
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0)   # bolsa de couro pendurada no cinto (lado esquerdo)
+    for v in bm.verts: v.co = Vector((v.co.x * 0.09, v.co.y * 0.05, v.co.z * 0.11)) + Vector((0.17, yb + 0.06, zcin - 0.07))
+    novo('Bolsa', bm, COURO_ESC, lambda p: {'pelvis': 1.0})
 elif HID == 'M2':   # mago das runas de gelo: casaco cinza com runas ciano brilhantes
     CINZA = mat('cinza_casaco', (0.11, 0.115, 0.125), 0, 0.85)
     ESCURO = mat('azul_noite', (0.015, 0.02, 0.04), 0, 0.85)

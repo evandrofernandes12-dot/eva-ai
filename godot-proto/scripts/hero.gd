@@ -31,7 +31,7 @@ static func lista() -> Dictionary:
 		"G2": {"classe": "guerreiro", "sexo": "m", "nome": "Armadura sem elmo, espadão", "armas": [ESPADA_MALDITA]},
 		"G3": {"classe": "guerreiro", "sexo": "f", "nome": "Armadura de bronze, espada e escudo", "armas": [EXCALIBUR, ESC_REDONDO]},
 		"G4": {"classe": "guerreiro", "sexo": "f", "nome": "Armadura sem elmo, espadão", "armas": [ESPADA_MALDITA]},
-		"M1": {"classe": "mago", "sexo": "m", "nome": "Manto azul-marinho e ouro, pelerine e pedras turquesa", "armas": [CAJADO_N("Cetro_Magico.glb"), ORBE("Azul")]},
+		"M1": {"classe": "mago", "sexo": "m", "nome": "Manto azul com frisos prateados, cinto de couro e bolsa", "armas": [CAJADO_N("Cajado_Cristal.glb"), ORBE("Azul")]},
 		"M2": {"classe": "mago", "sexo": "m", "nome": "Casaco cinza com runas de gelo e colar de pedras", "armas": [CAJADO_N("Cetro_Magico.glb"), ORBE("Roxo")]},
 		"M3": {"classe": "mago", "sexo": "f", "nome": "Manto das runas: cinza com bordas vermelhas, capuz e peitoral de cobre", "armas": [CAJADO_N("Cajado_Cristal.glb"), ORBE("Rubi")]},
 		"M4": {"classe": "mago", "sexo": "f", "nome": "Robe verde, capuz e ombreiras", "armas": [CAJADO_N("Cajado_Cristal.glb"), ORBE("Verde")]},
