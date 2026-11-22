@@ -62,7 +62,7 @@ func _build_scenery() -> void:
 	while d < path.length and not _off("nopalm"):
 		var p: Vector3 = outside_point(d, 5.0 + rng.randf_range(0.0, 10.0))
 		_palm(root, p, rng.randf_range(7.0, 11.0), rng)
-		d += rng.randf_range(18.0, 34.0)
+		d += rng.randf_range(18.0, 34.0) * (4.0 if _off("fewpalm") else 1.0)
 	d = 20.0
 	while d < path.length and not _off("nobeach"):
 		var inner: Vector3 = path.point_at(d) - path.right_at(d) * outside_side(d) * (wall_offset - 2.0)
@@ -81,17 +81,19 @@ func _palm(root: Node3D, pos: Vector3, h: float, rng: RandomNumberGenerator) -> 
 	var tilt: float = rng.randf_range(-8.0, 8.0)
 	var palm := Node3D.new()
 	palm.position = pos
-	palm.rotation_degrees = Vector3(tilt, rng.randf_range(0.0, 360.0), 0.0)
+	palm.rotation_degrees = Vector3(0.0 if _off("notilt") else tilt, rng.randf_range(0.0, 360.0), 0.0)
 	root.add_child(palm)
-	ProcMesh.cyl(palm, 0.45, h, Vector3(0, h / 2.0, 0), Color(0.5, 0.35, 0.2), Vector3.ZERO, 0.3, 0.95)
-	for i in 7:
+	if not _off("notrunk"):
+		ProcMesh.cyl(palm, 0.45, h, Vector3(0, h / 2.0, 0), Color(0.5, 0.35, 0.2), Vector3.ZERO, 0.3, 0.95)
+	for i in (0 if _off("noleaf") else 7):
 		var ang: float = TAU * float(i) / 7.0
 		var leaf := Node3D.new()
 		leaf.position = Vector3(0, h, 0)
 		leaf.rotation = Vector3(0, ang, 0)
 		palm.add_child(leaf)
 		ProcMesh.box(leaf, Vector3(0.7, 0.1, 4.2), Vector3(0, -0.4, -2.0), Color(0.2, 0.6, 0.25), Vector3(-22, 0, 0), 0.9)
-	ProcMesh.sphere(palm, 0.35, Vector3(0.3, h - 0.5, 0.2), Color(0.35, 0.22, 0.1))
+	if not _off("nococo"):
+		ProcMesh.sphere(palm, 0.35, Vector3(0.3, h - 0.5, 0.2), Color(0.35, 0.22, 0.1))
 
 
 func _umbrella(root: Node3D, pos: Vector3, rng: RandomNumberGenerator) -> void:
