@@ -671,9 +671,11 @@ func _build_driver(id: String, rig: Dictionary) -> void:
 				hd.add_child(piv)
 				var arc: MeshInstance3D = ProcMesh.torus(piv, 0.215, 0.235, Vector3.ZERO, plaid, Vector3(90, 0, 0))
 				arc.scale = Vector3(1.32, 1.0, 1.0)
-			ProcMesh.rbox(hd, Vector3(0.5, 0.05, 0.24), Vector3(0, 0.93, -0.36), green.darkened(0.12), Vector3(-12, 0, 0), 0.9, 0.0, 0.0, 0.02)  # aba
-			for sx: float in [-0.29, 0.29]: # abas das orelhas
-				ProcMesh.rbox(hd, Vector3(0.09, 0.36, 0.34), Vector3(sx, 0.82, 0.04), green, Vector3.ZERO, 0.9, 0.0, 0.0, 0.04)
+			# aba: disco achatado; a metade de trás fica escondida dentro da copa (sobra uma meia-lua na frente)
+			var brim: MeshInstance3D = ProcMesh.cyl(hd, 0.25, 0.035, Vector3(0, 0.92, -0.24), green.darkened(0.12), Vector3(-12, 0, 0), -1.0, 0.9)
+			brim.scale = Vector3(1.0, 1.0, 0.72)
+			for sx: float in [-0.29, 0.29]: # abas das orelhas: ovais achatados
+				ProcMesh.sphere(hd, 0.19, Vector3(sx, 0.8, 0.04), green, Vector3(0.28, 1.0, 0.92), 0.9)
 			ProcMesh.rbox(d, Vector3(0.12, 0.45, 0.04), Vector3(-0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15)) # suspensório
 			ProcMesh.rbox(d, Vector3(0.12, 0.45, 0.04), Vector3(0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15))
 		"chiquinha":
