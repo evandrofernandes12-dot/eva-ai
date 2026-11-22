@@ -101,7 +101,7 @@ func _montar() -> void:
 	var olho := StandardMaterial3D.new()
 	olho.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	olho.albedo_color = Color(1.0, 0.25, 0.05)
-	for p in [Vector3(-0.047, 0.668, 0.222), Vector3(0.043, 0.672, 0.25)]:
+	for p in [Vector3(-0.045, 0.67, 0.238), Vector3(0.045, 0.67, 0.238)]:   # órbitas (espaço do modelo, pose de descanso)
 		var e := MeshInstance3D.new()
 		var sp := SphereMesh.new()
 		sp.radius = 0.011

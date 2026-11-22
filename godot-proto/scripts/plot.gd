@@ -70,7 +70,7 @@ func construir(animar := true) -> void:
 		_rotulo()
 		built.emit(self)
 		return
-	_b = modelo.instantiate()
+	_b = Construcoes.torre_vigia() if efeito == "torre" else modelo.instantiate()   # torre: troncos e balista feitos por código
 	add_child(_b)
 	Fit.to_height(_b, altura)
 	_base = _b.scale

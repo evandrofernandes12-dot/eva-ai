@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v28"
+const VERSAO := "v29"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -338,7 +338,7 @@ func _buildings(delta: float) -> void:
 			if p.construido and p.efeito == "torre":
 				for e in enemies:
 					if is_instance_valid(e) and e.global_position.distance_to(p.global_position) < 20.0:
-						e.hurt(4 + 3 * p.nivel)
+						_balista(p, e)
 						break
 	# cura na aldeia, longe de inimigos; a Estalagem dobra
 	var safe := player.global_position.length() < MURO_R
@@ -844,9 +844,7 @@ func _portoes(delta: float) -> void:
 		g.folhas[1].rotation.y = lerpf(g.folhas[1].rotation.y, -alvo, 5.0 * delta)
 
 func _criar_portao(d: Vector3, altura: float, nivel: int) -> void:
-	var madeira := StandardMaterial3D.new()
-	madeira.albedo_color = Color(0.36, 0.22, 0.1)
-	madeira.roughness = 0.9
+	var madeira := Construcoes.mat(Construcoes.MADEIRA_ESCURA)
 	var ferro := StandardMaterial3D.new()
 	ferro.albedo_color = Color(0.2, 0.2, 0.22)
 	ferro.metallic = 0.6
@@ -931,10 +929,19 @@ func _erguer_muralha(nivel: int) -> void:
 	tora.bottom_radius = 0.3
 	tora.height = altura
 	tora.radial_segments = 6
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.42, 0.27, 0.14) if nivel < 3 else Color(0.5, 0.5, 0.52)
-	mat.roughness = 0.9
-	tora.material = mat
+	tora.material = Construcoes.mat(Color(0.52, 0.36, 0.22) if nivel < 3 else Color(0.46, 0.32, 0.2))   # casca de madeira (antes saía cinza-claro)
+	var ponta := CylinderMesh.new()   # ponta afiada em cima de cada tora
+	ponta.top_radius = 0.0
+	ponta.bottom_radius = 0.2
+	ponta.height = 0.55
+	ponta.radial_segments = 6
+	ponta.material = Construcoes.mat(Color(0.72, 0.6, 0.45))
+	var corda := CylinderMesh.new()   # amarração de corda (duas faixas)
+	corda.top_radius = 0.29
+	corda.bottom_radius = 0.29
+	corda.height = 0.09
+	corda.radial_segments = 6
+	corda.material = Construcoes.mat(Construcoes.CORDA, false)
 	var angs: Array = []
 	var n := int(TAU * MURO_R / 0.56)
 	for i in n:
@@ -954,6 +961,25 @@ func _erguer_muralha(nivel: int) -> void:
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
 	_muro.add_child(mmi)
+	var mp := MultiMesh.new()
+	mp.transform_format = MultiMesh.TRANSFORM_3D
+	mp.mesh = ponta
+	mp.instance_count = angs.size()
+	var mc := MultiMesh.new()
+	mc.transform_format = MultiMesh.TRANSFORM_3D
+	mc.mesh = corda
+	mc.instance_count = angs.size() * 2
+	for i in angs.size():
+		var a2: float = angs[i]
+		var hh := 1.0 + 0.08 * sin(i * 1.7)
+		var base := Vector3(cos(a2) * MURO_R, 0, sin(a2) * MURO_R)
+		mp.set_instance_transform(i, Transform3D(Basis(), base + Vector3(0, altura * hh + 0.27, 0)))
+		mc.set_instance_transform(i * 2, Transform3D(Basis(), base + Vector3(0, altura * 0.3, 0)))
+		mc.set_instance_transform(i * 2 + 1, Transform3D(Basis(), base + Vector3(0, altura * 0.75, 0)))
+	for m2 in [mp, mc]:
+		var mi2 := MultiMeshInstance3D.new()
+		mi2.multimesh = m2
+		_muro.add_child(mi2)
 	for d in DIRS:
 		_criar_portao(d, altura, nivel)
 	# colisão em trechos
@@ -1119,6 +1145,22 @@ func _tiros(delta: float) -> void:
 			if t.flecha:
 				m.look_at(dest)
 			m.global_position += to / d * minf(d, (34.0 if t.flecha else 24.0) * delta)
+
+## A balista da torre gira para o inimigo e dispara um dardo grande (dano ao chegar).
+func _balista(p, e) -> void:   # p: lote (plot.gd), e: inimigo
+	var bal := p.find_child("Balista", true, false) as Node3D
+	var dano: int = 4 + 3 * int(p.nivel)
+	if bal == null:
+		e.hurt(dano)
+		return
+	var alvo: Vector3 = e.global_position
+	var giro: float = atan2(alvo.x - bal.global_position.x, alvo.z - bal.global_position.z) - bal.get_parent_node_3d().global_rotation.y
+	bal.rotation.y = giro
+	var m := _flecha()
+	m.scale = Vector3.ONE * 1.8
+	add_child(m)
+	m.global_position = (bal.get_node("Ponta") as Node3D).global_position
+	tiros.append({"node": m, "alvo": e, "dano": dano, "area": 0.0, "cor": Color.WHITE, "flecha": true})
 
 ## Faixa branca da lança, no instante da estocada.
 func _rastro(fwd: Vector3, alc: float) -> void:
