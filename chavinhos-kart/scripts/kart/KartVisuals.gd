@@ -16,7 +16,8 @@ var _body: Node3D
 var _steer_pivots: Array[Node3D] = []
 var _spin_nodes: Array[Node3D] = []
 var _spin_radii: Array[float] = []
-var _smoke: CPUParticles3D
+var _smokes: Array[CPUParticles3D] = []
+var _exhaust_points: Array[Vector3] = [] # pontas de escapamento extras (vários canos)
 var _sparks: CPUParticles3D
 var _exhaust_pos: Vector3 = Vector3(0.5, 0.8, 1.3)
 var _prop: Node3D
@@ -61,6 +62,8 @@ func build(s: RacerStats) -> void:
 	_stars = null
 	_trophy = null
 	_arm_r.clear()
+	_smokes.clear()
+	_exhaust_points.clear()
 	_body = Node3D.new()
 	_body.name = "Body"
 	add_child(_body)
@@ -119,14 +122,16 @@ func update_visuals(delta: float, speed: float, steer: float, drifting: bool, dr
 		_body.position.y = 0.3 + sin(_bob_t) * 0.08
 
 	# partículas
-	if _smoke != null:
-		_smoke.emitting = absf(speed) > 2.0
-		if boosting:
-			_smoke.color = Color(1.0, 0.55, 0.15, 0.9)
-		elif offroad:
-			_smoke.color = Color(0.55, 0.42, 0.28, 0.7)
-		else:
-			_smoke.color = Color(0.45, 0.45, 0.47, 0.5)
+	var smoke_col: Color = Color(0.55, 0.55, 0.57, 0.75)
+	if boosting:
+		smoke_col = Color(1.0, 0.6, 0.2, 0.95)
+	elif offroad:
+		smoke_col = Color(0.6, 0.46, 0.3, 0.8)
+	for sm in _smokes:
+		sm.emitting = true # solta fumaça até parado (motor ligado)
+		sm.color = smoke_col
+		sm.initial_velocity_min = 0.8 + ratio * 1.5
+		sm.initial_velocity_max = 1.6 + ratio * 2.5
 	if _sparks != null:
 		_sparks.emitting = drifting
 		_sparks.color = _drift_color(drift_level)
@@ -247,7 +252,7 @@ func _style_barrel(wood: Color, _c2: Color) -> Vector3:
 		_limb(_body, p0, p1, 0.045, rust.darkened(0.1))
 		_limb(_body, p1, p2, 0.085, rust.darkened(0.25))       # silenciador
 		_limb(_body, p2, p2 + Vector3(0, 0.03, 0.12), 0.035, DARK) # ponteira
-	_exhaust_pos = eng + Vector3(0.45, 0.72, 1.05)
+		_exhaust_points.append(p2 + Vector3(0, 0.04, 0.2))
 	# eixo traseiro + pneus grossos com cravos
 	ProcMesh.cyl(_body, 0.05, 1.6, Vector3(0, 0.48, 1.0), rust, Vector3(0, 0, 90), -1.0, 0.6, 0.5)
 	for x: float in [-0.3, 0.3]:
@@ -264,15 +269,15 @@ func _spoked_wheel(pos: Vector3, radius: float, wood: Color) -> void:
 	_body.add_child(pivot)
 	var spinner := Node3D.new()
 	pivot.add_child(spinner)
-	ProcMesh.torus(spinner, radius * 0.86, radius, Vector3.ZERO, DARK, Vector3(0, 0, 90)).scale = Vector3(1, 0.9, 1)
-	ProcMesh.torus(spinner, radius * 0.72, radius * 0.88, Vector3.ZERO, wood, Vector3(0, 0, 90)).scale = Vector3(1, 0.7, 1)
-	ProcMesh.cyl(spinner, radius * 0.22, 0.14, Vector3.ZERO, wood.darkened(0.2), Vector3(0, 0, 90))
-	ProcMesh.cyl(spinner, radius * 0.1, 0.18, Vector3.ZERO, DARK, Vector3(0, 0, 90))
+	ProcMesh.torus(spinner, radius * 0.8, radius, Vector3.ZERO, DARK, Vector3(0, 0, 90)).scale = Vector3(1, 1.8, 1)        # borracha larga
+	ProcMesh.torus(spinner, radius * 0.66, radius * 0.84, Vector3.ZERO, wood, Vector3(0, 0, 90)).scale = Vector3(1, 1.45, 1) # aro encorpado
+	ProcMesh.cyl(spinner, radius * 0.26, 0.24, Vector3.ZERO, wood.darkened(0.2), Vector3(0, 0, 90))
+	ProcMesh.cyl(spinner, radius * 0.12, 0.3, Vector3.ZERO, DARK, Vector3(0, 0, 90))
 	for i in 8:
 		var arm := Node3D.new()
 		arm.rotation.x = TAU * float(i) / 8.0
 		spinner.add_child(arm)
-		ProcMesh.rbox(arm, Vector3(0.045, radius * 0.6, 0.045), Vector3(0, radius * 0.48, 0), wood)
+		ProcMesh.rbox(arm, Vector3(0.09, radius * 0.56, 0.06), Vector3(0, radius * 0.46, 0), wood)
 	_steer_pivots.append(pivot)
 	_spin_nodes.append(spinner)
 	_spin_radii.append(radius)
@@ -956,14 +961,32 @@ func _make_particles(color: Color, amount: int, lifetime: float, size: float) ->
 
 
 func _build_fx() -> void:
-	_smoke = _make_particles(Color(0.45, 0.45, 0.47, 0.5), 22, 0.7, 0.14)
-	_smoke.position = _exhaust_pos
-	_smoke.direction = Vector3(0, 0.6, 1.0)
-	_smoke.spread = 25.0
-	_smoke.initial_velocity_min = 1.5
-	_smoke.initial_velocity_max = 3.0
-	_smoke.gravity = Vector3(0, 1.2, 0)
-	_body.add_child(_smoke)
+	var points: Array[Vector3] = []
+	points.append_array(_exhaust_points)
+	if points.is_empty():
+		points.append(_exhaust_pos)
+	for pt in points:
+		var sm: CPUParticles3D = _make_particles(Color(0.55, 0.55, 0.57, 0.75), 26, 1.1, 0.16)
+		sm.position = pt
+		sm.direction = Vector3(0, 0.7, 1.0)
+		sm.spread = 18.0
+		sm.initial_velocity_min = 0.8
+		sm.initial_velocity_max = 1.6
+		sm.gravity = Vector3(0, 1.4, 0)
+		sm.damping_min = 1.0
+		sm.damping_max = 2.0
+		# nuvem: nasce pequena, cresce e vai sumindo
+		var grow := Curve.new()
+		grow.add_point(Vector2(0.0, 0.4))
+		grow.add_point(Vector2(0.4, 1.3))
+		grow.add_point(Vector2(1.0, 2.2))
+		sm.scale_amount_curve = grow
+		var fade := Gradient.new()
+		fade.colors = PackedColorArray([Color(1, 1, 1, 0.9), Color(1, 1, 1, 0.55), Color(1, 1, 1, 0.0)])
+		fade.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+		sm.color_ramp = fade
+		_body.add_child(sm)
+		_smokes.append(sm)
 	_sparks = _make_particles(Color(1.0, 0.95, 0.6), 30, 0.4, 0.07)
 	_sparks.position = Vector3(0, 0.2, 1.0)
 	_sparks.direction = Vector3(0, 1.0, 0.8)
