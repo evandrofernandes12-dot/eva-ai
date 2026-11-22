@@ -1,5 +1,6 @@
 # Roupas a partir das referências do usuário, editando o herói pronto (mesmo esqueleto; animações continuam valendo).
 #   M3: maga das runas (manto cinza-azulado com bordas vermelho-alaranjadas, capuz, peitoral de cobre, tabardo vermelho).
+#   M1: mago azul-marinho e ouro (pelerine, pingente e fivela turquesa). M2: casaco cinza com runas ciano, colar de pedras.
 #   A1: arqueiro verde ornamentado (capuz/capa verdes com borda verde-clara, couraça de couro com tiras cruzadas,
 #       ombreiras e braçadeiras de aço, tabardo verde com faixa clara, joelheiras de aço).
 # Uso: blender -b --python roupa_ref.py -- HEROI entrada.gltf pasta_saida
@@ -115,6 +116,17 @@ def broche(nome, pos, r, m, osso):
     for v in bm.verts: v.co.y *= 0.5; v.co += pos
     return novo(nome, bm, m, lambda p: {osso: 1.0})
 
+def anel(nome, src, z, h, filtro, osso, folga, m):
+    pts = [src.matrix_world @ v.co for v in src.data.vertices]
+    pts = [p for p in pts if abs(p.z - z) < 0.015 and filtro(p)]
+    cx = (max(p.x for p in pts) + min(p.x for p in pts)) / 2; rx = (max(p.x for p in pts) - min(p.x for p in pts)) / 2 + folga
+    cy = (max(p.y for p in pts) + min(p.y for p in pts)) / 2; ry = (max(p.y for p in pts) - min(p.y for p in pts)) / 2 + folga
+    bm = bmesh.new(); seg = 28; rr = []
+    for dz in (-h / 2, h / 2):
+        rr.append([bm.verts.new((cx + math.cos(2 * math.pi * j / seg) * rx, cy + math.sin(2 * math.pi * j / seg) * ry, z + dz)) for j in range(seg)])
+    for j in range(seg): bm.faces.new((rr[0][j], rr[0][(j + 1) % seg], rr[1][(j + 1) % seg], rr[1][j]))
+    return novo(nome, bm, m, lambda p: {osso: 1.0})
+
 z_pel = P('pelvis').z; z_sp1 = P('spine_01').z; z_sp3 = P('spine_03').z
 if HID == 'M3':
     ARD = mat('ardosia', (0.03, 0.035, 0.05), 0, 0.9)
@@ -152,6 +164,52 @@ elif HID == 'A1':
         ombreira(lado, ACO); joelheira(lado, ACO)
     tabardo('Tabardo', [O['Saiote'], O['Calca']], z_pel + 0.04, P('calf_l').z + 0.08, 0.22, VERDE, 0.014, pontas=1)
     tabardo('Tabardo_Faixa', [O['Saiote'], O['Calca']], z_pel + 0.0, P('calf_l').z + 0.12, 0.08, CLARO, 0.022, pontas=1)
+elif HID == 'M1':   # mago azul-marinho e ouro com pedras turquesa
+    MARINHO = mat('marinho', (0.012, 0.02, 0.06), 0, 0.85)
+    OURO = mat('ouro', (0.6, 0.42, 0.13), 0.9, 0.3)
+    TURQ = mat('turquesa', (0.05, 0.6, 0.65), 0.2, 0.15, emit=(0.02, 0.35, 0.4))
+    TEAL = mat('azul_turquesa', (0.015, 0.09, 0.12), 0, 0.7)
+    for n in ('Tunica', 'Saia', 'Capa', 'Capuz'): troca(n, MARINHO)
+    troca('Barra', OURO); troca('Cinto', OURO); troca('Braceletes', OURO)
+    borda(O['Capa'], 'Capa_Borda', 0.006, OURO); borda(O['Capuz'], 'Capuz_Borda', 0.004, OURO)
+    tun = O['Tunica']
+    manto = fatia(tun, 'Pelerine', lambda p: p.z > z_sp3 + 0.07 and abs(p.x) < 0.32, 0.035, MARINHO)
+    borda(manto, 'Pelerine_Borda', 0.006, OURO)
+    for xs in (-0.12, 0.12):
+        fatia(O['Saia'], 'Saia_Friso', lambda p, xs=xs: abs(p.x - xs) < 0.012 and p.y < -0.05, 0.01, OURO, True)
+    yf = frente_em(tun, z_sp3 + 0.02) or -0.13
+    broche('Pingente', Vector((0, yf - 0.025, z_sp3 + 0.02)), 0.026, TURQ, 'spine_03')
+    anel('Corrente', tun, P('neck_01').z - 0.01, 0.012, lambda p: True, 'spine_03', 0.012, OURO)
+    yc = frente_em(O['Cinto'], z_pel + 0.075) or -0.16
+    broche('Fivela', Vector((0, yc - 0.015, z_pel + 0.075)), 0.03, TURQ, 'pelvis')
+    tabardo('Tabardo', [O['Saia']], z_pel + 0.03, P('calf_l').z - 0.2, 0.22, TEAL, 0.014, pontas=1)
+    tabardo('Tabardo_Ouro', [O['Saia']], z_pel - 0.05, P('calf_l').z - 0.1, 0.05, OURO, 0.02, pontas=1)
+elif HID == 'M2':   # mago das runas de gelo: casaco cinza com runas ciano brilhantes
+    CINZA = mat('cinza_casaco', (0.11, 0.115, 0.125), 0, 0.85)
+    ESCURO = mat('azul_noite', (0.015, 0.02, 0.04), 0, 0.85)
+    CIANO = mat('runa_ciano', (0.1, 0.65, 1.0), 0, 0.3, emit=(0.08, 0.55, 1.0))
+    COURO = mat('couro_cinto', (0.08, 0.045, 0.022), 0.1, 0.5)
+    PEDRA = mat('pedra_runa', (0.6, 0.6, 0.58), 0, 0.7)
+    LUVA = mat('luva', (0.02, 0.022, 0.03), 0, 0.6)
+    for n in ('Capa', 'Capuz', 'Saia', 'Ombreira_l', 'Ombreira_r'): troca(n, CINZA)
+    troca('Tunica', ESCURO); troca('Barra', CIANO); troca('Cinto', COURO)
+    borda(O['Capa'], 'Capa_Borda', 0.006, CIANO); borda(O['Capuz'], 'Capuz_Borda', 0.004, CIANO)
+    tun = O['Tunica']
+    yf = frente_em(tun, z_sp3) or -0.13
+    fatia(tun, 'Runa_Peito', lambda p: z_sp1 + 0.05 < p.z < z_sp3 + 0.08 and abs(p.x) < 0.006 and p.y < yf + 0.05, 0.014, CIANO, True)
+    for dz in (0.0, 0.06):
+        fatia(tun, 'Runa_Peito_H', lambda p, dz=dz: abs(p.z - (z_sp3 - 0.03 + dz)) < 0.006 and abs(p.x) < 0.05 and p.y < yf + 0.05, 0.014, CIANO, True)
+    for xs in (-0.14, 0.14):   # faixas de runas na frente do casaco
+        fatia(O['Saia'], 'Saia_Runas', lambda p, xs=xs: abs(p.x - xs) < 0.01 and p.y < -0.05, 0.01, CIANO, True)
+    for k in range(9):   # colar de pedras com runas
+        a = math.pi * (0.15 + 0.7 * k / 8)
+        c = Vector((math.cos(a) * 0.1, -0.02 - math.sin(a) * 0.1, P('neck_01').z - 0.05 - 0.04 * math.sin(a)))
+        broche('Pedra_%d' % k, c, 0.018, PEDRA, 'spine_03')
+    body = O.get('SuperHero_Male')
+    if body:
+        fatia(body, 'Luvas', lambda p: abs(p.x) > 0.6, 0.004, LUVA)
+    tabardo('Tabardo', [O['Saia']], z_pel + 0.03, P('calf_l').z - 0.15, 0.22, CINZA, 0.014, pontas=1)
+    tabardo('Tabardo_Runa', [O['Saia']], z_pel - 0.1, P('calf_l').z - 0.05, 0.035, CIANO, 0.02, pontas=1)
 for o in bpy.data.objects:
     o.select_set(o.type in ('MESH', 'ARMATURE'))
 bpy.ops.export_scene.gltf(filepath=OUT + '/' + HID + '.gltf', export_format='GLTF_SEPARATE', export_texture_dir='tex', use_selection=True,

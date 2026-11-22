@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v40"
+const VERSAO := "v41"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -53,6 +53,7 @@ var quest := 0
 var classe := ""
 var heroi := ""                  # um dos 16 personagens (Heroi.lista)
 var magia := "orbe"              # mago: "orbe" (área) ou "livro" (um alvo, mais forte)
+var visual := {}                 # personalização por personagem: {id: {"mao": "orbe"|"chama", "acess": ""|"mascara"|"coroa"}}
 var arma := 1
 var nodes: Array = []            # coletáveis: {node, tipo, hp, scene, h, dono}
 var aldeoes: Array = []
@@ -1434,7 +1435,7 @@ func vestir(id: String, salvar := true) -> void:
 	var info: Dictionary = Heroi.lista()[id]
 	heroi = id
 	classe = info.classe
-	var m := Heroi.montar(id)
+	var m := Heroi.montar(id, true, false, visual.get(id, {}))
 	player.trocar_modelo(m, Heroi.ANIMS[classe])
 	player.model.visible = cam_modo != 1
 	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6), 0.1)   # luz de borda no herói
@@ -1568,8 +1569,25 @@ func _menu_classe() -> void:
 	if classe == "mago":
 		rows.append({"t": ("✔ " if magia == "orbe" else "") + "Cajado: explosão em área (acerta vários)", "cb": func(): trocar_magia("orbe"); _menu_classe()})
 		rows.append({"t": ("✔ " if magia == "livro" else "") + "Cajado: raio mais forte num alvo só", "cb": func(): trocar_magia("livro"); _menu_classe()})
+		var v: Dictionary = visual.get(heroi, {})
+		var mao := String(v.get("mao", "orbe"))
+		var ace := String(v.get("acess", ""))
+		rows.append({"t": ("✔ " if mao == "orbe" else "") + "Mão esquerda: orbe flutuando", "cb": func(): _personalizar("mao", "orbe")})
+		rows.append({"t": ("✔ " if mao == "chama" else "") + "Mão esquerda: chama colorida", "cb": func(): _personalizar("mao", "chama")})
+		rows.append({"t": ("✔ " if ace == "" else "") + "Rosto: sem acessório", "cb": func(): _personalizar("acess", "")})
+		rows.append({"t": ("✔ " if ace == "mascara" else "") + "Rosto: máscara de chamas", "cb": func(): _personalizar("acess", "mascara")})
+		rows.append({"t": ("✔ " if ace == "coroa" else "") + "Cabeça: coroa de galhos dourada", "cb": func(): _personalizar("acess", "coroa")})
 	rows.append({"t": "Trocar de personagem ou de classe", "cb": func(): _menu_escolha()})
 	_abrir("Classe e arma", txt, rows)
+
+## Personalização do personagem atual (vale só para ele): mão esquerda e acessório.
+func _personalizar(chave: String, valor: String) -> void:
+	var v: Dictionary = visual.get(heroi, {})
+	v[chave] = valor
+	visual[heroi] = v
+	vestir(heroi, false)
+	_save()
+	_menu_classe()
 
 ## 1) escolhe a classe; 2) escolhe entre os 4 personagens dela (2 masculinos e 2 femininos).
 func _menu_escolha(cl := "") -> void:
@@ -1623,7 +1641,7 @@ func _save() -> void:
 		papeis.append(v.papel)
 	var f := FileAccess.open(SAVE, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base}))
+		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual}))
 
 func _load() -> bool:
 	if not FileAccess.file_exists(SAVE):
@@ -1638,6 +1656,8 @@ func _load() -> bool:
 	var c := String(d.get("classe", ""))
 	classe = c if CLASSES.has(c) else ""
 	magia = String(d.get("magia", "orbe"))
+	var vis = d.get("visual", {})
+	visual = vis if vis is Dictionary else {}
 	var hid := String(d.get("heroi", ""))
 	if Heroi.lista().has(hid):
 		vestir(hid, false)

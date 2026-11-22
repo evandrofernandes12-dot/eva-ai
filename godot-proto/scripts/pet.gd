@@ -285,18 +285,22 @@ func _cavalo() -> void:
 ## curtas em duas fileiras na borda da frente. Brancas, com as pontas cinza-claro.
 func _asas_penas(pos: Vector3, tam: float) -> void:
 	var mp := _mat_pena()
+	var mo := _mat_pena()   # penas douradas (metálicas), como na referência branca e dourada
+	mo.metallic = 0.85
+	mo.roughness = 0.3
+	var ouro0 := Color(1.0, 0.86, 0.45)
+	var ouro1 := Color(0.85, 0.58, 0.14)
 	var vao := 2.1   # envergadura de cada asa (antes ~1,5)
 	for lado: float in [-1.0, 1.0]:
 		var pivo := Node3D.new()
 		pivo.position = Vector3(lado * pos.x, pos.y, pos.z)
 		pivo.scale = Vector3(lado * tam, tam, tam)   # a esquerda é a direita espelhada
 		_corpo.add_child(pivo)
-		var ponta := Color(0.72, 0.74, 0.8)
 		for i in 10:   # primárias: na ponta, abrindo em leque
 			var t := i / 9.0
 			var mi := MeshInstance3D.new()
-			mi.mesh = pena(1.45 - t * 0.35, 0.3, Color(1, 1, 1), ponta)
-			mi.material_override = mp
+			mi.mesh = pena(1.45 - t * 0.35, 0.3, ouro0, ouro1)
+			mi.material_override = mo
 			mi.position = Vector3(vao * (1.0 - t * 0.38), 0.12 * (1.0 - t) - 0.01 * i, 0.02)
 			mi.rotation_degrees = Vector3(0, -12.0 - t * 55.0, 0)
 			pivo.add_child(mi)
@@ -312,8 +316,8 @@ func _asas_penas(pos: Vector3, tam: float) -> void:
 			for i in 11:
 				var t := i / 10.0
 				var mc := MeshInstance3D.new()
-				mc.mesh = pena(0.5 - fila * 0.18, 0.24, Color(1, 1, 1), Color(0.93, 0.94, 0.97), 6)
-				mc.material_override = mp
+				mc.mesh = pena(0.5 - fila * 0.18, 0.24, Color(1, 1, 1) if fila == 0 else ouro0, Color(0.93, 0.94, 0.97) if fila == 0 else ouro1, 6)
+				mc.material_override = mp if fila == 0 else mo
 				mc.position = Vector3(vao * (0.95 - t * 0.9), 0.07 + fila * 0.03 + 0.06 * (1.0 - t), -0.02 - fila * 0.04)
 				mc.rotation_degrees = Vector3(0, -70.0 - t * 12.0, 0)
 				pivo.add_child(mc)
@@ -322,7 +326,11 @@ func _asas_penas(pos: Vector3, tam: float) -> void:
 		cm.radius = 0.06
 		cm.height = vao * 1.02
 		braco.mesh = cm
-		braco.material_override = _mat_pena(false)
+		var mb := _mat_pena(false)
+		mb.albedo_color = ouro0
+		mb.metallic = 0.85
+		mb.roughness = 0.3
+		braco.material_override = mb
 		braco.position = Vector3(vao * 0.5, 0.08, -0.02)
 		braco.rotation_degrees = Vector3(0, 0, 90)
 		pivo.add_child(braco)
