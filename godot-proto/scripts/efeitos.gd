@@ -43,7 +43,8 @@ static func realce(raiz: Node, cor: Color, forca := 0.45) -> void:
 	var malhas: Array = []
 	Fit._collect(raiz, malhas)
 	for mi: MeshInstance3D in malhas:
-		mi.material_overlay = sm
+		if not mi.has_meta("sem_realce"):
+			mi.material_overlay = sm
 
 static func chao(malha: MeshInstance3D, textura: Texture2D) -> void:
 	var sm := ShaderMaterial.new()

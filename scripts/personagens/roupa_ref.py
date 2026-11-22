@@ -179,7 +179,7 @@ elif HID == 'M1':   # mago azul-marinho e ouro com pedras turquesa
         fatia(O['Saia'], 'Saia_Friso', lambda p, xs=xs: abs(p.x - xs) < 0.012 and p.y < -0.05, 0.01, OURO, True)
     yf = frente_em(tun, z_sp3 + 0.02) or -0.13
     broche('Pingente', Vector((0, yf - 0.025, z_sp3 + 0.02)), 0.026, TURQ, 'spine_03')
-    anel('Corrente', tun, P('neck_01').z - 0.01, 0.012, lambda p: True, 'spine_03', 0.012, OURO)
+    anel('Corrente', tun, P('neck_01').z - 0.01, 0.012, lambda p: abs(p.x) < 0.12, 'spine_03', 0.012, OURO)
     yc = frente_em(O['Cinto'], z_pel + 0.075) or -0.16
     broche('Fivela', Vector((0, yc - 0.015, z_pel + 0.075)), 0.03, TURQ, 'pelvis')
     tabardo('Tabardo', [O['Saia']], z_pel + 0.03, P('calf_l').z - 0.2, 0.22, TEAL, 0.014, pontas=1)

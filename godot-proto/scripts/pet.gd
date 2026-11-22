@@ -182,7 +182,7 @@ func _ready() -> void:
 			mv.roughness = 0.75
 			for mi: MeshInstance3D in meshes:
 				mi.material_override = mv
-			_asas_penas(Vector3(0.24, 1.42, -0.25), 1.15)
+			_asas_penas(Vector3(0.15, 1.36, -0.2), 0.7)   # menores e coladas nas costas (antes 1,15 e mais afastadas)
 		elif tipo == "urso":   # pelo fosco e um pouco mais escuro (brilhava demais no tablet)
 			var ms: Array = []
 			Fit._collect(m, ms)
@@ -286,8 +286,8 @@ func _cavalo() -> void:
 func _asas_penas(pos: Vector3, tam: float) -> void:
 	var mp := _mat_pena()
 	var mo := _mat_pena()   # penas douradas (metálicas), como na referência branca e dourada
-	mo.metallic = 0.85
-	mo.roughness = 0.3
+	mo.metallic = 0.4   # metal demais refletia o chão e ficava cinza-escuro por baixo
+	mo.roughness = 0.35
 	var ouro0 := Color(1.0, 0.86, 0.45)
 	var ouro1 := Color(0.85, 0.58, 0.14)
 	var vao := 2.1   # envergadura de cada asa (antes ~1,5)
@@ -328,8 +328,8 @@ func _asas_penas(pos: Vector3, tam: float) -> void:
 		braco.mesh = cm
 		var mb := _mat_pena(false)
 		mb.albedo_color = ouro0
-		mb.metallic = 0.85
-		mb.roughness = 0.3
+		mb.metallic = 0.4
+		mb.roughness = 0.35
 		braco.material_override = mb
 		braco.position = Vector3(vao * 0.5, 0.08, -0.02)
 		braco.rotation_degrees = Vector3(0, 0, 90)

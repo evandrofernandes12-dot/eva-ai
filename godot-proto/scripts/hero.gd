@@ -160,124 +160,35 @@ static func _esconder_material(raiz: Node, nome: String) -> void:
 			var m := mi.mesh.surface_get_material(i)
 			if m != null and m.resource_name == nome:
 				mi.set_surface_override_material(i, some)
+				mi.set_meta("sem_realce", true)   # a luz de borda desenhava a bolha escondida
 
-## Máscara de chamas (preta, borda azul à esquerda e vermelha à direita, chama no topo), presa à cabeça.
-## Feita numa grade curvada em volta do rosto, com os dois buracos dos olhos.
+## Máscara de chamas (modelo feito no Blender: ../scripts/personagens/mascara.py), presa ao osso da cabeça.
 static func _mascara(sk: Skeleton3D) -> void:
-	var preto := StandardMaterial3D.new()
-	preto.albedo_color = Color(0.06, 0.06, 0.07)
-	preto.roughness = 0.4
-	preto.metallic = 0.3
-	preto.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var cores := [Color(0.15, 0.35, 1.0), Color(1.0, 0.22, 0.08)]
-	var st := [SurfaceTool.new(), SurfaceTool.new(), SurfaceTool.new()]   # preto, azul, vermelho
-	for t: SurfaceTool in st:
-		t.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var raio := 0.112
-	var cy := 0.10
-	var cz := -0.008
-	var nu := 44
-	var nv := 26
-	var topo := func(xn: float) -> float:   # borda de cima com bicos de chama
-		return 0.135 + 0.035 * maxf(0.0, sin(absf(xn) * 3.0 * PI)) * (1.0 - absf(xn) * 0.4) + 0.05 * maxf(0.0, 1.0 - absf(xn) * 6.0)
-	var baixo := func(xn: float) -> float:   # borda de baixo: ponta no nariz, sobe para os lados
-		return 0.07 - 0.025 * maxf(0.0, 1.0 - absf(xn) * 4.0) + 0.03 * absf(xn)
-	for i in nu:
-		for j in nv:
-			var u0 := -1.0 + 2.0 * i / nu
-			var u1 := -1.0 + 2.0 * (i + 1) / nu
-			var y0 := 0.04 + 0.18 * j / nv
-			var y1 := 0.04 + 0.18 * (j + 1) / nv
-			var uc := (u0 + u1) * 0.5
-			var yc := (y0 + y1) * 0.5
-			var tp: float = topo.call(uc)
-			var bx: float = baixo.call(uc)
-			if yc > tp or yc < bx:
-				continue
-			var xs := sin(uc * 1.2) * raio
-			var olho := Vector2((absf(xs) - 0.034) / 0.019, (yc - cy) / 0.011)
-			if olho.length() < 1.0:
-				continue
-			var borda := minf(tp - yc, yc - bx) < 0.012 or olho.length() < 1.35
-			var k := 0 if not borda else (1 if uc < 0.0 else 2)
-			var cantos := [Vector2(u0, y0), Vector2(u1, y0), Vector2(u1, y1), Vector2(u0, y1)]
-			var vs: Array = []
-			for c: Vector2 in cantos:
-				var a := c.x * 1.2
-				vs.append(Vector3(sin(a) * raio, c.y, cz + cos(a) * raio))
-			for q: int in [0, 1, 2, 0, 2, 3]:
-				var vq: Vector3 = vs[q]
-				var t: SurfaceTool = st[k]
-				t.set_normal((vq - Vector3(0, vq.y, cz)).normalized())
-				t.add_vertex(vq)
-	var mesh := ArrayMesh.new()
-	var mats := [preto]
-	for c: Color in cores:
-		var m := StandardMaterial3D.new()
-		m.albedo_color = c
-		m.emission_enabled = true
-		m.emission = c * 0.6
-		m.cull_mode = BaseMaterial3D.CULL_DISABLED
-		mats.append(m)
-	for k in 3:
-		var arr: Array = (st[k] as SurfaceTool).commit_to_arrays()
-		if (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() > 0:
-			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
-			mesh.surface_set_material(mesh.get_surface_count() - 1, mats[k])
-	_peca(sk, "head", mesh, Vector3.ZERO, Vector3.ONE)
-	var fogo := StandardMaterial3D.new()   # chaminha no topo da máscara
-	fogo.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	fogo.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	fogo.albedo_color = Color(1.0, 0.5, 0.15)
-	var fm := SphereMesh.new()
-	fm.radius = 0.014
-	fm.height = 0.06
-	fm.material = fogo
-	_peca(sk, "head", fm, Vector3(0, 0.205, cz + raio + 0.004), Vector3.ONE)
+	if sk == null or not ResourceLoader.exists("res://models/acessorios/Mascara_Chamas.glb"):
+		return
+	var osso := "Head" if sk.find_bone("Head") >= 0 else "head"
+	if sk.find_bone(osso) < 0:
+		return
+	var ba := BoneAttachment3D.new()
+	ba.bone_name = osso
+	sk.add_child(ba)
+	ba.add_child(load("res://models/acessorios/Mascara_Chamas.glb").instantiate())
 
-## Coroa de galhos dourada com um rubi na testa (por cima do capuz, se houver).
+## Coroa de galhos dourada com rubi (modelo feito no Blender: ../scripts/personagens/coroa_galhos.py).
+## Com capuz, fica um pouco maior para assentar por cima do pano.
 static func _coroa_galhos(sk: Skeleton3D, capuz: bool) -> void:
-	var ouro := StandardMaterial3D.new()
-	ouro.albedo_color = Color(1.0, 0.78, 0.3)
-	ouro.metallic = 0.9
-	ouro.roughness = 0.25
-	var rubi := StandardMaterial3D.new()
-	rubi.albedo_color = Color(0.85, 0.05, 0.08)
-	rubi.emission_enabled = true
-	rubi.emission = Color(0.5, 0.0, 0.02)
-	rubi.metallic = 0.3
-	rubi.roughness = 0.1
-	var r := 0.118 if not capuz else 0.152
-	var y0 := 0.17 if not capuz else 0.2
-	for k in 15:   # aro na frente da cabeça
-		var a := -1.9 + 3.8 * k / 14.0
-		var b := BoxMesh.new()
-		b.size = Vector3(0.03, 0.022, 0.012)
-		b.material = ouro
-		_peca_rot(sk, b, Vector3(sin(a) * r, y0, cos(a) * r - 0.01), Vector3(0, a, 0))
-	var galho := func(de: Vector3, ate: Vector3, grossura: float) -> void:
-		var cm := CylinderMesh.new()
-		cm.top_radius = grossura * 0.25
-		cm.bottom_radius = grossura
-		cm.height = de.distance_to(ate)
-		cm.material = ouro
-		var d := (ate - de).normalized()
-		var q := Quaternion(Vector3.UP, d)
-		_peca_rot(sk, cm, (de + ate) * 0.5, q.get_euler())
-	for s: float in [-1.0, 1.0]:   # galhos principais com 3 pontas cada
-		var base := Vector3(s * r * 0.75, y0, r * 0.55)
-		var topo_g := base + Vector3(s * 0.09, 0.17, -0.05)
-		galho.call(base, topo_g, 0.012)
-		for t: float in [0.35, 0.6, 0.85]:
-			var p := base.lerp(topo_g, t)
-			galho.call(p, p + Vector3(s * 0.035, 0.06, 0.02), 0.007)
-	for s: float in [-1.0, 1.0]:   # duas pontas do meio
-		galho.call(Vector3(s * 0.02, y0 + 0.01, r), Vector3(s * 0.045, y0 + 0.09, r - 0.01), 0.008)
-	var g := SphereMesh.new()
-	g.radius = 0.014
-	g.height = 0.05
-	g.material = rubi
-	_peca(sk, "head", g, Vector3(0, y0 + 0.02, r + 0.008), Vector3(1, 1, 0.6))
+	if sk == null or not ResourceLoader.exists("res://models/acessorios/Coroa_Galhos.glb"):
+		return
+	var osso := "Head" if sk.find_bone("Head") >= 0 else "head"
+	if sk.find_bone(osso) < 0:
+		return
+	var ba := BoneAttachment3D.new()
+	ba.bone_name = osso
+	sk.add_child(ba)
+	var c: Node3D = load("res://models/acessorios/Coroa_Galhos.glb").instantiate()
+	if capuz:
+		c.scale = Vector3.ONE * 1.28
+	ba.add_child(c)
 
 static func _peca_rot(sk: Skeleton3D, malha: Mesh, pos: Vector3, rot: Vector3) -> void:
 	_peca(sk, "head", malha, pos, Vector3.ONE)

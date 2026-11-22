@@ -14,11 +14,6 @@ var _t := 0.0
 
 func _process(delta: float) -> void:
 	_t += delta
-	if chama and efeito != null:   # chama tremulando
-		var k := 1.0 + 0.12 * sin(_t * 17.0) + 0.08 * sin(_t * 29.0 + 1.3)
-		for c in efeito.get_children():
-			if c is Node3D:
-				(c as Node3D).scale.y = k * (1.0 + 0.1 * sin(_t * 11.0 + (c as Node3D).position.x * 40.0))
 
 func _preparar(sk: Skeleton3D) -> bool:
 	for n: String in ["upperarm_l", "lowerarm_l", "hand_l", "thigh_l", "thigh_r", "pelvis", "Head"]:
@@ -67,7 +62,7 @@ func _process_modification() -> void:
 		var gt := sk.global_transform
 		var esc := gt.basis.get_scale().x
 		var palma := gt * (g.origin + y * 0.075)
-		efeito.global_position = palma + (gt.basis * _cima).normalized() * 0.13 * esc
+		efeito.global_position = palma + (gt.basis * _cima).normalized() * (0.03 if chama else 0.13) * esc   # chama nasce rente à palma
 
 func _ik(sk: Skeleton3D, i1: int, i2: int, i3: int, alvo: Vector3, polo: Vector3) -> void:
 	var p1 := sk.get_bone_global_pose(i1).origin
@@ -97,26 +92,53 @@ func _apontar(sk: Skeleton3D, osso: int, filho: int, destino: Vector3) -> void:
 	sk.set_bone_global_pose(osso, g)
 	sk.force_update_bone_child_transform(osso)
 
-## Chama em camadas (laranja, roxa e azul, como na imagem), com brilho aditivo.
+## Chama de partículas (CPU, leve no tablet): labaredas que sobem e mudam de amarelo -> laranja -> roxo -> azul.
 static func criar_chama() -> Node3D:
 	var r := Node3D.new()
-	var camadas := [[Color(1.0, 0.55, 0.12), Vector3(-0.012, 0, 0), 1.0], [Color(0.75, 0.25, 1.0), Vector3(0.012, 0, 0.004), 0.85], [Color(0.25, 0.55, 1.0), Vector3(0.022, -0.01, -0.004), 0.7], [Color(1.0, 0.92, 0.6), Vector3(0, -0.015, 0), 0.45]]
-	for c: Array in camadas:
-		var m := StandardMaterial3D.new()
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-		m.albedo_color = c[0]
-		m.no_depth_test = false
-		var s := SphereMesh.new()
-		var t: float = c[2]
-		s.radius = 0.045 * t
-		s.height = 0.17 * t
-		s.radial_segments = 12
-		s.rings = 8
-		s.material = m
-		var mi := MeshInstance3D.new()
-		mi.mesh = s
-		mi.position = c[1] + Vector3(0, 0.06 * t, 0)
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		r.add_child(mi)
+	var p := CPUParticles3D.new()
+	p.amount = 28
+	p.lifetime = 0.55
+	p.local_coords = false
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 0.025
+	p.direction = Vector3.UP
+	p.spread = 12.0
+	p.gravity = Vector3(0, 0.6, 0)
+	p.initial_velocity_min = 0.18
+	p.initial_velocity_max = 0.32
+	p.scale_amount_min = 0.7
+	p.scale_amount_max = 1.1
+	var curva := Curve.new()   # nasce pequena, cresce e some afinando
+	curva.add_point(Vector2(0.0, 0.5))
+	curva.add_point(Vector2(0.25, 1.0))
+	curva.add_point(Vector2(1.0, 0.1))
+	p.scale_amount_curve = curva
+	var cores := Gradient.new()
+	cores.set_color(0, Color(1.0, 0.95, 0.6, 1.0))
+	cores.set_color(1, Color(0.2, 0.4, 1.0, 0.0))
+	cores.add_point(0.3, Color(1.0, 0.5, 0.1, 0.95))
+	cores.add_point(0.6, Color(0.8, 0.2, 0.9, 0.7))
+	p.color_ramp = cores
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.07, 0.1)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.vertex_color_use_as_albedo = true
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	var g := GradientTexture2D.new()   # ponto macio (redondo, borda transparente)
+	g.fill = GradientTexture2D.FILL_RADIAL
+	g.fill_from = Vector2(0.5, 0.5)
+	g.fill_to = Vector2(0.5, 0.0)
+	var gg := Gradient.new()
+	gg.set_color(0, Color(1, 1, 1, 1))
+	gg.set_color(1, Color(1, 1, 1, 0))
+	g.gradient = gg
+	g.width = 64
+	g.height = 64
+	m.albedo_texture = g
+	quad.material = m
+	p.mesh = quad
+	r.add_child(p)
 	return r
