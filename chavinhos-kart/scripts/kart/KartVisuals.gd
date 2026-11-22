@@ -41,7 +41,9 @@ func build(s: RacerStats) -> void:
 	_body.name = "Body"
 	add_child(_body)
 	var seat: Vector3 = _build_kart(s.kart_style, s.body_color, s.accent_color)
-	_build_driver(s.id, seat)
+	var rig: Dictionary = _rig(s.kart_style, seat)
+	_build_controls(rig, s.id)
+	_build_driver(s.id, rig)
 	_build_fx()
 
 
@@ -184,9 +186,6 @@ func _style_plank(wood: Color, accent: Color) -> Vector3:
 	for i in 5: # adesivos coloridos
 		var cols: Array[Color] = [Color(0.9, 0.3, 0.8), Color(0.3, 0.8, 0.4), Color(0.95, 0.8, 0.2), Color(0.3, 0.6, 0.95), Color(0.95, 0.4, 0.2)]
 		ProcMesh.cyl(_body, 0.1, 0.02, Vector3(-0.35 + 0.17 * float(i), 0.43, -0.5 + 0.35 * float(i % 3)), cols[i])
-	# guidão de bicicleta
-	ProcMesh.cyl(_body, 0.04, 0.8, Vector3(0, 0.78, -0.85), METAL, Vector3(-15, 0, 0), -1.0, 0.4, 0.7)
-	ProcMesh.cyl(_body, 0.035, 0.75, Vector3(0, 1.14, -0.95), METAL, Vector3(0, 0, 90), -1.0, 0.4, 0.7)
 	# cadeira escolar atrás
 	ProcMesh.rbox(_body, Vector3(0.7, 0.07, 0.6), Vector3(0, 0.78, 0.55), wood.lightened(0.1))
 	ProcMesh.rbox(_body, Vector3(0.7, 0.55, 0.07), Vector3(0, 1.05, 0.88), wood.lightened(0.1))
@@ -204,11 +203,8 @@ func _style_plank(wood: Color, accent: Color) -> Vector3:
 func _style_trike(red: Color, gold: Color) -> Vector3:
 	ProcMesh.rbox(_body, Vector3(0.75, 0.38, 1.6), Vector3(0, 0.62, 0.35), red, Vector3.ZERO, 0.25, 0.3)
 	ProcMesh.rbox(_body, Vector3(0.7, 0.04, 1.62), Vector3(0, 0.82, 0.35), gold, Vector3.ZERO, 0.3, 0.8)
-	# garfo + guidão cromado
+	# garfo dianteiro (o guidão alto vem do rig)
 	ProcMesh.cyl(_body, 0.05, 0.8, Vector3(0, 0.62, -0.95), red, Vector3(0, 0, 0), -1.0, 0.25, 0.3)
-	ProcMesh.cyl(_body, 0.035, 1.0, Vector3(0, 1.08, -0.95), METAL.lightened(0.3), Vector3(0, 0, 90), -1.0, 0.2, 0.9)
-	ProcMesh.cyl(_body, 0.07, 0.3, Vector3(-0.2, 1.22, -0.95), Color(0.75, 0.78, 0.8), Vector3(0, 0, 0), 0.12, 0.2, 0.9) # buzina
-	ProcMesh.sphere(_body, 0.1, Vector3(0.28, 1.08, -0.95), Color.BLACK)
 	# para-lamas
 	ProcMesh.rbox(_body, Vector3(0.3, 0.05, 0.9), Vector3(-0.78, 0.9, 0.9), red, Vector3.ZERO, 0.25, 0.3)
 	ProcMesh.rbox(_body, Vector3(0.3, 0.05, 0.9), Vector3(0.78, 0.9, 0.9), red, Vector3.ZERO, 0.25, 0.3)
@@ -279,7 +275,6 @@ func _style_crate(frame: Color, wood: Color, mail: bool) -> Vector3:
 	# quadro da bicicleta
 	ProcMesh.cyl(_body, 0.04, 1.8, Vector3(0, 0.7, -0.2), frame, Vector3(90, 0, 0), -1.0, 0.5, 0.3)
 	ProcMesh.cyl(_body, 0.04, 0.9, Vector3(0, 0.98, -0.95), frame, Vector3(-25, 0, 0), -1.0, 0.5, 0.3)
-	ProcMesh.cyl(_body, 0.035, 0.9, Vector3(0, 1.3, -1.05), METAL, Vector3(0, 0, 90), -1.0, 0.4, 0.7)
 	ProcMesh.rbox(_body, Vector3(0.3, 0.07, 0.4), Vector3(0, 1.0, 0.6), Color(0.45, 0.28, 0.15))
 	_engine(Vector3(0, 0.8, 1.2), Color(0.8, 0.15, 0.1))
 	ProcMesh.cyl(_body, 0.1, 0.25, Vector3(-0.15, 1.12, 1.15), Color(0.4, 0.5, 0.3)) # tanque
@@ -362,9 +357,128 @@ func _style_broom(navy: Color, purple: Color) -> Vector3:
 	return Vector3(0, 0.95, 0.3)
 
 
+# ===================================================================== rig (volante/guidão e pés)
+
+## Onde ficam as mãos e os pés de cada estilo de kart (coordenadas do kart; frente = -Z).
+##  ctrl: "wheel" (volante redondo), "bar" (guidão), "lever" (alavanca da vassoura)
+##  grip: centro das mãos; gw: meia distância entre as mãos; anchor: base da coluna de direção
+##  feet: centro dos pés (y = altura do piso/apoio); feet_x: afastamento lateral dos pés
+func _rig(style: String, seat: Vector3) -> Dictionary:
+	var r: Dictionary = {"seat": seat, "ctrl": "wheel", "gw": 0.17, "feet_x": 0.15,
+		"grip": seat + Vector3(0, 0.46, -0.5), "anchor": seat + Vector3(0, 0.15, -0.85),
+		"feet": seat + Vector3(0, -0.4, -0.5)}
+	match style:
+		"barrel":
+			r["anchor"] = Vector3(0, 1.0, -0.85)
+			r["feet"] = Vector3(0, 0.35, -0.6) # dentro do barril
+		"plank":
+			r["ctrl"] = "bar"
+			r["gw"] = 0.3
+			r["grip"] = seat + Vector3(0, 0.38, -0.5)
+			r["anchor"] = Vector3(0, 0.42, -0.6)
+			r["feet"] = Vector3(0, 0.42, -0.25) # pés na prancha
+		"trike":
+			r["ctrl"] = "bar"
+			r["gw"] = 0.32
+			r["grip"] = seat + Vector3(0, 0.55, -0.5)
+			r["anchor"] = Vector3(0, 1.0, -0.95)
+			r["feet"] = Vector3(0, 0.58, -0.45)
+			r["feet_x"] = 0.22
+		"armored":
+			r["grip"] = seat + Vector3(0, 0.45, -0.5)
+			r["anchor"] = Vector3(0, 1.2, -0.8)
+			r["feet"] = Vector3(0, 0.6, -0.55)
+		"pinkcar":
+			r["ctrl"] = "bar"
+			r["gw"] = 0.28
+			r["grip"] = seat + Vector3(0, 0.45, -0.5)
+			r["anchor"] = Vector3(0, 0.78, -0.6)
+			r["feet"] = Vector3(0, 0.8, -0.35)
+		"crate", "mail":
+			r["ctrl"] = "bar"
+			r["gw"] = 0.32
+			r["grip"] = seat + Vector3(0, 0.4, -0.5)
+			r["anchor"] = Vector3(0, 1.05, -0.85)
+			r["feet"] = Vector3(0, 0.62, -0.35)
+			r["feet_x"] = 0.24
+		"teacup":
+			r["gw"] = 0.16
+			r["grip"] = seat + Vector3(0, 0.45, -0.45)
+			r["anchor"] = Vector3(0, 0.95, -0.55)
+			r["feet"] = Vector3(0, 0.45, -0.45)
+		"vintage":
+			r["grip"] = seat + Vector3(0, 0.45, -0.5)
+			r["anchor"] = Vector3(0, 1.05, 0.1)
+			r["feet"] = Vector3(0, 0.45, 0.3)
+		"broom":
+			r["ctrl"] = "lever"
+			r["gw"] = 0.18
+			r["grip"] = seat + Vector3(0, 0.42, -0.5)
+			r["anchor"] = Vector3(0, 0.78, -0.65)
+			r["feet"] = Vector3(0, 0.5, -0.2) # pés para FORA da vassoura, nos apoios
+			r["feet_x"] = 0.34
+	return r
+
+
+## Volante / guidão / alavanca na frente do piloto, preso ao kart por uma coluna.
+func _build_controls(rig: Dictionary, id: String) -> void:
+	var grip: Vector3 = rig["grip"]
+	var anchor: Vector3 = rig["anchor"]
+	var gw: float = rig["gw"]
+	match str(rig["ctrl"]):
+		"wheel":
+			_limb(_body, anchor, grip + Vector3(0, -0.02, 0.06), 0.035, DARK)
+			ProcMesh.torus(_body, 0.165, 0.215, grip, DARK, Vector3(60, 0, 0))
+			ProcMesh.rbox(_body, Vector3(0.36, 0.035, 0.04), grip, METAL, Vector3(60, 0, 0), 0.4, 0.6)
+			ProcMesh.sphere(_body, 0.05, grip, METAL)
+		"bar":
+			_limb(_body, anchor, grip, 0.04, METAL)
+			ProcMesh.cyl(_body, 0.03, gw * 2.0 + 0.3, grip, METAL, Vector3(0, 0, 90), -1.0, 0.3, 0.8)
+			for sx: float in [-1.0, 1.0]:
+				ProcMesh.cyl(_body, 0.045, 0.14, grip + Vector3(sx * (gw + 0.06), 0, 0), Color(0.1, 0.1, 0.1), Vector3(0, 0, 90))
+			if id == "quico": # buzina de corneta
+				ProcMesh.cyl(_body, 0.03, 0.28, grip + Vector3(-gw - 0.12, 0.1, -0.05), Color(0.8, 0.82, 0.85), Vector3(0, 0, 0), 0.11, 0.2, 0.9)
+				ProcMesh.sphere(_body, 0.08, grip + Vector3(gw + 0.2, 0, 0), Color.BLACK)
+			if id == "popis": # fitinhas no guidão
+				for sx: float in [-1.0, 1.0]:
+					ProcMesh.rbox(_body, Vector3(0.03, 0.3, 0.06), grip + Vector3(sx * (gw + 0.16), -0.15, 0), Color(0.95, 0.4, 0.75) if sx < 0.0 else Color(0.5, 0.8, 0.95))
+		"lever":
+			_limb(_body, anchor, grip, 0.045, Color(0.4, 0.26, 0.15))
+			ProcMesh.cyl(_body, 0.035, gw * 2.0 + 0.2, grip, Color(0.45, 0.3, 0.18), Vector3(0, 0, 90))
+			# apoios dos pés dos dois lados da vassoura
+			var feet: Vector3 = rig["feet"]
+			var fx: float = rig["feet_x"]
+			for sx: float in [-1.0, 1.0]:
+				ProcMesh.rbox(_body, Vector3(0.26, 0.04, 0.34), Vector3(sx * fx, feet.y - 0.02, feet.z), METAL, Vector3.ZERO, 0.4, 0.7)
+				_limb(_body, Vector3(sx * fx * 0.55, 0.62, feet.z), Vector3(sx * fx, feet.y - 0.02, feet.z), 0.025, METAL)
+
+
+## Cilindro de pontas arredondadas (cápsula) ligando os pontos a e b. Usado em braços, pernas e colunas.
+func _limb(parent: Node3D, a: Vector3, b: Vector3, radius: float, color: Color) -> void:
+	var dvec: Vector3 = b - a
+	var length: float = dvec.length()
+	if length < 0.001:
+		return
+	var y: Vector3 = dvec / length
+	var ref: Vector3 = Vector3.UP if absf(y.dot(Vector3.UP)) < 0.95 else Vector3.RIGHT
+	var x: Vector3 = y.cross(ref).normalized()
+	var z: Vector3 = x.cross(y).normalized()
+	var m := CapsuleMesh.new()
+	m.radius = radius
+	m.height = length + radius * 2.0
+	m.radial_segments = 12
+	m.rings = 3
+	var mi := MeshInstance3D.new()
+	mi.mesh = m
+	mi.material_override = ProcMesh.mat(color)
+	mi.transform = Transform3D(Basis(x, y, z), (a + b) * 0.5)
+	parent.add_child(mi)
+
+
 # ===================================================================== piloto
 
-func _build_driver(id: String, seat: Vector3) -> void:
+func _build_driver(id: String, rig: Dictionary) -> void:
+	var seat: Vector3 = rig["seat"]
 	var d := Node3D.new()
 	d.name = "Driver"
 	d.position = seat
@@ -403,10 +517,7 @@ func _build_driver(id: String, seat: Vector3) -> void:
 		ProcMesh.sphere(d, 0.055, Vector3(sx, 0.85, -0.25 * big), Color.WHITE)
 		ProcMesh.sphere(d, 0.03, Vector3(sx, 0.85, -0.295 * big), Color.BLACK)
 	ProcMesh.sphere(d, 0.05, Vector3(0, 0.78, -0.28 * big), Color(0.95, 0.65, 0.5)) # nariz
-	# braços até o volante
-	for sx: float in [-0.34, 0.34]:
-		ProcMesh.rbox(d, Vector3(0.13, 0.13, 0.55), Vector3(sx * big, 0.42, -0.3), shirt)
-		ProcMesh.sphere(d, 0.08, Vector3(sx * big, 0.42, -0.6), SKIN)
+	_build_limbs(d, id, rig, shirt, big)
 	# acessórios por personagem
 	match id:
 		"chaves":
@@ -424,7 +535,6 @@ func _build_driver(id: String, seat: Vector3) -> void:
 			ProcMesh.sphere(d, 0.05, Vector3(0.3, 0.98, 0.05), Color(0.95, 0.85, 0.2))
 			for sx: float in [-0.12, 0.12]:
 				ProcMesh.torus(d, 0.075, 0.115, Vector3(sx, 0.86, -0.27), Color.BLACK, Vector3(90, 0, 0))
-			ProcMesh.rbox(d, Vector3(0.62, 0.06, 0.4), Vector3(0, 0.6, 0.0), Color(0.2, 0.6, 0.3)) # saia verde
 		"quico":
 			ProcMesh.sphere(d, 0.3, Vector3(0, 1.0, 0.0), Color(0.2, 0.35, 0.8), Vector3(1, 0.7, 1))
 			ProcMesh.rbox(d, Vector3(0.18, 0.2, 0.55), Vector3(0, 1.08, 0.0), Color(0.95, 0.8, 0.15))
@@ -441,7 +551,6 @@ func _build_driver(id: String, seat: Vector3) -> void:
 			ProcMesh.sphere(d, 0.13, Vector3(-0.15, 1.12, 0.0), Color(1.0, 0.45, 0.7), Vector3(1.3, 1, 0.6))
 			ProcMesh.sphere(d, 0.13, Vector3(0.15, 1.12, 0.0), Color(1.0, 0.45, 0.7), Vector3(1.3, 1, 0.6))
 			ProcMesh.sphere(d, 0.07, Vector3(0, 1.12, 0.0), Color(0.95, 0.3, 0.55))
-			ProcMesh.rbox(d, Vector3(0.68, 0.06, 0.45), Vector3(0, 0.58, 0.0), Color(1.0, 0.7, 0.85)) # saia rodada
 		"madruga":
 			ProcMesh.cyl(d, 0.3, 0.22, Vector3(0, 1.08, 0.0), Color(0.45, 0.62, 0.85), Vector3.ZERO, 0.26)
 			ProcMesh.cyl(d, 0.44, 0.04, Vector3(0, 0.98, 0.0), Color(0.4, 0.57, 0.8))
@@ -477,6 +586,83 @@ func _build_driver(id: String, seat: Vector3) -> void:
 			for sx: float in [0.02, 0.18]:
 				ProcMesh.cyl(d, 0.05, 0.1, Vector3(sx, 1.2, 0.4), Color(0.05, 0.05, 0.07), Vector3.ZERO, 0.0)
 				ProcMesh.sphere(d, 0.025, Vector3(sx, 1.08, 0.27), Color(0.95, 0.85, 0.2), Vector3.ONE, 0.2, 1.5)
+
+
+## Braços até as mãos no volante/guidão e pernas sentadas até o piso, com as roupas de cada personagem.
+func _build_limbs(d: Node3D, id: String, rig: Dictionary, shirt: Color, big: float) -> void:
+	var seat: Vector3 = rig["seat"]
+	var grip: Vector3 = (rig["grip"] as Vector3) - seat     # em coordenadas do piloto
+	var feet: Vector3 = (rig["feet"] as Vector3) - seat
+	var gw: float = rig["gw"]
+	var fx: float = rig["feet_x"]
+	var pants: Color = Color(0.25, 0.2, 0.15)
+	var shin: Color = pants
+	var shoe: Color = Color(0.1, 0.08, 0.07)
+	var skirt: Color = Color(0, 0, 0, 0)
+	var bare_forearm: bool = false
+	match id:
+		"chaves":
+			pants = Color(0.5, 0.33, 0.2)
+			shin = pants
+			shoe = Color(0.35, 0.22, 0.12)
+			bare_forearm = true
+		"chiquinha":
+			pants = SKIN
+			shin = Color(0.96, 0.96, 0.96)
+			skirt = Color(0.2, 0.6, 0.3)
+		"quico":
+			pants = Color(0.08, 0.08, 0.1)
+			shin = Color(0.96, 0.96, 0.96)
+		"nhonho":
+			pants = Color(0.12, 0.12, 0.14)
+			shin = Color(0.96, 0.96, 0.96)
+			bare_forearm = true
+		"popis":
+			pants = SKIN
+			shin = Color(0.96, 0.96, 0.96)
+			skirt = Color(1.0, 0.65, 0.82)
+		"madruga":
+			pants = Color(0.3, 0.42, 0.6)
+			shin = pants
+			shoe = Color(0.55, 0.5, 0.4)
+			bare_forearm = true
+		"jaiminho":
+			pants = Color(0.28, 0.36, 0.55)
+			shin = pants
+		"florinda":
+			pants = SKIN
+			shin = SKIN
+			skirt = Color(0.9, 0.5, 0.55)
+		"girafales":
+			pants = Color(0.25, 0.16, 0.1)
+			shin = pants
+		"barriga":
+			pants = Color(0.42, 0.26, 0.13)
+			shin = pants
+			shoe = Color(0.3, 0.17, 0.08)
+		"bruxa":
+			pants = Color(0.2, 0.32, 0.58) # vestido comprido
+			shin = Color(0.08, 0.08, 0.1)  # botas
+	# quadril
+	ProcMesh.rbox(d, Vector3(0.5 * big, 0.2, 0.42 * big), Vector3(0, 0.02, 0.02), pants)
+	if skirt.a > 0.0:
+		ProcMesh.cyl(d, 0.36 * big, 0.26, Vector3(0, 0.02, -0.04), skirt, Vector3.ZERO, 0.27 * big)
+	# pernas: coxa para a frente, canela até o pé no piso
+	for side: float in [-1.0, 1.0]:
+		var hip := Vector3(side * 0.13 * big, 0.02, -0.05)
+		var foot := Vector3(side * fx, feet.y + 0.07, feet.z)
+		var knee := Vector3(side * lerpf(0.14 * big, fx, 0.5), maxf(foot.y + 0.3, 0.05), lerpf(-0.05, foot.z, 0.75))
+		_limb(d, hip, knee, 0.085 * big, pants)
+		_limb(d, knee, foot, 0.068 * big, shin)
+		ProcMesh.rbox(d, Vector3(0.15, 0.11, 0.26), foot + Vector3(0, -0.02, -0.06), shoe)
+	# braços: ombro -> cotovelo -> mão no volante/guidão
+	for side: float in [-1.0, 1.0]:
+		var shoulder := Vector3(side * 0.31 * big, 0.48, -0.02)
+		var hand := Vector3(grip.x + side * gw, grip.y, grip.z + 0.03)
+		var elbow: Vector3 = shoulder.lerp(hand, 0.5) + Vector3(side * 0.09, -0.1, 0.04)
+		_limb(d, shoulder, elbow, 0.07 * big, shirt)
+		_limb(d, elbow, hand, 0.06 * big, SKIN if bare_forearm else shirt)
+		ProcMesh.sphere(d, 0.075, hand, SKIN)
 
 
 # ===================================================================== efeitos

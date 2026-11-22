@@ -27,7 +27,7 @@ func _ready() -> void:
 	col.add_child(_row("Seu nome", _make_name()))
 	col.add_child(_row("Volume geral", _make_slider("vol_master", 0.9, 0.0, 1.0)))
 	col.add_child(_row("Volume efeitos", _make_slider("vol_sfx", 1.0, 0.0, 1.0)))
-	col.add_child(_row("Som do motor", _make_slider("vol_engine", 0.6, 0.0, 1.0)))
+	col.add_child(_row("Som do motor", _make_slider("vol_engine", 1.0, 0.0, 1.0)))
 
 	var mode := OptionButton.new()
 	mode.custom_minimum_size = Vector2(320, 48)
