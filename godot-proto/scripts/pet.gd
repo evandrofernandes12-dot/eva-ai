@@ -280,27 +280,63 @@ func _cavalo() -> void:
 	_asas_penas(Vector3(0.3, 1.75, -0.1), 1.0)
 
 ## Asas emplumadas: 9 penas longas + 5 curtas (cobertura) de cada lado, brancas com pontas cinza-claro.
+## Asas grandes no estilo da referência: braço da asa para fora (+X), com três camadas de penas
+## apontando para trás (+Z): primárias longas na ponta, secundárias ao longo do braço e coberteiras
+## curtas em duas fileiras na borda da frente. Brancas, com as pontas cinza-claro.
 func _asas_penas(pos: Vector3, tam: float) -> void:
+	var mp := _mat_pena()
+	var vao := 2.1   # envergadura de cada asa (antes ~1,5)
 	for lado in [-1.0, 1.0]:
 		var pivo := Node3D.new()
 		pivo.position = Vector3(lado * pos.x, pos.y, pos.z)
 		pivo.scale = Vector3(lado * tam, tam, tam)   # a esquerda é a direita espelhada
 		_corpo.add_child(pivo)
-		for i in 9:
+		var ponta := Color(0.72, 0.74, 0.8)
+		for i in 10:   # primárias: na ponta, abrindo em leque
+			var t := i / 9.0
 			var mi := MeshInstance3D.new()
-			mi.mesh = pena(1.5 - i * 0.07, 0.34, Color(1, 1, 1), Color(0.82, 0.84, 0.9))
-			mi.material_override = _mat_pena()
-			mi.rotation_degrees = Vector3(0, 22 - i * 9.0, 0)
-			mi.position = Vector3(0.05, 0.01 * i, 0.0)
+			mi.mesh = pena(1.45 - t * 0.35, 0.3, Color(1, 1, 1), ponta)
+			mi.material_override = mp
+			mi.position = Vector3(vao * (1.0 - t * 0.38), 0.12 * (1.0 - t) - 0.01 * i, 0.02)
+			mi.rotation_degrees = Vector3(0, -12.0 - t * 55.0, 0)
 			pivo.add_child(mi)
-		for i in 5:
-			var mc := MeshInstance3D.new()
-			mc.mesh = pena(0.7 - i * 0.05, 0.3, Color(1, 1, 1), Color(0.9, 0.91, 0.95))
-			mc.material_override = _mat_pena()
-			mc.rotation_degrees = Vector3(0, 15 - i * 12.0, 0)
-			mc.position = Vector3(0.05, 0.05 + 0.01 * i, 0.0)
-			pivo.add_child(mc)
+		for i in 9:   # secundárias: ao longo do braço, para trás
+			var t := i / 8.0
+			var ms := MeshInstance3D.new()
+			ms.mesh = pena(1.0 - t * 0.15, 0.32, Color(1, 1, 1), Color(0.8, 0.82, 0.88))
+			ms.material_override = mp
+			ms.position = Vector3(vao * (0.62 - t * 0.55), 0.03 + 0.04 * (1.0 - t) - 0.008 * i, 0.03)
+			ms.rotation_degrees = Vector3(0, -72.0 - t * 14.0, 0)
+			pivo.add_child(ms)
+		for fila in 2:   # coberteiras: duas fileiras curtas na borda da frente
+			for i in 11:
+				var t := i / 10.0
+				var mc := MeshInstance3D.new()
+				mc.mesh = pena(0.5 - fila * 0.18, 0.24, Color(1, 1, 1), Color(0.93, 0.94, 0.97), 6)
+				mc.material_override = mp
+				mc.position = Vector3(vao * (0.95 - t * 0.9), 0.07 + fila * 0.03 + 0.06 * (1.0 - t), -0.02 - fila * 0.04)
+				mc.rotation_degrees = Vector3(0, -70.0 - t * 12.0, 0)
+				pivo.add_child(mc)
+		var braco := MeshInstance3D.new()   # osso da asa (borda da frente arredondada)
+		var cm := CapsuleMesh.new()
+		cm.radius = 0.06
+		cm.height = vao * 1.02
+		braco.mesh = cm
+		braco.material_override = _mat_pena(false)
+		braco.position = Vector3(vao * 0.5, 0.08, -0.02)
+		braco.rotation_degrees = Vector3(0, 0, 90)
+		pivo.add_child(braco)
 		_asas.append([pivo, lado])
+
+## Bate as asas abertas quando anda/voa; parado, dobra as asas ao longo do corpo e só "respira".
+var _abre := 0.0
+func _bater_asas(anda: float, delta: float) -> void:
+	var alvo := 1.0 if (anda > 0.4 or (_voa and anda > 0.1)) else 0.0
+	_abre = move_toward(_abre, alvo, delta * 1.6)
+	var bate := lerpf(0.06, 0.55, _abre)
+	for a in _asas:
+		a[0].rotation.y = -a[1] * (1.0 - _abre) * 1.25            # dobrada: asa vai para trás, junto ao corpo
+		a[0].rotation.z = a[1] * (lerpf(0.15, 0.35, _abre) + sin(_t * lerpf(1.5, 3.4, _abre)) * bate)
 
 # ---------- comportamento ----------
 func _inimigo(raio: float) -> Node3D:
@@ -425,8 +461,7 @@ func _animar(delta: float) -> void:
 		if nome == &"" and _anim.get_animation_list().size() > 0:
 			nome = _anim.get_animation_list()[0]
 		Fit.play(_anim, nome, true, 0.6 + anda * 0.6 if _voa else 1.0)
-		for a in _asas:
-			a[0].rotation.z = a[1] * (0.45 + sin(_t * 3.2) * 0.5)
+		_bater_asas(anda, delta)
 		return
 	_ciclo += delta * (3.0 + _vel * 1.6)
 	for p in _pernas:
@@ -437,8 +472,7 @@ func _animar(delta: float) -> void:
 			var a := sin(_ciclo + p[2])
 			p[0].rotation.x = a * 0.55 * anda
 			p[1].rotation.x = -maxf(0.0, -sin(_ciclo + p[2] + 1.2)) * 0.8 * anda - 0.05
-	for a in _asas:
-		a[0].rotation.z = a[1] * (0.45 + sin(_t * 3.2) * 0.5)
+	_bater_asas(anda, delta)
 	if _cauda != null:
 		_cauda.rotation.y = sin(_t * 2.4) * 0.25
 	if _voa:
