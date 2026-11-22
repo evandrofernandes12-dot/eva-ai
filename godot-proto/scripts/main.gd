@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v35"
+const VERSAO := "v36"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -227,11 +227,11 @@ func _aldeia_extra() -> void:
 	var pc := CylinderMesh.new()
 	pc.top_radius = 8.5
 	pc.bottom_radius = 8.5
-	pc.height = 0.02
+	pc.height = 0.004
 	pc.radial_segments = 32
 	pc.material = Construcoes.mat(Color(0.56, 0.47, 0.35))
 	praca.mesh = pc
-	praca.position.y = 0.02
+	praca.position.y = 0.008
 	praca.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	r.add_child(praca)
 	Construcoes.caminho(r, Vector3(0, 0, 8), Vector3(0, 0, RIO_R + 12), 3.2)

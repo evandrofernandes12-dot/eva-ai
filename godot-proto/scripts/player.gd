@@ -38,6 +38,7 @@ var _lanca_tr := Transform3D()
 func _ready() -> void:
 	hp = max_hp
 	Fit.to_height(model, 1.8)
+	model.position.y += 0.05   # pés um pouco acima do chão (sumiam na praça e nos caminhos de terra)
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	_idle = Fit.find_anim(_ap, ["Idle"])
 	_run = Fit.find_anim(_ap, ["Run", "Walking", "Walk"])
@@ -63,6 +64,7 @@ func trocar_modelo(novo: Node3D, anims: Dictionary) -> void:
 	add_child(novo)
 	novo.rotation = antigo.rotation
 	novo.visible = antigo.visible
+	novo.position.y = 0.05   # pés um pouco acima do chão
 	antigo.queue_free()
 	model = novo
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer

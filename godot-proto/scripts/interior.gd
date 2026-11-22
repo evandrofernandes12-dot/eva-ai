@@ -25,10 +25,17 @@ const AZUL_REAL := Color(0.13, 0.22, 0.52)
 
 static var _autoluz := 0.0   # fração da cor que "brilha sozinha": casas e forja são pequenas e escuras
 
-static func _mat(cor: Color, brilho := false) -> StandardMaterial3D:
+static func _mat(cor: Color, brilho := false, tex: Texture2D = null, escala := 0.8) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = cor
 	m.roughness = 0.85
+	if not brilho:   # textura em tudo (antes cor lisa = cara de desenho); triplanar dispensa UV
+		m.albedo_texture = tex if tex != null else Construcoes.textura_veios()
+		m.uv1_triplanar = true
+		m.uv1_scale = Vector3.ONE * escala
+		if cor.s < 0.15 and cor.v < 0.35:   # ferro: um pouco metálico e liso
+			m.metallic = 0.55
+			m.roughness = 0.45
 	if _autoluz > 0.0 and not brilho:
 		m.emission_enabled = true
 		m.emission = cor * _autoluz
@@ -39,12 +46,12 @@ static func _mat(cor: Color, brilho := false) -> StandardMaterial3D:
 	return m
 
 ## Caixa (com colisão opcional). `visivel` false = só colisão.
-static func caixa(pai: Node3D, pos: Vector3, tam: Vector3, cor: Color, colide := false, visivel := true, brilho := false) -> void:
+static func caixa(pai: Node3D, pos: Vector3, tam: Vector3, cor: Color, colide := false, visivel := true, brilho := false, tex: Texture2D = null, escala := 0.8) -> void:
 	if visivel:
 		var mi := MeshInstance3D.new()
 		var bm := BoxMesh.new()
 		bm.size = tam
-		bm.material = _mat(cor, brilho)
+		bm.material = _mat(cor, brilho, tex, escala)
 		mi.mesh = bm
 		mi.position = pos
 		pai.add_child(mi)
@@ -142,7 +149,7 @@ static func escada(pai: Node3D, topo: Vector3, dir: Vector3, run: float, alt: fl
 
 ## Monta a sala. Devolve a raiz; `rei` (meta) é o nó do Rei, quando existe.
 static func construir(id: String) -> Node3D:
-	_autoluz = 0.0 if id == "SalaoDoChefe" else 0.55
+	_autoluz = 0.0 if id == "SalaoDoChefe" else 0.25   # menos brilho próprio (achatava as cores); compensado nas luzes
 	var s: Dictionary = SALAS[id]
 	var w: float = s.w
 	var d: float = s.d
@@ -151,11 +158,14 @@ static func construir(id: String) -> Node3D:
 	raiz.name = "Interior_" + id
 	var pa: Color = s.parede
 	var tap: Color = s.tapete
-	caixa(raiz, Vector3(0, -0.5, 0), Vector3(w, 1.0, d), s.piso, true)                         # piso
-	caixa(raiz, Vector3(0, alt * 0.5, -d * 0.5), Vector3(w, alt, 0.5), pa, true)               # paredes
-	caixa(raiz, Vector3(0, alt * 0.5, d * 0.5), Vector3(w, alt, 0.5), pa, true)
-	caixa(raiz, Vector3(-w * 0.5, alt * 0.5, 0), Vector3(0.5, alt, d), pa, true)
-	caixa(raiz, Vector3(w * 0.5, alt * 0.5, 0), Vector3(0.5, alt, d), pa, true)
+	var pedra_parede := id == "Forja" or id == "SalaoDoChefe"
+	var tex_piso: Texture2D = Construcoes.textura_pedras() if pedra_parede else Construcoes.textura_tabuas()
+	var tex_par: Texture2D = Construcoes.textura_pedras() if pedra_parede else null
+	caixa(raiz, Vector3(0, -0.5, 0), Vector3(w, 1.0, d), s.piso, true, true, false, tex_piso, 0.45)                         # piso
+	caixa(raiz, Vector3(0, alt * 0.5, -d * 0.5), Vector3(w, alt, 0.5), pa, true, true, false, tex_par, 0.42)               # paredes
+	caixa(raiz, Vector3(0, alt * 0.5, d * 0.5), Vector3(w, alt, 0.5), pa, true, true, false, tex_par, 0.42)
+	caixa(raiz, Vector3(-w * 0.5, alt * 0.5, 0), Vector3(0.5, alt, d), pa, true, true, false, tex_par, 0.42)
+	caixa(raiz, Vector3(w * 0.5, alt * 0.5, 0), Vector3(0.5, alt, d), pa, true, true, false, tex_par, 0.42)
 	var castelo := id == "SalaoDoChefe"
 	# teto: madeira escura no castelo; nas casas, liso e claro como as paredes (sem nada pendurado)
 	caixa(raiz, Vector3(0, alt + 0.25, 0), Vector3(w + 1.0, 0.5, d + 1.0), MADEIRA.darkened(0.2) if castelo else pa.lightened(0.15))
@@ -173,7 +183,7 @@ static func construir(id: String) -> Node3D:
 			caixa(raiz, Vector3(lado * (w * 0.5 - 0.27), alt * 0.55, z), Vector3(0.05, alt * 0.35, 1.2), Color(0.75, 0.88, 1.0), false, true, true)
 			if castelo:   # moldura de madeira só no castelo
 				caixa(raiz, Vector3(lado * (w * 0.5 - 0.3), alt * 0.55, z), Vector3(0.08, 0.1, 1.5), MADEIRA.darkened(0.3))
-	luz(raiz, Vector3(0, alt - 1.4, 0), Color(1.0, 0.88, 0.7), 1.3, maxf(w, d) * 1.2)
+	luz(raiz, Vector3(0, alt - 1.4, 0), Color(1.0, 0.88, 0.7), 1.3 if castelo else 1.8, maxf(w, d) * 1.2)
 	if id != "SalaoDoChefe":    # luzes extras nos cantos: as paredes ficam claras até o teto
 		luz(raiz, Vector3(-w * 0.3, 2.0, -d * 0.3), Color(1.0, 0.9, 0.75), 0.7, 9.0)
 		luz(raiz, Vector3(w * 0.3, 2.0, d * 0.3), Color(1.0, 0.9, 0.75), 0.7, 9.0)
@@ -208,55 +218,130 @@ static func _quadro(r: Node3D, pos: Vector3, larg: float, alt: float, giro: floa
 
 static func _casa(r: Node3D, w: float, d: float, alt: float, tap: Color) -> void:
 	var zn := -d * 0.5            # parede norte (face interna em zn + 0,25)
-	cilindro(r, Vector3(0, 0, 0.3), 1.9, 0.03, tap.lightened(0.15))                              # tapete redondo
-	# cama no canto noroeste, com cabeceira baixa
+	var tora := MADEIRA.darkened(0.1)
+	var palha := Color(0.82, 0.7, 0.42)
+	var linho := Color(0.9, 0.86, 0.76)
+	var pedras := Construcoes.textura_pedras()
+	cilindro(r, Vector3(0, 0, 0.3), 1.9, 0.03, tap.lightened(0.15))                              # tapete de lã redondo
+	# cama rústica de aldeão no canto noroeste: estrado de toras, colchão de palha, manta de lã listrada
 	var bx := -5.3
-	caixa(r, Vector3(bx, 0.25, -2.6), Vector3(2.1, 0.5, 3.3), MADEIRA, true)
-	caixa(r, Vector3(bx, 0.6, -2.6), Vector3(1.95, 0.22, 3.1), Color(0.93, 0.91, 0.86))
-	caixa(r, Vector3(bx, 0.78, -3.85), Vector3(1.3, 0.16, 0.5), Color(1, 1, 1))
-	caixa(r, Vector3(bx, 0.74, -2.0), Vector3(2.0, 0.08, 1.8), tap)
-	caixa(r, Vector3(bx, 0.55, zn + 0.45), Vector3(2.2, 1.1, 0.12), MADEIRA.lightened(0.1))
-	_quadro(r, Vector3(bx, 2.1, zn + 0.3), 1.8, 1.2, 0.0, Color(0.55, 0.75, 0.95), Color(0.3, 0.55, 0.25))
-	# criado-mudo com abajur
-	caixa(r, Vector3(bx + 1.5, 0.3, zn + 0.8), Vector3(0.6, 0.6, 0.6), MADEIRA, true)
-	caixa(r, Vector3(bx + 1.5, 0.75, zn + 0.8), Vector3(0.2, 0.3, 0.2), Color(1.0, 0.85, 0.5), false, true, true)
-	# lareira na parede norte, com moldura, fogo e quadro ao lado
+	var bz := -2.5
+	for sx: float in [-0.95, 0.95]:
+		for pz: float in [-1.55, 1.55]:
+			cilindro(r, Vector3(bx + sx, 0, bz + pz), 0.09, 0.75 if pz < 0 else 0.55, tora)        # pés/postes
+	for sx: float in [-0.95, 0.95]:
+		caixa(r, Vector3(bx + sx, 0.33, bz), Vector3(0.14, 0.18, 3.2), tora, true)              # laterais
+	caixa(r, Vector3(bx, 0.33, bz), Vector3(1.9, 0.08, 3.1), MADEIRA)                            # estrado
+	caixa(r, Vector3(bx, 0.48, bz), Vector3(1.8, 0.22, 3.0), palha)                              # colchão de palha
+	caixa(r, Vector3(bx, 0.62, bz - 1.25), Vector3(1.1, 0.14, 0.42), linho)                      # travesseiro de linho
+	caixa(r, Vector3(bx, 0.62, bz + 0.35), Vector3(1.86, 0.07, 2.1), tap)                        # manta de lã
+	for k in 3:
+		caixa(r, Vector3(bx, 0.66, bz - 0.4 + k * 0.6), Vector3(1.87, 0.02, 0.12), tap.lightened(0.35))
+	caixa(r, Vector3(bx, 0.62, bz - 1.6), Vector3(1.9, 0.5, 0.1), tora)                          # cabeceira de tábuas
+	# baú ao pé da cama e banquinho com vela
+	caixa(r, Vector3(bx, 0.3, bz + 2.15), Vector3(1.3, 0.6, 0.65), MADEIRA.darkened(0.15), true)
+	caixa(r, Vector3(bx, 0.62, bz + 2.15), Vector3(1.35, 0.06, 0.7), Color(0.25, 0.25, 0.27))
+	cilindro(r, Vector3(bx + 1.5, 0, zn + 0.8), 0.25, 0.5, MADEIRA)
+	cilindro(r, Vector3(bx + 1.5, 0.5, zn + 0.8), 0.05, 0.18, Color(0.95, 0.92, 0.8))
+	caixa(r, Vector3(bx + 1.5, 0.73, zn + 0.8), Vector3(0.04, 0.07, 0.04), Color(1.0, 0.7, 0.2), false, true, true)
+	_quadro(r, Vector3(bx, 2.1, zn + 0.3), 1.6, 1.1, 0.0, Color(0.55, 0.75, 0.95), Color(0.3, 0.55, 0.25))
+	# lareira de pedra assentada, panela pendurada, lenha empilhada e atiçador
 	var lx := 3.0
-	caixa(r, Vector3(lx, 1.1, zn + 0.7), Vector3(3.2, 2.2, 0.9), PEDRA, true)
+	caixa(r, Vector3(lx, 1.1, zn + 0.7), Vector3(3.2, 2.2, 0.9), PEDRA, true, true, false, pedras, 0.9)
+	caixa(r, Vector3(lx, 2.25, zn + 0.75), Vector3(3.4, 0.14, 1.05), PEDRA.darkened(0.15), false, true, false, pedras, 0.9)   # prateleira de pedra
 	caixa(r, Vector3(lx, 0.6, zn + 1.18), Vector3(1.5, 0.9, 0.05), Color(0.04, 0.03, 0.03))
-	modelo(r, FOGO, Vector3(lx, 0.05, zn + 1.5), 0.75)
-	luz(r, Vector3(lx, 1.2, zn + 2.2), Color(1.0, 0.55, 0.2), 1.3, 6.5)
-	_quadro(r, Vector3(-0.4, 2.0, zn + 0.3), 1.2, 0.9, 0.0, Color(0.95, 0.8, 0.55), Color(0.45, 0.3, 0.2))
-	# sofá de frente para a lareira
+	modelo(r, FOGO, Vector3(lx, 0.05, zn + 1.5), 0.7)
+	var panela := MeshInstance3D.new()
+	var pm := SphereMesh.new()
+	pm.radius = 0.28
+	pm.height = 0.4
+	pm.material = _mat(Color(0.12, 0.12, 0.13))
+	panela.mesh = pm
+	panela.position = Vector3(lx, 0.95, zn + 1.45)
+	r.add_child(panela)
+	caixa(r, Vector3(lx, 1.35, zn + 1.45), Vector3(0.02, 0.6, 0.02), Color(0.12, 0.12, 0.13))
+	for k in 6:
+		var y := 0.12 + (k / 3) * 0.22
+		var z := zn + 1.0 + (k % 3) * 0.25
+		caixa(r, Vector3(lx + 2.0, y, z), Vector3(0.8, 0.2, 0.2), Color(0.45, 0.31, 0.18))
+	caixa(r, Vector3(lx - 1.75, 0.5, zn + 1.3), Vector3(0.03, 1.0, 0.03), Color(0.12, 0.12, 0.13))
+	for k in 3:   # potes de barro na prateleira da lareira
+		cilindro(r, Vector3(lx - 1.0 + k * 1.0, 2.32, zn + 0.75), 0.12, 0.22 + 0.05 * k, Color(0.62, 0.36, 0.22))
+	luz(r, Vector3(lx, 1.2, zn + 2.2), Color(1.0, 0.55, 0.2), 1.4, 6.5)
+	# banco comprido de encosto alto (o "sofá" do aldeão) com almofadas e pele de carneiro
 	var sz := -0.6
-	caixa(r, Vector3(lx, 0.25, sz), Vector3(3.0, 0.5, 1.0), tap.darkened(0.15), true)
-	caixa(r, Vector3(lx, 0.55, sz), Vector3(2.7, 0.2, 0.85), tap)
-	caixa(r, Vector3(lx, 0.8, sz + 0.5), Vector3(3.0, 0.7, 0.22), tap.darkened(0.1), true)
-	for sx: float in [-1.4, 1.4]:
-		caixa(r, Vector3(lx + sx, 0.45, sz), Vector3(0.25, 0.7, 1.0), tap.darkened(0.2), true)
-	# mesa com 4 cadeiras (leste, entre o sofá e a parede da frente)
+	caixa(r, Vector3(lx, 0.42, sz), Vector3(2.8, 0.1, 0.7), MADEIRA, true)
+	caixa(r, Vector3(lx, 0.95, sz + 0.33), Vector3(2.8, 1.0, 0.08), MADEIRA, true)
+	for sx: float in [-1.35, 1.35]:
+		caixa(r, Vector3(lx + sx, 0.5, sz), Vector3(0.1, 1.0, 0.7), MADEIRA.darkened(0.2), true)
+	caixa(r, Vector3(lx - 0.6, 0.52, sz), Vector3(1.0, 0.1, 0.6), tap)
+	caixa(r, Vector3(lx + 0.6, 0.52, sz), Vector3(1.0, 0.1, 0.6), tap.darkened(0.1))
+	caixa(r, Vector3(lx + 0.9, 0.6, sz + 0.1), Vector3(0.8, 0.06, 0.55), Color(0.92, 0.9, 0.84))   # pele de carneiro
+	# mesa de tábuas com pão, queijo, jarra, tigelas e vela; 4 cadeiras
 	var mx := 4.3
 	var mz := 2.1
-	caixa(r, Vector3(mx, 0.78, mz), Vector3(1.7, 0.08, 1.0), MADEIRA, true)
+	caixa(r, Vector3(mx, 0.78, mz), Vector3(1.8, 0.1, 1.05), MADEIRA, true)
 	for dx: float in [-0.75, 0.75]:
 		for dz: float in [-0.4, 0.4]:
-			caixa(r, Vector3(mx + dx, 0.37, mz + dz), Vector3(0.08, 0.74, 0.08), MADEIRA.darkened(0.2))
-	cilindro(r, Vector3(mx - 0.3, 0.82, mz), 0.18, 0.07, Color(0.85, 0.65, 0.3))
-	cilindro(r, Vector3(mx + 0.4, 0.82, mz + 0.1), 0.07, 0.13, Color(0.75, 0.75, 0.8))
+			caixa(r, Vector3(mx + dx, 0.37, mz + dz), Vector3(0.1, 0.74, 0.1), MADEIRA.darkened(0.2))
+	var pao := MeshInstance3D.new()
+	var pa := SphereMesh.new()
+	pa.radius = 0.16
+	pa.height = 0.18
+	pa.material = _mat(Color(0.78, 0.55, 0.28))
+	pao.mesh = pa
+	pao.position = Vector3(mx - 0.4, 0.88, mz - 0.1)
+	pao.scale = Vector3(1.5, 1, 1)
+	r.add_child(pao)
+	caixa(r, Vector3(mx - 0.05, 0.87, mz + 0.2), Vector3(0.22, 0.1, 0.16), Color(0.95, 0.8, 0.35))   # queijo
+	cilindro(r, Vector3(mx + 0.4, 0.83, mz - 0.15), 0.09, 0.24, Color(0.6, 0.38, 0.24))              # jarra de barro
+	for k in 2:
+		cilindro(r, Vector3(mx + 0.25 - k * 0.5, 0.83, mz + 0.3), 0.12, 0.05, Color(0.55, 0.4, 0.25))  # tigelas
+	cilindro(r, Vector3(mx + 0.65, 0.83, mz + 0.25), 0.04, 0.16, Color(0.95, 0.92, 0.8))
+	caixa(r, Vector3(mx + 0.65, 1.02, mz + 0.25), Vector3(0.03, 0.06, 0.03), Color(1.0, 0.7, 0.2), false, true, true)
 	for cx: float in [-0.45, 0.45]:
 		_cadeira(r, mx + cx, mz - 0.95, 1.0)
 		_cadeira(r, mx + cx, mz + 0.95, -1.0)
-	# parede oeste: quadro grande e baú; barris junto à porta
-	_quadro(r, Vector3(-w * 0.5 + 0.3, 2.0, 0.5), 1.8, 1.2, PI * 0.5, Color(0.7, 0.8, 0.95), Color(0.25, 0.45, 0.3))
-	caixa(r, Vector3(-5.0, 0.35, d * 0.5 - 1.2), Vector3(1.4, 0.7, 0.8), MADEIRA.darkened(0.1), true)
-	caixa(r, Vector3(-5.0, 0.75, d * 0.5 - 1.2), Vector3(1.5, 0.1, 0.9), OURO.darkened(0.3))
+	# parede oeste: prateleira com potes e tigelas, sacos de grão, vassoura, balde e roca de fiar
+	var ox := -w * 0.5 + 0.45
+	for k in 2:
+		caixa(r, Vector3(ox, 1.3 + k * 0.6, 1.0), Vector3(0.4, 0.06, 2.0), MADEIRA)
+		for j in 4:
+			cilindro(r, Vector3(ox, 1.33 + k * 0.6, 0.3 + j * 0.45), 0.1, 0.2 + 0.06 * ((j + k) % 2), [Color(0.62, 0.36, 0.22), Color(0.75, 0.68, 0.55), Color(0.5, 0.42, 0.3)][(j + k) % 3])
+	for k in 3:   # sacos de grão
+		var saco := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 0.32
+		sm.height = 0.75
+		sm.material = _mat(Color(0.7, 0.6, 0.42))
+		saco.mesh = sm
+		saco.position = Vector3(-w * 0.5 + 0.8 + k * 0.55, 0.35, 2.6 + (k % 2) * 0.3)
+		r.add_child(saco)
+	caixa(r, Vector3(-w * 0.5 + 0.45, 0.9, 3.4), Vector3(0.04, 1.6, 0.04), MADEIRA.lightened(0.15))   # vassoura
+	caixa(r, Vector3(-w * 0.5 + 0.45, 0.12, 3.4), Vector3(0.12, 0.25, 0.3), palha.darkened(0.2))
+	cilindro(r, Vector3(-3.4, 0, d * 0.5 - 0.9), 0.22, 0.35, Color(0.45, 0.31, 0.18))                 # balde
+	var rx := -2.6
+	var rz := -3.4
+	for sz2: float in [-0.12, 0.12]:
+		caixa(r, Vector3(rx, 0.5, rz + sz2), Vector3(0.06, 1.0, 0.06), MADEIRA)
+	var roda := MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.4
+	tm.outer_radius = 0.46
+	tm.material = _mat(MADEIRA)
+	roda.mesh = tm
+	roda.position = Vector3(rx, 0.95, rz)
+	roda.rotation.x = PI / 2.0
+	r.add_child(roda)
+	caixa(r, Vector3(rx + 0.55, 0.3, rz), Vector3(1.4, 0.08, 0.3), MADEIRA)
+	caixa(r, Vector3(rx + 1.0, 0.6, rz), Vector3(0.05, 0.5, 0.05), linho)
 	modelo(r, BARRIL, Vector3(5.5, 0, d * 0.5 - 1.1), 1.0)
 
 static func _forja(r: Node3D, w: float, d: float, alt: float) -> void:
 	var ferro := Color(0.22, 0.22, 0.25)
 	var zf := -d * 0.5 + 1.3
 	# fornalha de pedra com boca de brasa, coifa em pirâmide e chaminé
-	caixa(r, Vector3(0, 0.55, zf), Vector3(3.6, 1.1, 2.2), PEDRA.darkened(0.15), true)
+	caixa(r, Vector3(0, 0.55, zf), Vector3(3.6, 1.1, 2.2), PEDRA.darkened(0.15), true, true, false, Construcoes.textura_pedras(), 0.9)
 	caixa(r, Vector3(0, 1.12, zf + 0.2), Vector3(2.4, 0.06, 1.4), Color(1.0, 0.42, 0.08), false, true, true)   # brasa
 	for i in 9:   # carvões acesos por cima da brasa
 		var s := SphereMesh.new()
@@ -278,7 +363,7 @@ static func _forja(r: Node3D, w: float, d: float, alt: float) -> void:
 	coifa.position = Vector3(0, 2.5, zf)
 	coifa.rotation.y = PI / 4.0
 	r.add_child(coifa)
-	caixa(r, Vector3(0, (3.15 + alt) * 0.5, zf), Vector3(0.9, alt - 3.15, 0.9), PEDRA.darkened(0.3))
+	caixa(r, Vector3(0, (3.15 + alt) * 0.5, zf), Vector3(0.9, alt - 3.15, 0.9), PEDRA.darkened(0.3), false, true, false, Construcoes.textura_pedras(), 0.9)
 	luz(r, Vector3(0, 1.6, zf + 1.4), Color(1.0, 0.45, 0.12), 2.2, 9.0)
 	# bigorna de verdade: toco, pé, corpo e chifre
 	var bx := -3.0

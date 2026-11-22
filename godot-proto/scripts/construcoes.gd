@@ -334,7 +334,7 @@ static func caminho(pai: Node3D, a: Vector3, b: Vector3, largura: float) -> void
 	pm.material = m
 	mi.mesh = pm
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.position = (a + b) * 0.5 + Vector3(0, 0.025, 0)
+	mi.position = (a + b) * 0.5 + Vector3(0, 0.007, 0)
 	mi.rotation.y = atan2((b - a).x, (b - a).z)
 	pai.add_child(mi)
 
@@ -378,7 +378,7 @@ static func ponte(comp: float, larg: float, pedra: bool) -> Node3D:
 	var n := 10
 	var m := mat(Color(0.6, 0.6, 0.62) if pedra else MADEIRA, true)
 	var me := mat(Color(0.45, 0.45, 0.48) if pedra else MADEIRA_ESCURA, true)
-	var y_de := func(x: float) -> float: return subida * cos(PI * x / comp)   # arco: alto no meio, 0 nas pontas
+	var y_de := func(x: float) -> float: return subida * cos(PI * x / comp) - 0.15   # arco: alto no meio; pontas um pouco enterradas (sem degrau)
 	for i in n:
 		var x0 := -comp * 0.5 + comp * i / n
 		var x1 := x0 + comp / n
@@ -387,7 +387,7 @@ static func ponte(comp: float, larg: float, pedra: bool) -> Node3D:
 		var meio := (p0 + p1) * 0.5
 		var incl := atan2(p1.y - p0.y, x1 - x0)
 		var seg := comp / n / cos(incl)
-		var tab := caixa(r, meio + Vector3(0, 0.08, 0), Vector3(seg + 0.02, 0.16 if not pedra else 0.4, larg), m)
+		var tab := caixa(r, meio + Vector3(0, -0.04 if pedra else 0.08, 0), Vector3(seg + 0.02, 0.4 if pedra else 0.16, larg), m)   # topo sempre em meio + 0,16
 		tab.rotation.z = incl
 		if not pedra:
 			for k in 3:   # frestas entre as tábuas
@@ -404,13 +404,15 @@ static func ponte(comp: float, larg: float, pedra: bool) -> Node3D:
 				var cr := caixa(r, meio + Vector3(0, 1.05, s * (larg * 0.5 - 0.08)), Vector3(seg + 0.02, 0.1, 0.1), me)
 				cr.rotation.z = incl
 				tora(r, Vector3(x0, y_de.call(x0), s * (larg * 0.5 - 0.08)), Vector3(x0, y_de.call(x0) + 1.1, s * (larg * 0.5 - 0.08)), 0.06, me)
-		var sb := StaticBody3D.new()   # rampa com colisão
+		var sb := StaticBody3D.new()   # rampa com colisão: a face de cima coincide com o tabuleiro
 		var cs := CollisionShape3D.new()
 		var sh := BoxShape3D.new()
-		sh.size = Vector3(seg + 0.05, 0.2, larg)
+		sh.size = Vector3(seg + 0.05, 0.3, larg - 0.3)
 		cs.shape = sh
 		sb.add_child(cs)
-		sb.position = meio + Vector3(0, 0.06, 0)
+		var normal := Vector3(-sin(incl), cos(incl), 0)
+		var topo := 0.16
+		sb.position = meio + normal * (topo - 0.15)
 		sb.rotation.z = incl
 		r.add_child(sb)
 	if pedra:   # pilares nas margens
@@ -452,3 +454,59 @@ static func riacho(raio: Callable, larg: float) -> Node3D:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		r.add_child(mi)
 	return r
+
+# ---------- texturas procedurais para interiores (realismo sem arquivos novos) ----------
+static var _tex := {}
+
+## Tábuas de assoalho: faixas de madeira com tons diferentes, frestas escuras e veios.
+static func textura_tabuas() -> ImageTexture:
+	if _tex.has("tabuas"):
+		return _tex["tabuas"]
+	var n := FastNoiseLite.new()
+	n.frequency = 0.08
+	var img := Image.create(256, 256, true, Image.FORMAT_RGB8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var tons: Array = []
+	for k in 8:
+		tons.append(rng.randf_range(0.78, 1.05))
+	for y in 256:
+		for x in 256:
+			var tab := x / 32
+			var fresta := (x % 32) < 2 or ((y + tab * 97) % 256) < 2
+			var veio := 0.88 + 0.12 * n.get_noise_2d(x * 0.35, y * 2.5)
+			var v: float = 0.25 if fresta else float(tons[tab]) * veio
+			img.set_pixel(x, y, Color(v, v * 0.97, v * 0.93))
+	img.generate_mipmaps()
+	var t := ImageTexture.create_from_image(img)
+	_tex["tabuas"] = t
+	return t
+
+## Pedras/tijolos assentados com argamassa (paredes da forja, lareiras).
+static func textura_pedras() -> ImageTexture:
+	if _tex.has("pedras"):
+		return _tex["pedras"]
+	var n := FastNoiseLite.new()
+	n.frequency = 0.06
+	var img := Image.create(256, 256, true, Image.FORMAT_RGB8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	var tons := {}
+	for y in 256:
+		var fila := y / 32
+		var desloc := 32 if fila % 2 == 1 else 0
+		for x in 256:
+			var col := ((x + desloc) % 256) / 64
+			var lx := (x + desloc) % 64
+			var ly := y % 32
+			var junta := lx < 3 or ly < 3
+			var k := fila * 8 + col
+			if not tons.has(k):
+				tons[k] = rng.randf_range(0.72, 1.08)
+			var ruido := 0.85 + 0.15 * n.get_noise_2d(x, y)
+			var v: float = 0.42 if junta else float(tons[k]) * ruido
+			img.set_pixel(x, y, Color(v, v, v * 0.98))
+	img.generate_mipmaps()
+	var t := ImageTexture.create_from_image(img)
+	_tex["pedras"] = t
+	return t

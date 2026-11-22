@@ -26,6 +26,7 @@ func setup(scene: PackedScene, main: Node, oficio: String) -> void:
 
 func _ready() -> void:
 	Fit.to_height(model, 1.55)
+	model.position.y += 0.05   # pés um pouco acima do chão (sumiam na praça e nos caminhos de terra)
 	Fit.tint(model, CORES[papel])
 	_ferramenta()
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
