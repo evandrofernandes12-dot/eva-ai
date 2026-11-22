@@ -7,7 +7,7 @@ const FOGO := preload("res://models/Bonfire_Lit.glb")
 
 ## nome do nó em "Aldeia": título, largura, fundo, altura (m), cor do piso, cor das paredes, cor do tapete
 const SALAS := {
-	"SalaoDoChefe": {"nome": "Salão do Rei", "w": 26.0, "d": 22.0, "alt": 8.0, "piso": Color(0.42, 0.4, 0.4), "parede": Color(0.55, 0.52, 0.5), "tapete": Color(0.6, 0.07, 0.1)},
+	"SalaoDoChefe": {"nome": "Salão do Rei", "w": 26.0, "d": 22.0, "alt": 8.0, "piso": Color(0.5, 0.48, 0.46), "parede": Color(0.62, 0.6, 0.56), "tapete": Color(0.13, 0.22, 0.52)},
 	"Casa1": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.45, 0.32, 0.2), "parede": Color(0.74, 0.62, 0.46), "tapete": Color(0.62, 0.15, 0.12)},
 	"Casa2": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.4, 0.34, 0.22), "parede": Color(0.55, 0.68, 0.5), "tapete": Color(0.18, 0.45, 0.25)},
 	"Casa3": {"nome": "Casa do Alquimista", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.42, 0.34, 0.26), "parede": Color(0.52, 0.6, 0.78), "tapete": Color(0.18, 0.28, 0.6)},
@@ -21,6 +21,7 @@ const SALAS := {
 const MADEIRA := Color(0.42, 0.27, 0.14)
 const PEDRA := Color(0.45, 0.44, 0.46)
 const OURO := Color(0.95, 0.75, 0.2)
+const AZUL_REAL := Color(0.13, 0.22, 0.52)
 
 static var _autoluz := 0.0   # fração da cor que "brilha sozinha": casas e forja são pequenas e escuras
 
@@ -429,25 +430,104 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 	for z in [-3.0, 2.0, 7.0]:
 		for x in [-8.0, 8.0]:
 			cilindro(r, Vector3(x, 0, z), 0.65, alt, Color(0.62, 0.6, 0.58), true)
-			caixa(r, Vector3(x, 3.0, z + (0.8 if z > 0 else 0.8)), Vector3(0.9, 2.4, 0.06), Color(0.7, 0.08, 0.12))   # estandarte
-			caixa(r, Vector3(x, 2.2, z + 0.7), Vector3(0.2, 0.2, 0.2), Color(1.0, 0.6, 0.15), false, true, true)     # tocha
-			luz(r, Vector3(x, 2.5, z), Color(1.0, 0.6, 0.25), 0.7, 7.0)
+			caixa(r, Vector3(x, 3.6, z + 0.8), Vector3(0.9, 2.4, 0.06), AZUL_REAL)                              # estandarte azul
+			caixa(r, Vector3(x, 4.85, z + 0.8), Vector3(1.1, 0.08, 0.08), OURO)                                  # haste
+			caixa(r, Vector3(x, 3.8, z + 0.84), Vector3(0.36, 0.36, 0.03), OURO, false, true, true)              # brasão
+			caixa(r, Vector3(x, 2.35, z + 0.8), Vector3(0.9, 0.3, 0.06), AZUL_REAL.darkened(0.2))                # ponta do estandarte
+			caixa(r, Vector3(x, 2.0, z + 0.7), Vector3(0.2, 0.2, 0.2), Color(1.0, 0.6, 0.15), false, true, true)  # tocha
+			if z == 2.0:   # só o par do meio tem luz de verdade (tablet: máx. ~6 luzes por sala)
+				luz(r, Vector3(x, 2.5, z), Color(1.0, 0.6, 0.25), 0.8, 9.0)
 	# mesas de banquete com bancos, dos dois lados
 	for x in [-5.0, 5.0]:
 		caixa(r, Vector3(x, 0.9, 4.0), Vector3(1.7, 0.14, 7.0), MADEIRA, true)
 		caixa(r, Vector3(x, 0.45, 4.0), Vector3(1.4, 0.9, 6.6), MADEIRA.darkened(0.2))
-		for bx in [-1.4, 1.4]:
-			caixa(r, Vector3(x + bx, 0.42, 4.0), Vector3(0.5, 0.1, 6.4), MADEIRA.darkened(0.1), true)
+		caixa(r, Vector3(x, 0.98, 4.0), Vector3(0.8, 0.02, 7.1), AZUL_REAL)                 # toalha azul no meio da mesa
+		for bx in [-1.25, 1.25]:   # cadeiras de espaldar alto, estofado azul
+			for i in 5:
+				var cz := 1.3 + i * 1.35
+				caixa(r, Vector3(x + bx, 0.48, cz), Vector3(0.6, 0.1, 0.6), MADEIRA.darkened(0.1), true)
+				caixa(r, Vector3(x + bx, 0.56, cz), Vector3(0.5, 0.06, 0.5), AZUL_REAL)
+				caixa(r, Vector3(x + bx * 1.22, 1.15, cz), Vector3(0.08, 1.3, 0.6), MADEIRA.darkened(0.25))
+				caixa(r, Vector3(x + bx * 1.2, 1.2, cz), Vector3(0.04, 0.9, 0.44), AZUL_REAL)
+				for pz in [-0.25, 0.25]:
+					caixa(r, Vector3(x + bx, 0.22, cz + pz), Vector3(0.07, 0.45, 0.07), MADEIRA.darkened(0.25))
+		for i in 4:   # taças, velas, livro e mapa
+			cilindro(r, Vector3(x + (0.45 if i % 2 == 0 else -0.45), 0.97, 1.8 + i * 1.6), 0.08, 0.2, Color(0.85, 0.7, 0.3))
+		for i in 3:
+			cilindro(r, Vector3(x, 0.99, 2.0 + i * 2.0), 0.05, 0.3, Color(0.95, 0.92, 0.8))
+			caixa(r, Vector3(x, 1.33, 2.0 + i * 2.0), Vector3(0.04, 0.07, 0.04), Color(1.0, 0.7, 0.2), false, true, true)
+		caixa(r, Vector3(x, 1.0, 3.0), Vector3(0.6, 0.02, 0.8), Color(0.88, 0.8, 0.6))          # mapa aberto
+		caixa(r, Vector3(x - 0.3, 1.02, 6.3), Vector3(0.45, 0.1, 0.6), Color(0.15, 0.2, 0.45))  # livro
+	# dois lustres de ferro (aro com velas, preso por correntes) sobre as mesas
+	for lx in [-5.0, 5.0]:
+		var ly := alt - 2.4
+		var aro := MeshInstance3D.new()
+		var tor := TorusMesh.new()
+		tor.inner_radius = 1.0
+		tor.outer_radius = 1.12
+		tor.material = _mat(Color(0.12, 0.12, 0.13))
+		aro.mesh = tor
+		aro.position = Vector3(lx, ly, 4.0)
+		r.add_child(aro)
+		for i in 8:
+			var a := TAU * i / 8.0
+			var p := Vector3(lx + cos(a) * 1.06, ly, 4.0 + sin(a) * 1.06)
+			cilindro(r, p, 0.045, 0.22, Color(0.95, 0.92, 0.82))
+			caixa(r, p + Vector3(0, 0.28, 0), Vector3(0.05, 0.09, 0.05), Color(1.0, 0.72, 0.25), false, true, true)
 		for i in 4:
-			cilindro(r, Vector3(x + (0.3 if i % 2 == 0 else -0.3), 0.97, 1.8 + i * 1.6), 0.12, 0.2, Color(0.75, 0.75, 0.8))
-	# lustre
-	for i in 6:
-		var a := TAU * i / 6.0
-		caixa(r, Vector3(cos(a) * 1.6, alt - 1.6, 4.0 + sin(a) * 1.6), Vector3(0.15, 0.35, 0.15), Color(1.0, 0.8, 0.4), false, true, true)
-	cilindro(r, Vector3(0, alt - 1.8, 4.0), 1.7, 0.1, Color(0.2, 0.17, 0.12))
-	luz(r, Vector3(0, alt - 2.0, 4.0), Color(1.0, 0.85, 0.55), 1.2, 14.0)
+			var a := TAU * i / 4.0 + PI / 4.0
+			var p0 := Vector3(lx + cos(a) * 1.06, ly, 4.0 + sin(a) * 1.06)
+			var p1 := Vector3(lx, alt, 4.0)
+			var cor := MeshInstance3D.new()
+			var cc := CylinderMesh.new()
+			cc.top_radius = 0.015
+			cc.bottom_radius = 0.015
+			cc.height = p0.distance_to(p1)
+			cc.material = _mat(Color(0.12, 0.12, 0.13))
+			cor.mesh = cc
+			var dd := (p1 - p0).normalized()
+			cor.transform = Transform3D(Basis(Quaternion(Vector3.UP, dd)), (p0 + p1) * 0.5)
+			r.add_child(cor)
+		luz(r, Vector3(lx, ly - 0.3, 4.0), Color(1.0, 0.82, 0.5), 1.1, 11.0)
+	# tesouras de madeira no teto (o castelo pode ter vigas)
+	for z in [-7.0, -2.0, 3.0, 8.0]:
+		caixa(r, Vector3(0, alt - 0.35, z), Vector3(w - 0.6, 0.35, 0.4), MADEIRA.darkened(0.3))
+		for sx in [-1.0, 1.0]:
+			var br := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = Vector3(3.2, 0.25, 0.3)
+			bm.material = _mat(MADEIRA.darkened(0.3))
+			br.mesh = bm
+			br.position = Vector3(sx * (w * 0.5 - 1.6), alt - 1.2, z)
+			br.rotation.z = sx * 0.55
+			r.add_child(br)
+	# janelas góticas com vitral azul (por cima das janelas claras das paredes laterais)
+	for lado in [-1.0, 1.0]:
+		for i in 4:
+			var z := -d * 0.5 + (i + 1.0) * d / 5.0
+			var xw := lado * (w * 0.5 - 0.3)
+			caixa(r, Vector3(xw, alt * 0.55, z), Vector3(0.05, alt * 0.35, 1.2), Color(0.35, 0.55, 0.95), false, true, true)
+			for k in 3:   # chumbo do vitral
+				caixa(r, Vector3(xw - lado * 0.02, alt * 0.55 - alt * 0.12 + k * alt * 0.12, z), Vector3(0.03, 0.04, 1.22), Color(0.1, 0.1, 0.12))
+			caixa(r, Vector3(xw - lado * 0.02, alt * 0.55, z), Vector3(0.03, alt * 0.35, 0.04), Color(0.1, 0.1, 0.12))
+			for s2 in [-1.0, 1.0]:   # arco pontudo em cima
+				var ar := MeshInstance3D.new()
+				var am := BoxMesh.new()
+				am.size = Vector3(0.1, 0.12, 0.9)
+				am.material = _mat(PEDRA.darkened(0.25))
+				ar.mesh = am
+				ar.position = Vector3(xw - lado * 0.03, alt * 0.55 + alt * 0.175 + 0.25, z + s2 * 0.32)
+				ar.rotation.x = s2 * 0.75
+				r.add_child(ar)
+	# estantes de livros nos cantos perto da porta
+	for sx in [-1.0, 1.0]:
+		var ex := sx * (w * 0.5 - 0.6)
+		caixa(r, Vector3(ex, 1.6, d * 0.5 - 2.6), Vector3(0.6, 3.2, 2.4), MADEIRA.darkened(0.2), true)
+		for prat in 4:
+			for k in 7:
+				caixa(r, Vector3(ex - sx * 0.12, 0.45 + prat * 0.75, d * 0.5 - 3.6 + k * 0.3), Vector3(0.35, 0.5 - 0.06 * (k % 3), 0.22), [Color(0.5, 0.15, 0.12), Color(0.15, 0.25, 0.5), Color(0.25, 0.4, 0.2), Color(0.55, 0.45, 0.2)][(k + prat) % 4])
 	# tapeçaria atrás do trono
-	caixa(r, Vector3(0, alt * 0.55, -d * 0.5 + 0.3), Vector3(9.0, alt * 0.7, 0.08), Color(0.6, 0.08, 0.12))
+	caixa(r, Vector3(0, alt * 0.55, -d * 0.5 + 0.3), Vector3(9.0, alt * 0.7, 0.08), AZUL_REAL)
 	caixa(r, Vector3(0, alt * 0.58, -d * 0.5 + 0.25), Vector3(2.2, 2.2, 0.06), OURO, false, true, true)
 	# altar: plataforma alta, escada em volta (frente, esquerda e direita) e o trono em cima
 	var alt_a := 1.4
@@ -464,14 +544,14 @@ static func _salao(r: Node3D, w: float, d: float, alt: float, tap: Color) -> voi
 	var zt := zc - 0.7
 	var ty := alt_a
 	caixa(r, Vector3(0, ty + 0.35, zt - 0.5), Vector3(2.8, 0.7, 1.2), OURO.darkened(0.15), true)
-	caixa(r, Vector3(0, ty + 0.72, zt - 0.5), Vector3(2.5, 0.06, 1.1), Color(0.6, 0.08, 0.12))      # almofada
+	caixa(r, Vector3(0, ty + 0.72, zt - 0.5), Vector3(2.5, 0.06, 1.1), AZUL_REAL)      # almofada
 	caixa(r, Vector3(0, ty + 2.2, zt - 1.25), Vector3(3.0, 4.4, 0.3), OURO.darkened(0.1), true)     # encosto
 	caixa(r, Vector3(0, ty + 4.5, zt - 1.25), Vector3(1.6, 0.6, 0.3), OURO)
-	caixa(r, Vector3(0, ty + 2.2, zt - 1.08), Vector3(2.2, 3.6, 0.06), Color(0.6, 0.08, 0.12))
+	caixa(r, Vector3(0, ty + 2.2, zt - 1.08), Vector3(2.2, 3.6, 0.06), AZUL_REAL)
 	for x in [-1.7, 1.7]:
 		caixa(r, Vector3(x, ty + 0.6, zt - 0.5), Vector3(0.3, 1.2, 1.2), OURO.darkened(0.15), true)   # braços
 		caixa(r, Vector3(x, ty + 1.22, zt - 0.5), Vector3(0.38, 0.1, 1.3), OURO)
-	caixa(r, Vector3(0, ty + 0.05, zt + 0.9), Vector3(2.4, 0.1, 0.9), Color(0.6, 0.08, 0.12))        # tapete dos pés
+	caixa(r, Vector3(0, ty + 0.05, zt + 0.9), Vector3(2.4, 0.1, 0.9), AZUL_REAL)        # tapete dos pés
 	# Excalibur cravada na pedra, ao pé da escada (Sketchfab, CC-BY: JuanWithOutAim)
 	if ResourceLoader.exists("res://models/Excalibur_Pedra.glb"):
 		modelo(r, load("res://models/Excalibur_Pedra.glb"), Vector3(4.5, 0, zc + 5.0), 1.7)
