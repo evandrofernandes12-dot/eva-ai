@@ -112,12 +112,12 @@ func _build_controls_panel() -> void:
 	panel.add_child(col)
 	col.add_child(UIStyle.label("CONTROLES", 44, UIStyle.YELLOW, 8))
 	var lines: Array[String] = [
-		"TECLADO:  W/↑ acelerar  ·  S/↓ frear  ·  A D/← → virar",
+		"TECLADO:  W ou seta cima acelerar  ·  S ou seta baixo frear  ·  A D ou setas virar",
 		"Espaço/Shift: drift (segure na curva, solte p/ mini-turbo)",
 		"E/Enter: usar item  ·  R: voltar à pista  ·  Esc: pausa",
 		"",
 		"TOQUE (tablet/celular): botões na tela",
-		"◀ ▶ virar  ·  ACEL / FREIO  ·  DRIFT  ·  ITEM  ·  VOLTAR  ·  II pausa",
+		"Setas virar  ·  ACEL / FREIO  ·  DRIFT  ·  ITEM  ·  VOLTAR  ·  II pausa",
 		"Ajuste tamanho e opacidade em OPÇÕES.",
 	]
 	for line in lines:

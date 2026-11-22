@@ -18,12 +18,14 @@ var _engine_vol: float = 0.0
 var _target_freq: float = 50.0
 var _target_vol: float = 0.0
 var sfx_volume: float = 1.0
+var engine_volume: float = 0.6
 
 
 ## Lê o volume salvo (Opções) e aplica no barramento principal.
 func apply_settings() -> void:
 	var master: float = float(Save.get_setting("vol_master", 0.9))
 	sfx_volume = float(Save.get_setting("vol_sfx", 1.0))
+	engine_volume = float(Save.get_setting("vol_engine", 0.6))
 	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(master, 0.0001)))
 
 
@@ -115,7 +117,7 @@ func _build_sfx() -> void:
 func _setup_engine() -> void:
 	var gen := AudioStreamGenerator.new()
 	gen.mix_rate = float(MIX_RATE)
-	gen.buffer_length = 0.12
+	gen.buffer_length = 0.3 if OS.has_feature("web") else 0.12 # navegador: buffer maior evita estalos
 	_engine_player = AudioStreamPlayer.new()
 	_engine_player.stream = gen
 	_engine_player.volume_db = -12.0
@@ -127,7 +129,7 @@ func _setup_engine() -> void:
 ## ratio: 0 (parado) .. ~1.2 (turbo). active=false silencia o motor.
 func set_engine(ratio: float, active: bool) -> void:
 	_target_freq = 48.0 + 120.0 * clampf(ratio, 0.0, 1.3)
-	_target_vol = (0.35 + 0.25 * clampf(ratio, 0.0, 1.0)) if active else 0.0
+	_target_vol = (0.12 + 0.3 * clampf(ratio, 0.0, 1.0)) * engine_volume if active else 0.0
 
 
 func _process(delta: float) -> void:
@@ -135,11 +137,15 @@ func _process(delta: float) -> void:
 		return
 	_engine_freq = lerpf(_engine_freq, _target_freq, clampf(delta * 8.0, 0.0, 1.0))
 	_engine_vol = lerpf(_engine_vol, _target_vol, clampf(delta * 6.0, 0.0, 1.0))
+	if get_tree().paused:
+		_target_vol = 0.0
 	var frames: int = _engine_playback.get_frames_available()
+	if _engine_vol < 0.002 and _target_vol <= 0.0:
+		for i in frames: # silêncio barato (mantém o buffer cheio, sem zumbido)
+			_engine_playback.push_frame(Vector2.ZERO)
+		return
 	for i in frames:
 		_engine_phase = fmod(_engine_phase + _engine_freq / float(MIX_RATE), 1.0)
-		var saw: float = _engine_phase * 2.0 - 1.0
-		var sq: float = 1.0 if _engine_phase < 0.5 else -1.0
-		var rumble: float = sin(_engine_phase * TAU * 0.5)
-		var s: float = (saw * 0.5 + sq * 0.2 + rumble * 0.3) * _engine_vol
+		var ph: float = _engine_phase * TAU
+		var s: float = (sin(ph) * 0.6 + sin(ph * 2.0) * 0.25 + sin(ph * 3.0) * 0.1) * _engine_vol
 		_engine_playback.push_frame(Vector2(s, s))

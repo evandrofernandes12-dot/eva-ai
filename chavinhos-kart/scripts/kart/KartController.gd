@@ -90,6 +90,11 @@ func _ready() -> void:
 		visuals.build(stats)
 
 
+func _exit_tree() -> void:
+	if is_player:
+		AudioManager.set_engine(0.0, false)
+
+
 func speed_kmh() -> float:
 	return absf(speed) * 3.6
 

@@ -31,6 +31,7 @@ var _top_left: VBoxContainer
 var _top_center: VBoxContainer
 var _top_right: VBoxContainer
 var _speed_box: VBoxContainer
+var _info_box: VBoxContainer
 var _board_rows: Array[Label] = []
 var _touch_layout: bool = false
 var _board_t: float = 0.0
@@ -122,6 +123,7 @@ func _build_ui() -> void:
 	var info_card: PanelContainer = UIStyle.card(Color(0.08, 0.05, 0.02, 0.7), Color(0.9, 0.65, 0.2))
 	_top_right.add_child(info_card)
 	var info := VBoxContainer.new()
+	_info_box = info
 	info_card.add_child(info)
 	_lap_label = UIStyle.label("Volta 1/3", 38, Color.WHITE, 8)
 	_lap_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -210,8 +212,10 @@ func _apply_touch_layout() -> void:
 	if want:
 		_minimap.reparent(_top_left)
 		_minimap.custom_minimum_size = Vector2(150, 150)
-		_speed_label.reparent(_top_right)
-		_speed_label.add_theme_font_size_override("font_size", 28)
+		_speed_label.reparent(_info_box)
+		_speed_label.add_theme_font_size_override("font_size", 24)
+		for row in _board_rows: # o ranking ficaria embaixo dos botões
+			row.visible = false
 		_speed_bar.visible = false
 		_drift_bar.reparent(_top_center)
 	else:
@@ -284,6 +288,8 @@ func _toggle_pause() -> void:
 	_pause_panel.visible = now
 	if game == null or not game.online:
 		get_tree().paused = now # online não congela o jogo dos outros
+	if now:
+		AudioManager.set_engine(0.0, false)
 	if now:
 		for child in _pause_panel.find_children("*", "Button", true, false):
 			(child as Button).grab_focus()
