@@ -196,18 +196,103 @@ func _build_kart(style: String, c1: Color, c2: Color) -> Vector3:
 
 
 func _style_barrel(wood: Color, _c2: Color) -> Vector3:
-	ProcMesh.cyl(_body, 0.52, 1.7, Vector3(0, 0.62, 0.05), wood, Vector3(90, 0, 0))
-	for z: float in [-0.65, 0.0, 0.7]:
-		ProcMesh.cyl(_body, 0.55, 0.12, Vector3(0, 0.62, z), DARK, Vector3(90, 0, 0), -1.0, 0.5, 0.5)
-	# tábuas (frisos) no tampo frontal
-	ProcMesh.rbox(_body, Vector3(0.05, 0.9, 0.04), Vector3(0, 0.62, -0.92), wood.darkened(0.3))
-	_engine(Vector3(0, 0.8, 1.25), RUST)
-	_exhaust(Vector3(0.45, 1.0, 1.0))
-	_wheel(Vector3(-0.8, 0.3, -0.8), 0.3, 0.2, DARK, wood.lightened(0.1), true)
-	_wheel(Vector3(0.8, 0.3, -0.8), 0.3, 0.2, DARK, wood.lightened(0.1), true)
-	_wheel(Vector3(-0.9, 0.42, 0.95), 0.42, 0.34, DARK, METAL, false)
-	_wheel(Vector3(0.9, 0.42, 0.95), 0.42, 0.34, DARK, METAL, false)
-	return Vector3(0, 0.78, -0.05)
+	# Kart do Chaves (referência: modelo do vídeo). Barril deitado e "barrigudo", aberto em cima.
+	var iron: Color = Color(0.16, 0.15, 0.15)
+	var rust: Color = Color(0.45, 0.25, 0.15)
+	var by: float = 0.72 # altura do eixo do barril
+	# barril: duas metades cônicas (mais gordo no meio, mais fino nas pontas)
+	ProcMesh.cyl(_body, 0.47, 0.88, Vector3(0, by, -0.44), wood, Vector3(90, 0, 0), 0.58, 0.85)
+	ProcMesh.cyl(_body, 0.58, 0.88, Vector3(0, by, 0.44), wood, Vector3(90, 0, 0), 0.47, 0.85)
+	# frisos das tábuas ao longo do barril
+	for i in 12:
+		var ang: float = TAU * float(i) / 12.0
+		var dir := Vector3(cos(ang), sin(ang), 0.0)
+		var c := Vector3(0, by, 0)
+		var front: Vector3 = c + dir * 0.475 + Vector3(0, 0, -0.86)
+		var mid: Vector3 = c + dir * 0.583
+		var back: Vector3 = c + dir * 0.475 + Vector3(0, 0, 0.86)
+		_limb(_body, front, mid, 0.012, wood.darkened(0.4))
+		_limb(_body, mid, back, 0.012, wood.darkened(0.4))
+	# cintas de ferro (duas perto de cada ponta), acompanhando o formato
+	for z: float in [-0.72, -0.5, 0.5, 0.72]:
+		var r: float = lerpf(0.58, 0.47, absf(z) / 0.88) + 0.015
+		ProcMesh.cyl(_body, r, 0.07, Vector3(0, by, z), iron, Vector3(90, 0, 0), -1.0, 0.5, 0.6)
+	# tampa redonda de tábuas na frente
+	ProcMesh.cyl(_body, 0.45, 0.04, Vector3(0, by, -0.89), wood.lightened(0.08), Vector3(90, 0, 0), -1.0, 0.9)
+	for x: float in [-0.15, 0.15]:
+		ProcMesh.rbox(_body, Vector3(0.025, 0.82, 0.02), Vector3(x, by, -0.915), wood.darkened(0.4))
+	ProcMesh.torus(_body, 0.42, 0.47, Vector3(0, by, -0.9), iron, Vector3(90, 0, 0), 0.6)
+	# abertura em cima (onde o Chaves senta): fundo escuro + borda de madeira
+	ProcMesh.sphere(_body, 0.5, Vector3(0, by + 0.5, 0.05), Color(0.12, 0.07, 0.04), Vector3(0.78, 0.12, 1.15))
+	var rim: MeshInstance3D = ProcMesh.torus(_body, 0.34, 0.42, Vector3(0, by + 0.55, 0.05), wood.darkened(0.15), Vector3.ZERO)
+	rim.scale = Vector3(1.0, 0.7, 1.35)
+	# eixo dianteiro de ferro e rodas de madeira com raios (altas e finas)
+	ProcMesh.cyl(_body, 0.045, 1.75, Vector3(0, 0.42, -0.62), rust, Vector3(0, 0, 90), -1.0, 0.6, 0.5)
+	for x: float in [-0.3, 0.3]:
+		_limb(_body, Vector3(x, 0.42, -0.62), Vector3(x * 0.8, by - 0.35, -0.45), 0.03, rust)
+	_spoked_wheel(Vector3(-0.88, 0.42, -0.62), 0.42, wood.lightened(0.15))
+	_spoked_wheel(Vector3(0.88, 0.42, -0.62), 0.42, wood.lightened(0.15))
+	# motor enferrujado atrás
+	var eng := Vector3(0, 0.9, 1.18)
+	ProcMesh.rbox(_body, Vector3(0.72, 0.62, 0.55), eng, rust, Vector3.ZERO, 0.8, 0.4)
+	for i in 5: # aletas de refrigeração
+		ProcMesh.rbox(_body, Vector3(0.76, 0.03, 0.5), eng + Vector3(0, 0.32 + 0.06 * float(i), -0.02), rust.darkened(0.2), Vector3.ZERO, 0.8, 0.4)
+	ProcMesh.rbox(_body, Vector3(0.5, 0.22, 0.4), eng + Vector3(0, 0.66, 0.02), rust.lightened(0.1), Vector3.ZERO, 0.8, 0.3) # tanque
+	ProcMesh.cyl(_body, 0.2, 0.08, eng + Vector3(0, -0.05, 0.3), rust.darkened(0.15), Vector3(90, 0, 0), -1.0, 0.7, 0.4) # tampa redonda
+	# dois escapamentos subindo para trás
+	for sx: float in [-1.0, 1.0]:
+		var p0: Vector3 = eng + Vector3(sx * 0.3, 0.15, 0.1)
+		var p1: Vector3 = eng + Vector3(sx * 0.42, 0.55, 0.5)
+		_limb(_body, p0, p1, 0.045, rust.darkened(0.1))
+		ProcMesh.cyl(_body, 0.085, 0.38, p1 + Vector3(0, 0.08, 0.15), rust.darkened(0.25), Vector3(-60, 0, 0), -1.0, 0.7, 0.4)
+	_exhaust_pos = eng + Vector3(0.42, 0.75, 0.9)
+	# eixo traseiro + pneus grossos com cravos
+	ProcMesh.cyl(_body, 0.05, 1.6, Vector3(0, 0.48, 1.0), rust, Vector3(0, 0, 90), -1.0, 0.6, 0.5)
+	for x: float in [-0.3, 0.3]:
+		_limb(_body, Vector3(x, 0.48, 1.0), Vector3(x, by - 0.3, 0.6), 0.035, rust)
+	_knobby_wheel(Vector3(-0.85, 0.48, 1.0), 0.48, 0.42)
+	_knobby_wheel(Vector3(0.85, 0.48, 1.0), 0.48, 0.42)
+	return Vector3(0, 0.86, 0.0)
+
+
+## Roda de carroça: aro de madeira, borracha fina e 8 raios.
+func _spoked_wheel(pos: Vector3, radius: float, wood: Color) -> void:
+	var pivot := Node3D.new()
+	pivot.position = pos
+	_body.add_child(pivot)
+	var spinner := Node3D.new()
+	pivot.add_child(spinner)
+	ProcMesh.torus(spinner, radius * 0.86, radius, Vector3.ZERO, DARK, Vector3(0, 0, 90)).scale = Vector3(1, 0.9, 1)
+	ProcMesh.torus(spinner, radius * 0.72, radius * 0.88, Vector3.ZERO, wood, Vector3(0, 0, 90)).scale = Vector3(1, 0.7, 1)
+	ProcMesh.cyl(spinner, radius * 0.22, 0.14, Vector3.ZERO, wood.darkened(0.2), Vector3(0, 0, 90))
+	ProcMesh.cyl(spinner, radius * 0.1, 0.18, Vector3.ZERO, DARK, Vector3(0, 0, 90))
+	for i in 8:
+		var arm := Node3D.new()
+		arm.rotation.x = TAU * float(i) / 8.0
+		spinner.add_child(arm)
+		ProcMesh.rbox(arm, Vector3(0.045, radius * 0.6, 0.045), Vector3(0, radius * 0.48, 0), wood)
+	_steer_pivots.append(pivot)
+	_spin_nodes.append(spinner)
+	_spin_radii.append(radius)
+
+
+## Pneu off-road: grosso, com cravos em volta e cubo de metal enferrujado.
+func _knobby_wheel(pos: Vector3, radius: float, width: float) -> void:
+	var pivot := Node3D.new()
+	pivot.position = pos
+	_body.add_child(pivot)
+	var spinner := Node3D.new()
+	pivot.add_child(spinner)
+	ProcMesh.torus(spinner, radius * 0.45, radius * 0.95, Vector3.ZERO, DARK, Vector3(0, 0, 90)).scale = Vector3(1, maxf(width / (radius * 0.5), 0.3), 1)
+	ProcMesh.cyl(spinner, radius * 0.5, width * 0.85, Vector3.ZERO, Color(0.42, 0.26, 0.17), Vector3(0, 0, 90), -1.0, 0.7, 0.5)
+	ProcMesh.cyl(spinner, radius * 0.15, width * 0.95, Vector3.ZERO, Color(0.3, 0.2, 0.14), Vector3(0, 0, 90), -1.0, 0.6, 0.5)
+	for i in 14:
+		var arm := Node3D.new()
+		arm.rotation.x = TAU * float(i) / 14.0
+		spinner.add_child(arm)
+		ProcMesh.rbox(arm, Vector3(width * 0.9, 0.08, 0.12), Vector3(0, radius * 0.93, 0), DARK.lightened(0.05))
+	_spin_nodes.append(spinner)
+	_spin_radii.append(radius)
 
 
 func _style_plank(wood: Color, accent: Color) -> Vector3:
@@ -401,8 +486,8 @@ func _rig(style: String, seat: Vector3) -> Dictionary:
 		"feet": seat + Vector3(0, -0.4, -0.5)}
 	match style:
 		"barrel":
-			r["anchor"] = Vector3(0, 1.0, -0.85)
-			r["feet"] = Vector3(0, 0.35, -0.6) # dentro do barril
+			r["anchor"] = Vector3(0, 1.1, -0.7)
+			r["feet"] = Vector3(0, 0.45, -0.5) # dentro do barril
 		"plank":
 			r["ctrl"] = "bar"
 			r["gw"] = 0.3
