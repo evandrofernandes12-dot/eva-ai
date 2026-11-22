@@ -374,7 +374,22 @@ func _debug_report() -> void:
 		print("DBG colisao ", cs.get_parent().name, " shape=", cs.shape, " pos=", cs.global_position, " disabled=", cs.disabled)
 	for k in karts:
 		print("DBG kart ", k.name, " pos=", k.global_position)
+	var meshes: int = 0
+	var far_meshes: int = 0
+	for n in track.find_children("*", "MeshInstance3D", true, false):
+		meshes += 1
+		var mi: MeshInstance3D = n as MeshInstance3D
+		var aabb: AABB = mi.get_aabb()
+		if aabb.size.length() > 300.0:
+			far_meshes += 1
+			print("DBG malha grande ", mi.get_parent().name, "/", mi.name, " size=", aabb.size, " pos=", mi.global_position, " scale=", mi.scale)
+	print("DBG malhas=", meshes, " grandes=", far_meshes)
 	for i in 6:
 		await get_tree().create_timer(1.0).timeout
 		if player != null:
 			print("DBG t=", i + 1, " player=", player.global_position, " vel=", player.velocity, " floor=", player.is_on_floor())
+			var cam: Camera3D = get_viewport().get_camera_3d()
+			if cam != null:
+				print("DBG cam=", cam.name, " pos=", cam.global_position, " rot=", cam.global_rotation, " fov=", cam.fov, " near=", cam.near, " far=", cam.far, " parent=", cam.get_parent().name)
+			else:
+				print("DBG cam=NULL")
