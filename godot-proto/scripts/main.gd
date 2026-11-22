@@ -19,7 +19,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v36"
+const VERSAO := "v37"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -62,6 +62,8 @@ var boss: Node3D                 # Minotauro Dark, quando está vivo
 var boss_derrotas := 0
 var boss_em := 6                 # aparece quando o número de orcs derrotados chega aqui
 var _boss_bar: ProgressBar
+var _boss_vp: SubViewport        # barra do chefe desenhada aqui...
+var _boss_spr: Sprite3D          # ...e mostrada em cima da cabeça dele
 var _boss_lbl: Label
 var cam_modo := 0                # 0 = terceira pessoa, 1 = primeira, 2 = águia
 var _cam_off := Vector3(0, 9, 10)
@@ -89,6 +91,8 @@ var _ent_b: Button
 var _rei_b: Button
 var _fade_r: ColorRect
 var _rei_l: Label
+var _menu_b: Array = []        # botões que o MENU mostra/esconde
+var _hud_info := false          # INFO: recursos e missões visíveis
 var _dentro := ""                # nome do prédio em que o jogador está ("" = fora)
 var _perto := ""                 # prédio da aldeia ao alcance da porta
 var _saida := Vector3(0, 0, 8)
@@ -187,9 +191,24 @@ func _ready() -> void:
 	$HUD/Novo.pressed.connect(_new_game)
 	$HUD/Novo.text = "Novo jogo (%s)" % VERSAO
 	use_b.visible = false
-	_hud_button("CLASSE", 70.0, _menu_classe)
-	_hud_button("ALDEÕES", 124.0, _menu_aldeoes)
-	_hud_button("CÂMERA", 178.0, _trocar_camera)
+	# HUD limpo: MENU mostra Novo jogo/Classe/Aldeões/Câmera; INFO mostra recursos e missões
+	_menu_b.append($HUD/Novo)
+	$HUD/Novo.offset_top = 70.0
+	$HUD/Novo.offset_bottom = 116.0
+	_menu_b.append(_hud_button("CLASSE", 124.0, _menu_classe))
+	_menu_b.append(_hud_button("ALDEÕES", 178.0, _menu_aldeoes))
+	_menu_b.append(_hud_button("CÂMERA", 232.0, _trocar_camera))
+	for b: Control in _menu_b:
+		b.visible = false
+	var mb := _hud_button("MENU", 16.0, func():
+		for b: Control in _menu_b:
+			b.visible = not b.visible)
+	var ib := _hud_button("INFO", 16.0, func():
+		_hud_info = not _hud_info
+		quest_l.visible = _hud_info
+		_rei_l.visible = _hud_info)
+	ib.offset_left = -330
+	ib.offset_right = -200
 	_def_b = _botao_acao("DEFESA", -400.0, -230.0, true)
 	_def_b.toggled.connect(func(v): player.defendendo = v)
 	_corre_b = _botao_acao("CORRER", -400.0, -130.0, true)
@@ -208,6 +227,8 @@ func _ready() -> void:
 	_rei_l.add_theme_color_override("font_outline_color", Color.BLACK)
 	_rei_l.add_theme_constant_override("outline_size", 8)
 	$HUD.add_child(_rei_l)
+	quest_l.visible = false
+	_rei_l.visible = false
 	_fade_r = ColorRect.new()
 	_fade_r.color = Color(0, 0, 0, 0)
 	_fade_r.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -385,7 +406,10 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("use"):
 		_use()
 	_check_quest()
-	info.text = "Vida %d/%d   Madeira %d   Pedra %d   Comida %d   Orcs %d" % [player.hp, player.max_hp, res.madeira, res.pedra, res.comida, kills]
+	if _hud_info:
+		info.text = "Vida %d/%d   Madeira %d   Pedra %d   Comida %d   Orcs %d" % [player.hp, player.max_hp, res.madeira, res.pedra, res.comida, kills]
+	else:
+		info.text = "Vida %d/%d" % [player.hp, player.max_hp]
 	_save_t -= delta
 	if _save_t <= 0.0:
 		_save_t = 10.0
@@ -1065,32 +1089,47 @@ func _erguer_muralha(nivel: int) -> void:
 		a += passo
 
 # ---------- chefe: Minotauro Dark ----------
+## Nome e barra de vida do chefe flutuando em cima da cabeça dele (antes ficavam no meio da tela).
+## Desenhados num SubViewport pequeno e mostrados num Sprite3D que sempre olha para a câmera.
 func _boss_hud() -> void:
+	_boss_vp = SubViewport.new()
+	_boss_vp.size = Vector2i(420, 70)
+	_boss_vp.transparent_bg = true
+	_boss_vp.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
+	add_child(_boss_vp)
 	_boss_lbl = Label.new()
-	_boss_lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_boss_lbl.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_boss_lbl.offset_top = 150
-	_boss_lbl.add_theme_font_size_override("font_size", 22)
-	_boss_lbl.add_theme_color_override("font_color", Color(1, 0.35, 0.3))
+	_boss_lbl.position = Vector2(0, 0)
+	_boss_lbl.size = Vector2(420, 34)
+	_boss_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_boss_lbl.add_theme_font_size_override("font_size", 24)
+	_boss_lbl.add_theme_color_override("font_color", Color(1, 0.4, 0.35))
 	_boss_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 	_boss_lbl.add_theme_constant_override("outline_size", 8)
-	$HUD.add_child(_boss_lbl)
+	_boss_vp.add_child(_boss_lbl)
 	_boss_bar = ProgressBar.new()
-	_boss_bar.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_boss_bar.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_boss_bar.offset_top = 182
-	_boss_bar.custom_minimum_size = Vector2(460, 22)
+	_boss_bar.position = Vector2(30, 38)
+	_boss_bar.size = Vector2(360, 24)
 	_boss_bar.show_percentage = false
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = Color(0.8, 0.12, 0.1)
 	_boss_bar.add_theme_stylebox_override("fill", fill)
-	$HUD.add_child(_boss_bar)
+	var fundo := StyleBoxFlat.new()
+	fundo.bg_color = Color(0, 0, 0, 0.6)
+	_boss_bar.add_theme_stylebox_override("background", fundo)
+	_boss_vp.add_child(_boss_bar)
+	_boss_spr = Sprite3D.new()
+	_boss_spr.texture = _boss_vp.get_texture()
+	_boss_spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_boss_spr.no_depth_test = true
+	_boss_spr.pixel_size = 0.0075
+	_boss_spr.visible = false
+	add_child(_boss_spr)
 
 func _chefe() -> void:
 	var vivo: bool = boss != null and is_instance_valid(boss) and not boss._dead
-	_boss_bar.visible = vivo
-	_boss_lbl.visible = vivo
+	_boss_spr.visible = vivo and _dentro == ""
 	if vivo:
+		_boss_spr.global_position = boss.global_position + Vector3(0, float(boss.altura) + 0.9, 0)
 		_boss_bar.max_value = boss.max_hp
 		_boss_bar.value = boss.hp
 		_boss_lbl.text = "Minotauro Dark · Nv %d · %d/%d" % [boss.nivel, boss.hp, boss.max_hp]
@@ -1412,7 +1451,7 @@ func evoluir_arma() -> void:
 	_save()
 
 # ---------- menus ----------
-func _hud_button(texto: String, y: float, cb: Callable) -> void:
+func _hud_button(texto: String, y: float, cb: Callable) -> Button:
 	var b := Button.new()
 	b.text = texto
 	b.focus_mode = Control.FOCUS_NONE
@@ -1424,6 +1463,7 @@ func _hud_button(texto: String, y: float, cb: Callable) -> void:
 	b.offset_bottom = y + 46
 	b.pressed.connect(cb)
 	$HUD.add_child(b)
+	return b
 
 func _fechar() -> void:
 	if _painel != null:
