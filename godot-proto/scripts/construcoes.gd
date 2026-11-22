@@ -367,3 +367,88 @@ static func estilo_casa(raiz: Node) -> void:
 				m.uv1_scale = Vector3(0.7, 0.7, 0.7) if orig.resource_name.begins_with("Stone") or orig.resource_name.begins_with("Roof") else Vector3(0.35, 1.6, 0.35)
 				_mats[k] = m
 			mi.set_surface_override_material(i, _mats[k])
+
+# ---------- riacho e pontes ----------
+## Ponte em arco ao longo de X (centrada), `comp` de comprimento e `larg` de largura.
+## Madeira: tábuas, vigas em arco e corrimão com postes. Pedra: tabuleiro e muretas de pedra.
+## Tem colisão em rampas para o personagem subir por cima.
+static func ponte(comp: float, larg: float, pedra: bool) -> Node3D:
+	var r := Node3D.new()
+	var subida := 0.7
+	var n := 10
+	var m := mat(Color(0.6, 0.6, 0.62) if pedra else MADEIRA, true)
+	var me := mat(Color(0.45, 0.45, 0.48) if pedra else MADEIRA_ESCURA, true)
+	var y_de := func(x: float) -> float: return subida * cos(PI * x / comp)   # arco: alto no meio, 0 nas pontas
+	for i in n:
+		var x0 := -comp * 0.5 + comp * i / n
+		var x1 := x0 + comp / n
+		var p0 := Vector3(x0, y_de.call(x0), 0)
+		var p1 := Vector3(x1, y_de.call(x1), 0)
+		var meio := (p0 + p1) * 0.5
+		var incl := atan2(p1.y - p0.y, x1 - x0)
+		var seg := comp / n / cos(incl)
+		var tab := caixa(r, meio + Vector3(0, 0.08, 0), Vector3(seg + 0.02, 0.16 if not pedra else 0.4, larg), m)
+		tab.rotation.z = incl
+		if not pedra:
+			for k in 3:   # frestas entre as tábuas
+				var fr := caixa(r, meio + Vector3((k - 1) * seg / 3.0, 0.165, 0), Vector3(0.03, 0.01, larg), me)
+				fr.rotation.z = incl
+			for s in [-1.0, 1.0]:   # vigas em arco por baixo das bordas
+				var vg := caixa(r, meio + Vector3(0, -0.12, s * (larg * 0.5 - 0.15)), Vector3(seg + 0.02, 0.25, 0.22), me)
+				vg.rotation.z = incl
+		for s in [-1.0, 1.0]:   # corrimão (madeira) ou mureta (pedra)
+			if pedra:
+				var mu := caixa(r, meio + Vector3(0, 0.55, s * (larg * 0.5 - 0.2)), Vector3(seg + 0.02, 0.7, 0.4), me)
+				mu.rotation.z = incl
+			else:
+				var cr := caixa(r, meio + Vector3(0, 1.05, s * (larg * 0.5 - 0.08)), Vector3(seg + 0.02, 0.1, 0.1), me)
+				cr.rotation.z = incl
+				tora(r, Vector3(x0, y_de.call(x0), s * (larg * 0.5 - 0.08)), Vector3(x0, y_de.call(x0) + 1.1, s * (larg * 0.5 - 0.08)), 0.06, me)
+		var sb := StaticBody3D.new()   # rampa com colisão
+		var cs := CollisionShape3D.new()
+		var sh := BoxShape3D.new()
+		sh.size = Vector3(seg + 0.05, 0.2, larg)
+		cs.shape = sh
+		sb.add_child(cs)
+		sb.position = meio + Vector3(0, 0.06, 0)
+		sb.rotation.z = incl
+		r.add_child(sb)
+	if pedra:   # pilares nas margens
+		for s in [-1.0, 1.0]:
+			caixa(r, Vector3(s * comp * 0.36, -0.2, 0), Vector3(0.8, 0.8, larg + 0.2), me)
+	return r
+
+## Riacho em anel (raio que ondula com o ângulo), com margem de terra. Sem colisão: é raso.
+static func riacho(raio: Callable, larg: float) -> Node3D:
+	var r := Node3D.new()
+	r.name = "Riacho"
+	var agua := StandardMaterial3D.new()
+	agua.albedo_color = Color(0.2, 0.36, 0.42)
+	agua.roughness = 0.06
+	agua.metallic = 0.25
+	agua.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var margem := mat(Color(0.42, 0.35, 0.25)).duplicate() as StandardMaterial3D
+	margem.cull_mode = BaseMaterial3D.CULL_DISABLED
+	for camada in [[larg + 2.2, 0.03, margem], [larg, 0.05, agua]]:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var n := 240
+		var lw: float = camada[0]
+		for i in n:
+			var a0 := TAU * i / n
+			var a1 := TAU * (i + 1) / n
+			var r0: float = raio.call(a0)
+			var r1: float = raio.call(a1)
+			var y: float = camada[1]
+			var q := [Vector3(cos(a0) * (r0 - lw * 0.5), y, sin(a0) * (r0 - lw * 0.5)), Vector3(cos(a0) * (r0 + lw * 0.5), y, sin(a0) * (r0 + lw * 0.5)),
+				Vector3(cos(a1) * (r1 - lw * 0.5), y, sin(a1) * (r1 - lw * 0.5)), Vector3(cos(a1) * (r1 + lw * 0.5), y, sin(a1) * (r1 + lw * 0.5))]
+			for k in [0, 2, 1, 1, 2, 3]:
+				st.set_normal(Vector3.UP)
+				st.set_uv(Vector2(float(i) / 8.0, float(k % 2)))
+				st.add_vertex(q[k])
+		var mi := MeshInstance3D.new()
+		mi.mesh = st.commit()
+		mi.material_override = camada[2]
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		r.add_child(mi)
+	return r

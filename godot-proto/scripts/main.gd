@@ -19,10 +19,12 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v33"
+const VERSAO := "v34"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
+const RIO_R := 64.0              # raio médio do riacho em volta da aldeia (ondula ±3,5 m)
+const RIO_LARG := 5.0            # largura da água
 const DIRS := [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
 const CAM_NOMES := ["3ª pessoa", "1ª pessoa", "Visão de águia"]
 
@@ -232,10 +234,19 @@ func _aldeia_extra() -> void:
 	praca.position.y = 0.02
 	praca.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	r.add_child(praca)
-	Construcoes.caminho(r, Vector3(0, 0, 8), Vector3(0, 0, MURO_R + 1), 3.2)
+	Construcoes.caminho(r, Vector3(0, 0, 8), Vector3(0, 0, RIO_R + 12), 3.2)
 	Construcoes.caminho(r, Vector3(0, 0, -8), Vector3(0, 0, -21), 3.2)
-	Construcoes.caminho(r, Vector3(8, 0, 0), Vector3(MURO_R + 1, 0, 0), 3.2)
-	Construcoes.caminho(r, Vector3(-8, 0, 0), Vector3(-MURO_R - 1, 0, 0), 3.2)
+	Construcoes.caminho(r, Vector3(8, 0, 0), Vector3(RIO_R + 12, 0, 0), 3.2)
+	Construcoes.caminho(r, Vector3(-8, 0, 0), Vector3(-RIO_R - 12, 0, 0), 3.2)
+	# riacho em volta da aldeia, com pontes onde os caminhos dos portões cruzam (2 de madeira, 2 de pedra)
+	r.add_child(Construcoes.riacho(Callable(self, "_rio_raio"), RIO_LARG))
+	Construcoes.caminho(r, Vector3(0, 0, -MURO_R - 1), Vector3(0, 0, -RIO_R - 12), 3.2)
+	for i in 4:
+		var ang := PI * 0.5 * i
+		var pt := Construcoes.ponte(RIO_LARG + 4.0, 3.4, i % 2 == 1)
+		pt.position = Vector3(cos(ang), 0, sin(ang)) * _rio_raio(ang)
+		pt.rotation.y = -ang
+		r.add_child(pt)
 	var por := func(n: Node3D, pos: Vector3, giro: float) -> void:
 		n.position = pos
 		n.rotation.y = giro
@@ -311,9 +322,18 @@ func _add_collision(b: Node3D) -> void:
 	b.add_child(body)
 
 func _ring_pos() -> Vector3:
-	var a := _rng.randf() * TAU
-	var r := sqrt(_rng.randf_range(pow(village_radius / forest_radius, 2.0), 1.0)) * forest_radius
+	var a := 0.0
+	var r := 0.0
+	for tentativa in 12:   # longe do riacho
+		a = _rng.randf() * TAU
+		r = sqrt(_rng.randf_range(pow(village_radius / forest_radius, 2.0), 1.0)) * forest_radius
+		if absf(r - _rio_raio(a)) > RIO_LARG * 0.5 + 2.5:
+			break
 	return Vector3(cos(a) * r, 0, sin(a) * r)
+
+## Raio do riacho no ângulo `a` (ondula em volta da aldeia).
+func _rio_raio(a: float) -> float:
+	return RIO_R + 3.5 * sin(3.0 * a + 0.7)
 
 func _scatter_forest() -> void:
 	var holder := Node3D.new()
