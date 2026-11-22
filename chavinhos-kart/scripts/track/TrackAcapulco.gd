@@ -26,7 +26,19 @@ func _make_centerline() -> PackedVector3Array:
 	return pts
 
 
+var _dbg: String = "" # DIAGNÓSTICO TEMPORÁRIO: ?dbg=nosea,nosun,nopalm,nobeach,nohotel,nopool,noscenery
+
+
+func _off(flag: String) -> bool:
+	return flag in _dbg
+
+
 func _build_scenery() -> void:
+	if OS.has_feature("web"):
+		_dbg = str(JavaScriptBridge.eval("location.search", true))
+		print("DBG flags=", _dbg)
+	if _off("noscenery"):
+		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 2026
 	var root := Node3D.new()
@@ -34,6 +46,8 @@ func _build_scenery() -> void:
 	add_child(root)
 	# mar a oeste
 	var sea := MeshInstance3D.new()
+	if _off("nosea"):
+		sea.visible = false
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(400.0, 1200.0)
 	sea.mesh = plane
@@ -41,23 +55,26 @@ func _build_scenery() -> void:
 	sea.position = Vector3(-470.0, 0.05, 0.0)
 	root.add_child(sea)
 	# sol poente (disco brilhante distante)
-	ProcMesh.sphere(root, 28.0, Vector3(-640.0, 38.0, 40.0), Color(1.0, 0.85, 0.5), Vector3.ONE, 0.5, 3.0)
+	if not _off("nosun"):
+		ProcMesh.sphere(root, 28.0, Vector3(-640.0, 38.0, 40.0), Color(1.0, 0.85, 0.5), Vector3.ONE, 0.5, 3.0)
 	# palmeiras e guarda-sóis ao longo da pista
 	var d: float = 6.0
-	while d < path.length:
+	while d < path.length and not _off("nopalm"):
 		var p: Vector3 = outside_point(d, 5.0 + rng.randf_range(0.0, 10.0))
 		_palm(root, p, rng.randf_range(7.0, 11.0), rng)
 		d += rng.randf_range(18.0, 34.0)
 	d = 20.0
-	while d < path.length:
+	while d < path.length and not _off("nobeach"):
 		var inner: Vector3 = path.point_at(d) - path.right_at(d) * outside_side(d) * (wall_offset - 2.0)
 		if rng.randf() < 0.5:
 			_umbrella(root, inner, rng)
 		else:
 			ProcMesh.box(root, Vector3(2.2, 0.5, 0.8), inner + Vector3(0, 0.3, 0), Color(0.9, 0.5, 0.3), Vector3(0, rng.randf_range(0, 180), 0), 0.9)
 		d += rng.randf_range(30.0, 55.0)
-	_build_hotel(root)
-	_build_pool(root)
+	if not _off("nohotel"):
+		_build_hotel(root)
+	if not _off("nopool"):
+		_build_pool(root)
 
 
 func _palm(root: Node3D, pos: Vector3, h: float, rng: RandomNumberGenerator) -> void:
