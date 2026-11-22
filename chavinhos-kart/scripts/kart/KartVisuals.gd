@@ -325,8 +325,11 @@ func _style_vintage(burgundy: Color, _c2: Color) -> Vector3:
 	_wheel(Vector3(0.78, 0.46, -0.95), 0.46, 0.2, DARK, Color(0.85, 0.7, 0.25), true)
 	_wheel(Vector3(-0.78, 0.46, 1.0), 0.46, 0.22, DARK, Color(0.85, 0.7, 0.25), false)
 	_wheel(Vector3(0.78, 0.46, 1.0), 0.46, 0.22, DARK, Color(0.85, 0.7, 0.25), false)
-	for sx: float in [-0.78, 0.78]: # faixa branca nos pneus
-		ProcMesh.cyl(_body, 0.4, 0.21, Vector3(sx, 0.46, -0.95), Color(0.95, 0.95, 0.9), Vector3(0, 0, 90), -1.0, 0.9)
+	for sx: float in [-0.78, 0.78]: # faixa branca nos pneus (anel nas laterais dos pneus)
+		for sz: float in [-0.95, 1.0]:
+			for side: float in [-1.0, 1.0]:
+				var ring: MeshInstance3D = ProcMesh.torus(_body, 0.27, 0.36, Vector3(sx + side * 0.09, 0.46, sz), Color(0.96, 0.96, 0.92), Vector3(0, 0, 90))
+				ring.scale = Vector3(1.0, 0.25, 1.0)
 	return Vector3(0, 0.9, 0.85)
 
 
