@@ -243,9 +243,11 @@ func _style_barrel(wood: Color, _c2: Color) -> Vector3:
 	for sx: float in [-1.0, 1.0]:
 		var p0: Vector3 = eng + Vector3(sx * 0.3, 0.15, 0.1)
 		var p1: Vector3 = eng + Vector3(sx * 0.42, 0.55, 0.5)
+		var p2: Vector3 = p1 + Vector3(sx * 0.03, 0.12, 0.4)
 		_limb(_body, p0, p1, 0.045, rust.darkened(0.1))
-		ProcMesh.cyl(_body, 0.085, 0.38, p1 + Vector3(0, 0.08, 0.15), rust.darkened(0.25), Vector3(-60, 0, 0), -1.0, 0.7, 0.4)
-	_exhaust_pos = eng + Vector3(0.42, 0.75, 0.9)
+		_limb(_body, p1, p2, 0.085, rust.darkened(0.25))       # silenciador
+		_limb(_body, p2, p2 + Vector3(0, 0.03, 0.12), 0.035, DARK) # ponteira
+	_exhaust_pos = eng + Vector3(0.45, 0.72, 1.05)
 	# eixo traseiro + pneus grossos com cravos
 	ProcMesh.cyl(_body, 0.05, 1.6, Vector3(0, 0.48, 1.0), rust, Vector3(0, 0, 90), -1.0, 0.6, 0.5)
 	for x: float in [-0.3, 0.3]:
@@ -611,6 +613,8 @@ func _build_driver(id: String, rig: Dictionary) -> void:
 	var hd := Node3D.new()
 	hd.position = Vector3(0, -0.6, 0) # permite usar as mesmas coordenadas do piloto
 	_head.add_child(hd)
+	if id in ["chaves", "chiquinha", "quico", "nhonho", "popis"]:
+		_head.scale = Vector3.ONE * 1.25 # cabeçona de desenho animado
 	var shirt: Color = Color(0.9, 0.9, 0.9)
 	var hair: Color = Color(0.25, 0.15, 0.1)
 	match id:
@@ -650,11 +654,21 @@ func _build_driver(id: String, rig: Dictionary) -> void:
 	# acessórios por personagem
 	match id:
 		"chaves":
-			var green: Color = Color(0.3, 0.6, 0.25)
-			ProcMesh.rbox(hd, Vector3(0.62, 0.2, 0.6), Vector3(0, 1.07, 0.0), green)
-			ProcMesh.rbox(hd, Vector3(0.5, 0.05, 0.25), Vector3(0, 1.0, -0.38), green.darkened(0.2))
-			for sx: float in [-0.32, 0.32]:
-				ProcMesh.rbox(hd, Vector3(0.08, 0.34, 0.42), Vector3(sx, 0.85, 0.0), green)
+			var green: Color = Color(0.36, 0.62, 0.26)
+			var plaid: Color = Color(0.2, 0.42, 0.16)
+			ProcMesh.sphere(hd, 0.31, Vector3(0, 0.95, 0.02), green, Vector3(1.0, 0.72, 1.02), 0.9)   # copa redonda
+			for y: float in [0.97, 1.07]: # listras do xadrez (horizontais)
+				ProcMesh.torus(hd, 0.28 - (y - 0.97) * 1.2, 0.3 - (y - 0.97) * 1.2, Vector3(0, y, 0.02), plaid, Vector3.ZERO)
+			for i in 4: # listras do xadrez (verticais)
+				var piv := Node3D.new()
+				piv.position = Vector3(0, 0.95, 0.02)
+				piv.rotation.y = PI * float(i) / 4.0
+				hd.add_child(piv)
+				var arc: MeshInstance3D = ProcMesh.torus(piv, 0.215, 0.235, Vector3.ZERO, plaid, Vector3(90, 0, 0))
+				arc.scale = Vector3(1.32, 1.0, 1.0)
+			ProcMesh.rbox(hd, Vector3(0.5, 0.05, 0.24), Vector3(0, 0.93, -0.36), green.darkened(0.12), Vector3(-12, 0, 0), 0.9, 0.0, 0.0, 0.02)  # aba
+			for sx: float in [-0.29, 0.29]: # abas das orelhas
+				ProcMesh.rbox(hd, Vector3(0.09, 0.36, 0.34), Vector3(sx, 0.82, 0.04), green, Vector3.ZERO, 0.9, 0.0, 0.0, 0.04)
 			ProcMesh.rbox(d, Vector3(0.12, 0.45, 0.04), Vector3(-0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15)) # suspensório
 			ProcMesh.rbox(d, Vector3(0.12, 0.45, 0.04), Vector3(0.2, 0.3, -0.2), Color(0.9, 0.55, 0.15))
 		"chiquinha":
