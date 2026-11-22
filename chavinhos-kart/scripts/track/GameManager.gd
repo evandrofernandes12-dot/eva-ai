@@ -46,6 +46,7 @@ func _ready() -> void:
 		add_child(hud)
 		hud.call("bind", self) # HUDController.bind(game)
 
+	_debug_report()
 	if online:
 		multiplayer.peer_disconnected.connect(_on_peer_left)
 		NetworkManager.disconnected_from_host.connect(Global.goto_menu)
@@ -363,3 +364,17 @@ func _on_peer_left(id: int) -> void:
 			k.is_remote = false
 			k.speed_mult = k.stats.ai_skill
 			net_takeover.rpc(k.net_slot)
+
+
+# ---- DIAGNÓSTICO TEMPORÁRIO (remover)
+func _debug_report() -> void:
+	print("DBG pista=", track.name, " grid=", track.start_transforms.size(), " len=", track.path.length)
+	for n in track.find_children("*", "CollisionShape3D", true, false):
+		var cs: CollisionShape3D = n as CollisionShape3D
+		print("DBG colisao ", cs.get_parent().name, " shape=", cs.shape, " pos=", cs.global_position, " disabled=", cs.disabled)
+	for k in karts:
+		print("DBG kart ", k.name, " pos=", k.global_position)
+	for i in 6:
+		await get_tree().create_timer(1.0).timeout
+		if player != null:
+			print("DBG t=", i + 1, " player=", player.global_position, " vel=", player.velocity, " floor=", player.is_on_floor())

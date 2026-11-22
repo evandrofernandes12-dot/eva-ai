@@ -35,5 +35,5 @@ func activate(kart: KartController) -> void:
 func _hit_kart(k: KartController) -> void:
 	k.spin_out(1.2 if kind == "barril" else 0.9)
 	AudioManager.play_sfx("splash" if kind == "balde" else "hit")
-	monitoring = false
+	set_deferred("monitoring", false)
 	queue_free()

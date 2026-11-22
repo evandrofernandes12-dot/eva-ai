@@ -16,7 +16,7 @@ func _build_visual() -> void:
 func activate(kart: KartController) -> void:
 	super.activate(kart)
 	kart.apply_boost(BOOST_POWER, BOOST_TIME)
-	monitoring = false
+	set_deferred("monitoring", false)
 	global_position = kart.global_position + Vector3(0, 2.0, 0)
 	var tw: Tween = create_tween()
 	tw.tween_property(self, "scale", Vector3.ZERO, 0.5)

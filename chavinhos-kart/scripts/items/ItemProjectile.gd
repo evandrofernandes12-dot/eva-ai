@@ -89,5 +89,5 @@ func _hit_kart(k: KartController) -> void:
 
 
 func _explode() -> void:
-	monitoring = false
+	set_deferred("monitoring", false)
 	queue_free()
