@@ -154,3 +154,57 @@ static func _rbox_tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, inner
 	for pt in [pa, pb, pc]:
 		st.set_normal(pt[1] as Vector3)
 		st.add_vertex(pt[0] as Vector3)
+
+
+## Junta todas as malhas estáticas abaixo de `group` em uma malha por material.
+## O navegador (WebGL) aguenta bem menos objetos que o PC: com centenas de peças soltas a cena some.
+## Nós marcados com set_meta("merge_group", true) (outros grupos animados) e os de `skip` ficam de fora.
+static func merge_meshes(group: Node3D, skip: Array = []) -> void:
+	var found: Array[MeshInstance3D] = []
+	_collect_meshes(group, group, skip, found)
+	if found.size() < 2:
+		return
+	var by_mat: Dictionary = {}
+	for mi in found:
+		if mi.mesh == null:
+			continue
+		var key: Variant = mi.material_override
+		if not by_mat.has(key):
+			by_mat[key] = SurfaceTool.new()
+		var st: SurfaceTool = by_mat[key]
+		var xf: Transform3D = _relative_xform(mi, group)
+		for surf in mi.mesh.get_surface_count():
+			var tmp := SurfaceTool.new()
+			tmp.create_from(mi.mesh, surf)
+			tmp.deindex() # todas sem índice, para poderem ser somadas
+			st.append_from(tmp.commit(), 0, xf)
+	for key in by_mat:
+		var merged := MeshInstance3D.new()
+		merged.name = "Merged"
+		merged.mesh = (by_mat[key] as SurfaceTool).commit()
+		merged.material_override = key as Material
+		group.add_child(merged)
+	for mi in found:
+		mi.get_parent().remove_child(mi)
+		mi.queue_free()
+
+
+static func _collect_meshes(node: Node, group: Node3D, skip: Array, found: Array[MeshInstance3D]) -> void:
+	for c in node.get_children():
+		if skip.has(c):
+			continue
+		if c != group and c.has_meta("merge_group"):
+			continue
+		if c is MeshInstance3D:
+			found.append(c as MeshInstance3D)
+		elif c is Node3D and not (c is VisualInstance3D):
+			_collect_meshes(c, group, skip, found)
+
+
+static func _relative_xform(mi: Node3D, group: Node3D) -> Transform3D:
+	var xf: Transform3D = mi.transform
+	var p: Node = mi.get_parent()
+	while p != null and p != group:
+		xf = (p as Node3D).transform * xf
+		p = p.get_parent()
+	return xf

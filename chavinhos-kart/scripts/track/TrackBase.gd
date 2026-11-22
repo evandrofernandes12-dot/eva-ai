@@ -40,6 +40,14 @@ func _ready() -> void:
 	_build_item_boxes()
 	_compute_grid()
 	_build_scenery()
+	_merge_scenery()
+
+
+## Cenário estático vira poucas malhas (o navegador aguenta bem menos objetos que o PC).
+func _merge_scenery() -> void:
+	for n in get_children():
+		if n.name in ["Houses", "Props", "Fountain", "Scenery", "StartLine"] and n is Node3D:
+			ProcMesh.merge_meshes(n as Node3D)
 
 
 # ---------- a sobrescrever

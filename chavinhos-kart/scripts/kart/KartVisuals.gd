@@ -75,6 +75,7 @@ func build(s: RacerStats) -> void:
 	_build_controls(rig, s.id)
 	_build_driver(s.id, rig)
 	_build_fx()
+	_merge_static()
 
 
 # ===================================================================== animação
@@ -911,6 +912,24 @@ func _animate_driver(delta: float, steer: float, drifting: bool, drift_dir: floa
 		_stars.visible = _hit_t > 0.0
 		if _stars.visible:
 			_stars.rotation.y += delta * 6.0
+
+
+## Junta as peças que se movem juntas (corpo, piloto, cabeça, cada roda, hélice) em poucas malhas.
+func _merge_static() -> void:
+	var groups: Array[Node3D] = [_body]
+	for g: Node3D in [_driver, _head, _prop]:
+		if g != null:
+			groups.append(g)
+	groups.append_array(_spin_nodes)
+	for g in groups:
+		g.set_meta("merge_group", true)
+	var skip: Array = []
+	skip.append_array(_arm_r)          # braço que some na comemoração
+	for n: Node3D in [_cheer, _stars]: # aparecem/somem
+		if n != null:
+			skip.append(n)
+	for g in groups:
+		ProcMesh.merge_meshes(g, skip)
 
 
 ## Se existir res://assets/models/<id>.glb, usa o modelo 3D real no lugar do procedural.
