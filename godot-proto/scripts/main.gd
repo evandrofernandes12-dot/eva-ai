@@ -8,8 +8,7 @@ const KK := "res://assets/nature/kaykit/"
 const TREES := [QN + "CommonTree_1.gltf", QN + "CommonTree_2.gltf", QN + "CommonTree_3.gltf", QN + "CommonTree_4.gltf", QN + "CommonTree_5.gltf",
 	QN + "Pine_1.gltf", QN + "Pine_2.gltf", QN + "Pine_3.gltf", QN + "Pine_4.gltf", QN + "Pine_5.gltf",
 	QN + "TwistedTree_1.gltf", QN + "TwistedTree_2.gltf", QN + "TwistedTree_3.gltf"]
-const ROCKS := [QN + "Rock_Medium_1.gltf", QN + "Rock_Medium_2.gltf", QN + "Rock_Medium_3.gltf",
-	KK + "Rock_1_A_Color1.gltf", KK + "Rock_1_D_Color1.gltf", KK + "Rock_2_A_Color1.gltf", KK + "Rock_3_C_Color1.gltf"]
+const ROCKS := [QN + "Rock_Medium_1.gltf", QN + "Rock_Medium_2.gltf", QN + "Rock_Medium_3.gltf"]   # as da KayKit (brancas/quadradas) destoavam
 const BUSHES := [QN + "Bush_Common.gltf", QN + "Bush_Common_Flowers.gltf"]
 ## Enfeites sem coleta (sem colisão): [arquivo, altura mín., altura máx., quantidade]
 const ENFEITES := [[QN + "Flower_3_Group.gltf", 0.35, 0.55, 45], [QN + "Flower_4_Group.gltf", 0.35, 0.55, 45],
@@ -32,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v47"
+const VERSAO := "v48"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -76,6 +75,9 @@ var _renascer: Array = []        # recursos que voltam a nascer: {t, scene, h, t
 var _holder: Node3D
 var ceu: Ceu                     # dia, noite e chuva (scripts/ceu.gd)
 var lago: Lago                   # lago da floresta (scripts/lago.gd)
+var fogueira: Fogueira           # fogueira grande do centro da vila (scripts/fogueira.gd)
+var _guardas_noite: Array = []   # guardas em volta da fogueira, só à noite
+var _pilha_t := 0.0
 var _painel: Control
 var boss: Node3D                 # Minotauro Dark, quando está vivo
 var boss_derrotas := 0
@@ -86,6 +88,9 @@ var _boss_spr: Sprite3D          # ...e mostrada em cima da cabeça dele
 var _boss_lbl: Label
 var cam_modo := 0                # 0 = terceira pessoa, 1 = primeira, 2 = águia
 var _cam_off := Vector3(0, 9, 10)
+var _olhar := 0.0               # arrastar um dedo: 0 = normal, 1 = olhando o céu, negativo = mais para o chão
+const OLHAR_MIN := -0.3
+const OLHAR_MAX := 1.0
 var _tapado_t := 0.0
 var _arv_t := 0.0
 var _fixos: Array = []           # construções prontas da aldeia: {pos, r, h}
@@ -355,6 +360,19 @@ func _aldeia_extra() -> void:
 			Fit.to_height(n, _rng.randf_range(0.45, 0.9))
 			Efeitos.vento(n, 0.05, 0.9)
 			Efeitos.distancia(n, 45.0)
+	fogueira = Fogueira.new()
+	fogueira.name = "Fogueira"
+	fogueira.position = Vector3(0, 0, 0.5)
+	r.add_child(fogueira)
+	for i in 3:   # guardas da noite em volta da fogueira, olhando para fora
+		var ang := TAU * i / 3.0 + 0.4
+		var g := Heroi.montar(["G1", "L1", "G3"][i])
+		g.position = fogueira.position + Vector3(cos(ang), 0, sin(ang)) * 3.6 + Vector3(0, 0.05, 0)
+		g.rotation.y = atan2(cos(ang), sin(ang))
+		g.visible = false
+		r.add_child(g)
+		Fit.play(Fit.find_node_of(g, "AnimationPlayer") as AnimationPlayer, &"Sword_Idle")
+		_guardas_noite.append(g)
 	var por := func(n: Node3D, pos: Vector3, giro: float) -> void:
 		n.position = pos
 		n.rotation.y = giro
@@ -392,7 +410,9 @@ func _ceu() -> void:
 
 ## Noite: aldeões vão para casa; de manhã voltam ao trabalho.
 func _periodo(e_noite: bool) -> void:
-	say("Anoiteceu. Os aldeões foram para casa." if e_noite else "Amanheceu!", 3.0)
+	say("Anoiteceu. Os aldeões foram para casa e os guardas acenderam a fogueira." if e_noite else "Amanheceu!", 3.0)
+	for g in _guardas_noite:
+		g.visible = e_noite
 	for v in aldeoes:
 		if is_instance_valid(v):
 			v.dormir(e_noite)
@@ -651,6 +671,12 @@ func _process(delta: float) -> void:
 	_portoes(delta)
 	_buildings(delta)
 	_tiros(delta)
+	_pilha_t -= delta
+	if _pilha_t <= 0.0:
+		_pilha_t = 2.0
+		_pilhas_armazem()
+	if fogueira != null and ceu != null:
+		fogueira.intensidade = lerpf(0.15, 1.0, smoothstep(0.3, 0.75, ceu.fator_noite))
 	_renascimento(delta)
 	_nearest_plot()
 	if Input.is_action_just_pressed("use"):
@@ -898,9 +924,9 @@ func _camera(delta: float) -> void:
 		var olhos := pp + Vector3(0, 1.65, 0)
 		var frente := player.global_basis.z
 		cam.global_position = olhos + frente * 0.2
-		cam.look_at(olhos + frente * 10.0 - Vector3(0, 0.8, 0))
+		cam.look_at(olhos + frente * 10.0 + Vector3(0, -0.8 + _olhar * 14.0, 0))
 		return
-	var alvo := Vector3(0, 9, 10) * _zoom
+	var alvo := Vector3(0, 9 * (1.0 - 0.85 * maxf(_olhar, 0.0)) + 0.6, 10) * _zoom   # olhando para cima, a câmera desce atrás do boneco
 	if cam_modo == 2:        # visão de águia
 		alvo = Vector3(0, 40, 8) * _zoom
 	else:
@@ -916,7 +942,7 @@ func _camera(delta: float) -> void:
 				cam.global_position = pp + _cam_off
 	_cam_off = _cam_off.lerp(alvo, minf(1.0, 5.0 * delta))
 	cam.global_position = cam.global_position.lerp(pp + _cam_off, minf(1.0, 8.0 * delta))
-	cam.look_at(pp + Vector3(0, 1.2, 0))
+	cam.look_at(pp + Vector3(0, 1.2 + (_olhar * 16.0 if cam_modo == 0 else 0.0), 0))
 	# árvores na frente do boneco ficam escondidas enquanto atrapalham
 	_arv_t -= delta
 	if _arv_t <= 0.0:
@@ -940,12 +966,16 @@ func _input(e: InputEvent) -> void:
 		_pinca_d = 0.0
 	elif e is InputEventScreenDrag and _toques.has(e.index):
 		_toques[e.index] = e.position
+		if _toques.size() == 1 and e.position.x < get_viewport().get_visible_rect().size.x * 0.68:   # um dedo arrastando: olha para cima/baixo
+			_olhar = clampf(_olhar - e.relative.y * 0.004, OLHAR_MIN, OLHAR_MAX)
 		if _toques.size() == 2 and _mag_t <= 0.0:
 			var k: Array = _toques.keys()
 			var d: float = (_toques[k[0]] - _toques[k[1]]).length()
 			if _pinca_d > 0.0 and d > 1.0:
 				_zoom = clampf(_zoom * _pinca_d / d, ZOOM_MIN, ZOOM_MAX)
 			_pinca_d = d
+	elif e is InputEventMouseMotion and (e.button_mask & MOUSE_BUTTON_MASK_RIGHT):   # botão direito arrastando (computador)
+		_olhar = clampf(_olhar - e.relative.y * 0.004, OLHAR_MIN, OLHAR_MAX)
 	elif e is InputEventMouseButton and e.pressed:   # roda do mouse (computador)
 		if e.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_zoom = clampf(_zoom * 0.9, ZOOM_MIN, ZOOM_MAX)
@@ -1027,6 +1057,7 @@ func _entrar(id: String) -> void:
 		_interiores[id] = sala
 	_dentro = id
 	var raiz: Node3D = _interiores[id]
+	_familia(raiz, id)
 	var fundo: float = Interior.SALAS[id].d
 	player.global_position = raiz.global_position + Vector3(0, 0.1, fundo * 0.5 - 2.4)
 	player.rotation.y = PI
@@ -1042,6 +1073,36 @@ func _entrar(id: String) -> void:
 	_trans = false
 	if id == "SalaoDoChefe":
 		say("Salão do Rei: chegue perto do trono e toque em FALAR COM O REI.", 5.0)
+
+## À noite, quem mora na casa está lá dentro: o aldeão aquecendo-se perto da lareira, a esposa e o filho
+## sentados no banco. De dia a casa fica vazia (estão trabalhando).
+func _familia(sala: Node3D, id: String) -> void:
+	if not (id.begins_with("Casa") or id == "LoteCasa") or id == "Casa3":   # Casa3 é a do alquimista
+		return
+	var f := sala.get_node_or_null("Familia") as Node3D
+	if f == null:
+		f = Node3D.new()
+		f.name = "Familia"
+		sala.add_child(f)
+		var pai: Node3D = KNIGHT.instantiate()
+		f.add_child(pai)
+		Fit.to_height(pai, 1.75)
+		pai.position = Vector3(1.8, pai.position.y, -2.6)
+		pai.rotation.y = PI * 0.8
+		var ap := Fit.find_node_of(pai, "AnimationPlayer") as AnimationPlayer
+		if ap != null:
+			Fit.play(ap, Fit.find_anim(ap, ["Idle"]))
+		var lugares := [["A3", 1.68, Vector3(2.4, 0.0, -0.75)], ["A2", 1.2, Vector3(3.6, 0.0, -0.75)]]   # esposa e filho no banco
+		for l: Array in lugares:
+			var m := Heroi.montar(String(l[0]), false, true)
+			var n := Node3D.new()
+			n.position = l[2]
+			n.rotation.y = PI   # de frente para a lareira
+			f.add_child(n)
+			n.add_child(m)
+			Fit.to_height(m, float(l[1]))
+			Fit.play(Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer, &"Sitting_Idle")
+	f.visible = ceu != null and ceu.noite
 
 func _sair() -> void:
 	if _dentro == "" or _trans:
@@ -1291,20 +1352,37 @@ func _erguer_muralha(nivel: int) -> void:
 		var perto := absf(fposmod(a + PI * 0.25, PI * 0.5) - PI * 0.25)
 		if perto > 0.15:
 			angs.append(a)
+	var pedra := nivel >= 3   # nível 3: muralha de pedra com ameias (antes: paliçada de troncos)
+	var malha_muro: Mesh = tora
+	var malha_topo: Mesh = ponta
+	if pedra:
+		altura += 0.6
+		var bloco := BoxMesh.new()
+		bloco.size = Vector3(0.6, altura, 1.4)
+		bloco.material = Construcoes.mat_pedra()
+		malha_muro = bloco
+		var ameia := BoxMesh.new()
+		ameia.size = Vector3(0.62, 0.7, 1.45)
+		ameia.material = Construcoes.mat_pedra()
+		malha_topo = ameia
+		corda.material = Construcoes.mat_pedra()
+		corda.top_radius = 0.01   # sem amarração de corda na pedra
+		corda.bottom_radius = 0.01
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = tora
+	mm.mesh = malha_muro
 	mm.instance_count = angs.size()
 	for i in angs.size():
 		var a: float = angs[i]
-		var hh := 1.0 + 0.08 * sin(i * 1.7)
-		mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(1, hh, 1)), Vector3(cos(a) * MURO_R, altura * 0.5 * hh, sin(a) * MURO_R)))
+		var hh := 1.0 + 0.08 * sin(i * 1.7) if not pedra else 1.0
+		var giro := Basis(Vector3.UP, -(a + PI * 0.5)) if pedra else Basis()
+		mm.set_instance_transform(i, Transform3D(giro.scaled(Vector3(1, hh, 1)), Vector3(cos(a) * MURO_R, altura * 0.5 * hh, sin(a) * MURO_R)))
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
 	_muro.add_child(mmi)
 	var mp := MultiMesh.new()
 	mp.transform_format = MultiMesh.TRANSFORM_3D
-	mp.mesh = ponta
+	mp.mesh = malha_topo
 	mp.instance_count = angs.size()
 	var mc := MultiMesh.new()
 	mc.transform_format = MultiMesh.TRANSFORM_3D
@@ -1314,7 +1392,12 @@ func _erguer_muralha(nivel: int) -> void:
 		var a2: float = angs[i]
 		var hh := 1.0 + 0.08 * sin(i * 1.7)
 		var base := Vector3(cos(a2) * MURO_R, 0, sin(a2) * MURO_R)
-		mp.set_instance_transform(i, Transform3D(Basis(), base + Vector3(0, altura * hh + 0.27, 0)))
+		if pedra:   # ameias: um bloco sim, outro não
+			hh = 1.0
+			var giro2 := Basis(Vector3.UP, -(a2 + PI * 0.5))
+			mp.set_instance_transform(i, Transform3D(giro2 if i % 2 == 0 else giro2.scaled(Vector3(1, 0.001, 1)), base + Vector3(0, altura + 0.35, 0)))
+		else:
+			mp.set_instance_transform(i, Transform3D(Basis(), base + Vector3(0, altura * hh + 0.27, 0)))
 		mc.set_instance_transform(i * 2, Transform3D(Basis(), base + Vector3(0, altura * 0.3, 0)))
 		mc.set_instance_transform(i * 2 + 1, Transform3D(Basis(), base + Vector3(0, altura * 0.75, 0)))
 	for m2 in [mp, mc]:
@@ -1598,7 +1681,22 @@ func custo_aldeao() -> Dictionary:
 	return {"comida": 15 + 10 * aldeoes.size(), "madeira": 10 * aldeoes.size()}
 
 func deposito() -> Vector3:
+	for p in plots:   # com o armazém construído, os aldeões entregam na frente dele
+		if p.efeito == "armazem" and p.construido:
+			return p.global_position + (-p.global_position).normalized() * 5.0
 	return Vector3(0, 0, 4)
+
+## Pilhas do armazém: cada item aparece a cada 25 unidades do recurso (até 6).
+func _pilhas_armazem() -> void:
+	for p in plots:
+		if p.efeito == "armazem" and p.construido:
+			for tipo: String in ["madeira", "pedra", "comida"]:
+				var pilha := p.find_child("Pilha_" + tipo, true, false)
+				if pilha == null:
+					continue
+				var qtd := mini(6, int(res[tipo]) / 25)
+				for i in pilha.get_child_count():
+					(pilha.get_child(i) as Node3D).visible = i < qtd
 
 ## Reserva para um aldeão o recurso livre mais próximo do tipo pedido.
 func reservar(tipo: String, de: Vector3, quem: Node):

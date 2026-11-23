@@ -105,10 +105,6 @@ metadata/altura = 9
 transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 0, 0, -5)
 metadata/altura = 2.6
 
-[node name="Fogueira" parent="Aldeia" instance=ExtResource("8")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 5, 0, 3)
-metadata/altura = 1
-
 [node name="Barril" parent="Aldeia" instance=ExtResource("6")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -6, 0, -3)
 metadata/altura = 1.1
@@ -133,6 +129,17 @@ custo_madeira = 20
 custo_pedra = 10
 custo_comida = 0
 efeito = "vida"
+
+[node name="LoteArmazem" type="Node3D" parent="Lotes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -7.5)
+script = ExtResource("p_s")
+nome = "Armazém"
+modelo = ExtResource("6")
+altura = 5.0
+custo_madeira = 60
+custo_pedra = 30
+custo_comida = 0
+efeito = "armazem"
 
 [node name="LoteSerraria" type="Node3D" parent="Lotes"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29, 0, -13)

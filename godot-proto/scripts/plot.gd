@@ -13,8 +13,8 @@ const NIVEL_MAX := 3
 @export var custo_madeira := 20
 @export var custo_pedra := 0
 @export var custo_comida := 0
-## "vida" = +25 de vida máxima por nível · "madeira" = produz madeira · "torre" = atira nos inimigos · "descanso" = cura mais rápido
-@export_enum("nenhum", "vida", "madeira", "torre", "descanso", "muralha") var efeito := "nenhum"
+## "vida" = +25 de vida máxima por nível · "madeira" = produz madeira · "torre" = atira nos inimigos · "descanso" = cura mais rápido · "armazem" = aldeões entregam ali (mais perto) e o estoque aparece empilhado
+@export_enum("nenhum", "vida", "madeira", "torre", "descanso", "muralha", "armazem") var efeito := "nenhum"
 
 var nivel := 0
 var construido: bool:
@@ -70,7 +70,7 @@ func construir(animar := true) -> void:
 		_rotulo()
 		built.emit(self)
 		return
-	_b = Construcoes.torre_vigia() if efeito == "torre" else modelo.instantiate()   # torre: troncos e balista feitos por código
+	_b = _modelo_novo()
 	add_child(_b)
 	if efeito != "torre":   # porta virada para o centro da aldeia
 		_b.rotation.y = atan2(global_position.x, global_position.z)
@@ -94,11 +94,45 @@ func construir(animar := true) -> void:
 		create_tween().tween_property(_b, "scale", _base, 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	built.emit(self)
 
+## Modelo do prédio: torre e armazém são feitos por código e mudam com o nível.
+func _modelo_novo() -> Node3D:
+	if efeito == "torre":
+		return Construcoes.torre_nivel(nivel)
+	if efeito == "armazem":
+		return Construcoes.armazem(nivel)
+	return modelo.instantiate()
+
+func _trocar_modelo() -> void:
+	var giro := _b.rotation.y
+	_b.queue_free()
+	_b = _modelo_novo()
+	add_child(_b)
+	_b.rotation.y = giro
+	Construcoes.estilo_casa(_b)
+	Fit.to_height(_b, altura)
+	_base = _b.scale
+	var body := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var sh := BoxShape3D.new()
+	var box := Fit.bounds(_b)
+	sh.size = Vector3(box.size.x * 0.85, maxf(box.size.y, 1.0), box.size.z * 0.85)
+	cs.shape = sh
+	cs.position = box.get_center()
+	body.add_child(cs)
+	_b.add_child(body)
+	_b.scale = _base * Vector3(1, 0.05, 1)
+	create_tween().tween_property(_b, "scale", _base, 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
 func melhorar(animar := true) -> void:
 	if not construido or nivel >= NIVEL_MAX:
 		return
 	nivel += 1
 	if _b == null:
+		_rotulo()
+		upgraded.emit(self)
+		return
+	if efeito == "torre" or efeito == "armazem":   # evolui o modelo (torre: madeira -> braseiro -> pedra)
+		_trocar_modelo()
 		_rotulo()
 		upgraded.emit(self)
 		return

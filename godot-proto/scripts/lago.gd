@@ -171,7 +171,7 @@ func _malha_folha() -> ArrayMesh:
 
 ## Pedras na margem e um tronco caído com uma ponta na água.
 func _pedras_e_tronco() -> void:
-	var pedras := [load(QN + "Rock_Medium_1.gltf"), load(QN + "Rock_Medium_2.gltf"), load(KK + "Rock_1_A_Color1.gltf"), load(KK + "Rock_3_C_Color1.gltf"), load(QN + "Pebble_Round_3.gltf")]
+	var pedras := [load(QN + "Rock_Medium_1.gltf"), load(QN + "Rock_Medium_2.gltf"), load(QN + "Rock_Medium_3.gltf"), load(QN + "Pebble_Round_3.gltf"), load(QN + "Pebble_Square_4.gltf")]
 	for i in 16:
 		var a := _rng.randf() * TAU
 		var cena: PackedScene = pedras[i % pedras.size()]

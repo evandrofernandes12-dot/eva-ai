@@ -21,6 +21,7 @@ var mat_ceu: ShaderMaterial
 var _gotas: CPUParticles3D
 var _camera: Camera3D
 var lampioes: Array = []           # [material do vidro, OmniLight3D ou null]
+var _grupo_t := 0.0
 
 func iniciar(luz_sol: DirectionalLight3D, ambiente: Environment, camera: Camera3D) -> void:
 	sol = luz_sol
@@ -113,6 +114,15 @@ func _atualizar(delta: float) -> void:
 			var o: OmniLight3D = l[1]
 			o.light_energy = 1.4 * acesa
 			o.visible = acesa > 0.02
+	_grupo_t -= delta
+	if _grupo_t <= 0.0:   # braseiros das torres e outros fogos que só acendem à noite
+		_grupo_t = 1.0
+		for n in get_tree().get_nodes_in_group("luz_noite"):
+			if n is OmniLight3D:
+				(n as OmniLight3D).visible = acesa > 0.05
+				(n as OmniLight3D).light_energy = 1.6 * acesa
+			elif n is CPUParticles3D:
+				(n as CPUParticles3D).emitting = acesa > 0.3 and chuva < 0.6
 	if _gotas != null:
 		_gotas.emitting = chuva > 0.15
 		if _camera != null:

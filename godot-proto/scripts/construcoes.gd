@@ -605,3 +605,209 @@ static func torre_pedra(raio: float, alt: float) -> Node3D:
 	caixa(r, Vector3(0.55, alt + 3.0 + raio * 2.2, 0), Vector3(1.0, 0.65, 0.03), mat(Color(0.13, 0.22, 0.52), false, 1.0))
 	solido(r, Vector3(0, alt * 0.5, 0), Vector3(raio * 1.6, alt, raio * 1.6))
 	return r
+
+# ---------- evolução: pedra e braseiros ----------
+## Pedra assentada (paredes de pedra da muralha e da torre), em coordenadas do mundo.
+static func mat_pedra() -> StandardMaterial3D:
+	if not _mats.has("pedra_muro"):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.72, 0.7, 0.66)
+		m.albedo_texture = textura_pedras()
+		m.uv1_triplanar = true
+		m.uv1_world_triplanar = true
+		m.uv1_scale = Vector3.ONE * 0.45
+		m.roughness = 0.95
+		_mats["pedra_muro"] = m
+	return _mats["pedra_muro"]
+
+## Braseiro de ferro com fogo: acende à noite (Ceu procura o grupo "luz_noite").
+static func braseiro() -> Node3D:
+	var r := Node3D.new()
+	var ferro := mat(Color(0.12, 0.12, 0.13), false, 0.5)
+	tora(r, Vector3.ZERO, Vector3(0, 0.6, 0), 0.05, ferro)
+	var tigela := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.38
+	cm.bottom_radius = 0.18
+	cm.height = 0.3
+	cm.material = ferro
+	tigela.mesh = cm
+	tigela.position.y = 0.72
+	r.add_child(tigela)
+	var p := CPUParticles3D.new()
+	p.name = "Fogo"
+	p.amount = 24
+	p.lifetime = 0.7
+	p.local_coords = false
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 0.2
+	p.direction = Vector3.UP
+	p.spread = 10.0
+	p.gravity = Vector3(0, 2.0, 0)
+	p.initial_velocity_min = 0.3
+	p.initial_velocity_max = 0.8
+	p.scale_amount_min = 0.7
+	p.scale_amount_max = 1.3
+	var g := Gradient.new()
+	g.set_color(0, Color(1.0, 0.9, 0.5, 0.0))
+	g.set_color(1, Color(0.7, 0.1, 0.02, 0.0))
+	g.add_point(0.25, Color(1.0, 0.6, 0.15, 0.95))
+	p.color_ramp = g
+	var q := QuadMesh.new()
+	q.size = Vector2(0.4, 0.55)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.vertex_color_use_as_albedo = true
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	var tex := GradientTexture2D.new()
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(0.5, 0.0)
+	var gg := Gradient.new()
+	gg.set_color(0, Color(1, 1, 1, 1))
+	gg.set_color(1, Color(1, 1, 1, 0))
+	tex.gradient = gg
+	m.albedo_texture = tex
+	q.material = m
+	p.mesh = q
+	p.position.y = 0.95
+	p.emitting = false
+	p.add_to_group("luz_noite")
+	r.add_child(p)
+	var o := OmniLight3D.new()
+	o.light_color = Color(1.0, 0.62, 0.3)
+	o.omni_range = 14.0
+	o.position.y = 1.3
+	o.visible = false
+	o.add_to_group("luz_noite")
+	r.add_child(o)
+	return r
+
+## Torre de vigia conforme o nível: 1 = troncos; 2 = troncos com braseiro; 3 = pedra com ameias e braseiro.
+## Todas têm a balista (nó "Balista").
+static func torre_nivel(nivel: int) -> Node3D:
+	if nivel < 3:
+		var t := torre_vigia()
+		if nivel >= 2:
+			var b := braseiro()
+			b.position = Vector3(1.0, 6.55, 1.0)
+			t.add_child(b)
+		return t
+	var r := Node3D.new()
+	r.name = "TorreVigia"
+	var pedra := mat_pedra()
+	var alt := 6.6
+	var corpo := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 1.9
+	cm.bottom_radius = 2.2
+	cm.height = alt
+	cm.radial_segments = 16
+	cm.material = pedra
+	corpo.mesh = cm
+	corpo.position.y = alt * 0.5
+	r.add_child(corpo)
+	var anel := MeshInstance3D.new()
+	var am := CylinderMesh.new()
+	am.top_radius = 2.25
+	am.bottom_radius = 2.25
+	am.height = 0.45
+	am.radial_segments = 16
+	am.material = pedra
+	anel.mesh = am
+	anel.position.y = alt + 0.2
+	r.add_child(anel)
+	for i in 10:   # ameias
+		var a := TAU * i / 10.0
+		caixa(r, Vector3(cos(a) * 2.05, alt + 0.75, sin(a) * 2.05), Vector3(0.6, 0.65, 0.4), pedra, -a)
+	var escuro := mat(Color(0.06, 0.06, 0.08), false)
+	for k in 4:   # seteiras e porta
+		var a := 0.3 + k * TAU / 4.0
+		caixa(r, Vector3(cos(a) * 2.05, 2.5 + (k % 2) * 2.0, sin(a) * 2.05), Vector3(0.18, 0.9, 0.5), escuro, -a)
+	caixa(r, Vector3(0, 1.0, 2.15), Vector3(1.0, 2.0, 0.12), mat(MADEIRA_ESCURA))
+	var bal := balista()
+	bal.position = Vector3(0, alt + 0.42, 0)
+	r.add_child(bal)
+	for s: float in [-1.0, 1.0]:
+		var b := braseiro()
+		b.position = Vector3(s * 1.3, alt + 0.42, -1.0)
+		r.add_child(b)
+	var esc := MeshInstance3D.new()   # estandarte azul
+	var em := BoxMesh.new()
+	em.size = Vector3(0.9, 1.3, 0.04)
+	em.material = mat(Color(0.13, 0.22, 0.52), false, 1.0)
+	esc.mesh = em
+	esc.position = Vector3(0, alt - 1.2, 2.25)
+	r.add_child(esc)
+	return r
+
+## Armazém: galpão de madeira sobre base de pedra, telhado azul, frente aberta. Na frente, três pilhas
+## (toras, pedras, sacos de comida) que crescem com o estoque (main.gd mostra/esconde os itens: nós "Pilha_*").
+static func armazem(nivel: int) -> Node3D:
+	var r := Node3D.new()
+	r.name = "Armazem"
+	var w := 7.0 + nivel
+	var d := 5.0
+	var h := 3.2
+	var m := mat(MADEIRA)
+	var me := mat(MADEIRA_ESCURA)
+	caixa(r, Vector3(0, 0.25, 0), Vector3(w + 0.4, 0.5, d + 0.4), mat_pedra())                 # base de pedra
+	caixa(r, Vector3(0, h * 0.5 + 0.5, -d * 0.5), Vector3(w, h, 0.2), m)                       # fundo e laterais
+	for s: float in [-1.0, 1.0]:
+		caixa(r, Vector3(s * w * 0.5, h * 0.5 + 0.5, 0), Vector3(0.2, h, d), m)
+	for x in int(w / 2.0) + 1:   # pilares da frente
+		var px := -w * 0.5 + x * w / int(w / 2.0)
+		tora(r, Vector3(px, 0.5, d * 0.5), Vector3(px, h + 0.5, d * 0.5), 0.13, me)
+	caixa(r, Vector3(0, h + 0.55, d * 0.5), Vector3(w + 0.3, 0.25, 0.25), me)
+	for s: float in [-1.0, 1.0]:   # telhado de duas águas, azul ardósia
+		var tel := caixa(r, Vector3(0, h + 1.35, s * d * 0.27), Vector3(w + 0.8, 0.15, d * 0.62), mat(Color(0.24, 0.32, 0.5)))
+		tel.rotation.x = -s * 0.55
+	for s: float in [-1.0, 1.0]:   # empena
+		var em := caixa(r, Vector3(s * w * 0.5, h + 1.2, 0), Vector3(0.18, 1.3, d * 0.75), m)
+		em.scale = Vector3.ONE
+	for k in 3:   # prateleiras com caixotes e barris lá dentro
+		caixa(r, Vector3(-w * 0.3 + k * w * 0.3, 1.6, -d * 0.35), Vector3(w * 0.25, 0.08, 0.8), me)
+		var cx := caixote(0.55)
+		cx.position = Vector3(-w * 0.3 + k * w * 0.3, 1.64, -d * 0.35)
+		r.add_child(cx)
+	var placa := Label3D.new()
+	placa.text = "ARMAZÉM"
+	placa.font_size = 64
+	placa.pixel_size = 0.008
+	placa.modulate = Color(0.2, 0.1, 0.04)
+	placa.outline_size = 0
+	placa.position = Vector3(0, h + 0.55, d * 0.5 + 0.14)
+	r.add_child(placa)
+	# pilhas do estoque, na frente (até 6 itens cada)
+	var casca := mat(Color(0.45, 0.31, 0.18))
+	var pedra := mat(Color(0.55, 0.55, 0.57), true, 0.95)
+	var saco := mat(Color(0.75, 0.65, 0.45), true, 1.0)
+	var pilhas := {"Pilha_madeira": Vector3(-w * 0.3, 0, d * 0.5 + 1.4), "Pilha_pedra": Vector3(0, 0, d * 0.5 + 1.4), "Pilha_comida": Vector3(w * 0.3, 0, d * 0.5 + 1.4)}
+	for nome: String in pilhas:
+		var p := Node3D.new()
+		p.name = nome
+		p.position = pilhas[nome]
+		r.add_child(p)
+		for i in 6:
+			var it := Node3D.new()
+			it.name = "Item%d" % i
+			p.add_child(it)
+			var fila := i / 3
+			var col := i % 3
+			if nome == "Pilha_madeira":
+				var y := 0.18 + fila * 0.32
+				tora(it, Vector3(-0.35 + col * 0.35, y, -0.6), Vector3(-0.35 + col * 0.35, y, 0.6), 0.16, casca)
+			elif nome == "Pilha_pedra":
+				caixa(it, Vector3(-0.35 + col * 0.35, 0.18 + fila * 0.34, 0), Vector3(0.36, 0.34, 0.4), pedra, i * 0.7)
+			else:
+				var sm := SphereMesh.new()
+				sm.radius = 0.24
+				sm.height = 0.55
+				sm.material = saco
+				var mi := MeshInstance3D.new()
+				mi.mesh = sm
+				mi.position = Vector3(-0.35 + col * 0.35, 0.27 + fila * 0.42, 0)
+				it.add_child(mi)
+	return r
