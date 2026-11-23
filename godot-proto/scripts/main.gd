@@ -18,7 +18,11 @@ const ENFEITES := [[QN + "Flower_3_Group.gltf", 0.35, 0.55, 45], [QN + "Flower_4
 	[QN + "DeadTree_1.gltf", 5.0, 7.0, 6], [QN + "DeadTree_3.gltf", 4.0, 6.0, 6],
 	[QN + "Clover_1.gltf", 0.15, 0.25, 30], [QN + "Pebble_Round_2.gltf", 0.15, 0.3, 30], [QN + "Pebble_Square_3.gltf", 0.15, 0.3, 20]]
 const TUFOS := [QN + "Grass_Common_Short.gltf", QN + "Grass_Common_Tall.gltf", QN + "Grass_Wispy_Short.gltf", QN + "Grass_Wispy_Tall.gltf"]
-const DIST_ARVORE := 85.0        # árvores somem (com fade) a partir daqui: alivia o tablet; a neblina disfarça
+const DIST_ARVORE := 45.0        # até aqui a árvore é o modelo 3D; depois vira a "foto" (impostor)
+const DIST_IMPOSTOR := 150.0     # a foto some daqui em diante (a neblina disfarça)
+## Altura da foto em relação à altura da árvore (gerada por ../scripts/impostores.py)
+const IMPOSTOR := {"CommonTree_1": 1.2855, "CommonTree_2": 1.1916, "CommonTree_3": 1.02, "CommonTree_4": 1.02, "CommonTree_5": 1.2286, "Pine_1": 1.3786, "Pine_2": 1.5842, "Pine_3": 1.1027, "Pine_4": 1.1563, "Pine_5": 1.5013, "TwistedTree_1": 1.6485, "TwistedTree_2": 1.1372, "TwistedTree_3": 1.4603}
+const BOSQUES := 22               # centros de bosque: as árvores se agrupam em volta deles
 const ORC := preload("res://models/Orc.gltf")
 const KNIGHT := preload("res://models/Knight.glb")
 const VILLAGER := preload("res://scripts/villager.gd")
@@ -28,12 +32,13 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v46"
+const VERSAO := "v47"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
 const RIO_R := 64.0              # raio médio do riacho em volta da aldeia (ondula ±3,5 m)
 const RIO_LARG := 5.0            # largura da água
+const LAGO_ANG := PI * 0.75      # o lago fica a noroeste, encostado no riacho (que o alimenta)
 const VIRAR_PARA_PRACA := ["SalaoDoChefe", "Casa1", "Casa2", "Casa3", "Forja", "Moinho", "Barraca"]
 const ALTURA_CASTELO := 13.0     # castelo maior por fora (antes 10 m)
 const DIRS := [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
@@ -51,7 +56,7 @@ const OFICIOS := ["madeira", "pedra", "comida"]
 
 @export var forest_radius := 95.0
 @export var village_radius := 46.0
-@export var tree_count := 190
+@export var tree_count := 300
 @export var rock_count := 40
 @export var bush_count := 50
 @export var max_enemies := 4
@@ -70,6 +75,7 @@ var tiros: Array = []            # projéteis: {node, alvo, dano, area}
 var _renascer: Array = []        # recursos que voltam a nascer: {t, scene, h, tipo, hp}
 var _holder: Node3D
 var ceu: Ceu                     # dia, noite e chuva (scripts/ceu.gd)
+var lago: Lago                   # lago da floresta (scripts/lago.gd)
 var _painel: Control
 var boss: Node3D                 # Minotauro Dark, quando está vivo
 var boss_derrotas := 0
@@ -197,8 +203,14 @@ func _ready() -> void:
 		plots.append(p)
 		p.built.connect(_on_built)
 		p.upgraded.connect(_on_upgraded)
+	lago = Lago.new()
+	lago.name = "Lago"
+	var rl := RIO_R + Lago.RAIO * 0.85
+	lago.position = Vector3(cos(LAGO_ANG) * rl, 0, sin(LAGO_ANG) * rl)
+	add_child(lago)
 	_scatter_forest()
 	_ceu()
+	lago.montar(ceu)
 	_aldeia_extra()
 	for c in $Aldeia.get_children():
 		Construcoes.estilo_casa(c)
@@ -437,12 +449,15 @@ func _add_collision(b: Node3D) -> void:
 func _ring_pos() -> Vector3:
 	var a := 0.0
 	var r := 0.0
-	for tentativa in 12:   # longe do riacho
+	for tentativa in 12:   # longe do riacho e do lago
 		a = _rng.randf() * TAU
 		r = sqrt(_rng.randf_range(pow(village_radius / forest_radius, 2.0), 1.0)) * forest_radius
-		if absf(r - _rio_raio(a)) > RIO_LARG * 0.5 + 2.5:
+		if absf(r - _rio_raio(a)) > RIO_LARG * 0.5 + 2.5 and not _no_lago(Vector3(cos(a) * r, 0, sin(a) * r), 3.5):
 			break
 	return Vector3(cos(a) * r, 0, sin(a) * r)
+
+func _no_lago(p: Vector3, folga: float) -> bool:
+	return lago != null and lago.dentro(p, folga)
 
 ## Raio do riacho no ângulo `a` (ondula em volta da aldeia).
 func _rio_raio(a: float) -> float:
@@ -479,7 +494,7 @@ func _tufos_grama(holder: Node3D) -> void:
 			var a := _rng.randf() * TAU
 			var r := sqrt(_rng.randf_range(pow(10.0 / forest_radius, 2.0), 1.0)) * forest_radius
 			var pp := Vector3(cos(a) * r, 0, sin(a) * r)
-			if absf(r - _rio_raio(a)) < RIO_LARG * 0.5 + 0.5 or absf(r - MURO_R) < 1.0 or minf(absf(pp.x), absf(pp.z)) < 2.2 or (r < MURO_R and _perto_de_predio(pp)):   # fora da água, da muralha, dos caminhos e dos prédios
+			if absf(r - _rio_raio(a)) < RIO_LARG * 0.5 + 0.5 or absf(r - MURO_R) < 1.0 or minf(absf(pp.x), absf(pp.z)) < 2.2 or _no_lago(pp, 0.5) or (r < MURO_R and _perto_de_predio(pp)):   # fora da água, da muralha, dos caminhos e dos prédios
 				continue
 			pos.append(Vector3(cos(a) * r, 0, sin(a) * r))
 		for sct in setores:
@@ -513,6 +528,62 @@ func _pedra_chao(pai: Node3D, cena: PackedScene, pos: Vector3) -> void:
 	n.position.y = -bb.position.y * esc - bb.size.y * esc * 0.6   # quase enterrada: não tropeça e não esconde o pé
 	Efeitos.distancia(n, 40.0)
 
+## Posição de árvore: agrupada em bosques e mais densa longe da aldeia (borda da floresta mais fechada).
+var _bosques: Array = []
+func _pos_arvore() -> Vector3:
+	if _bosques.is_empty():
+		for i in BOSQUES:
+			var a := _rng.randf() * TAU
+			var r := _rng.randf_range(village_radius + 6.0, forest_radius - 4.0)
+			_bosques.append(Vector3(cos(a) * r, 0, sin(a) * r))
+	for tentativa in 12:
+		var p: Vector3
+		if _rng.randf() < 0.7:   # 70% em bosques, 30% soltas (mais para a borda)
+			var c: Vector3 = _bosques[_rng.randi() % _bosques.size()]
+			p = c + Vector3(_rng.randfn(0.0, 7.0), 0, _rng.randfn(0.0, 7.0))
+		else:
+			var a := _rng.randf() * TAU
+			var r := lerpf(village_radius, forest_radius, sqrt(_rng.randf()))
+			p = Vector3(cos(a) * r, 0, sin(a) * r)
+		var rr := Vector2(p.x, p.z).length()
+		var ang := atan2(p.z, p.x)
+		if rr > village_radius and rr < forest_radius and absf(rr - _rio_raio(ang)) > RIO_LARG * 0.5 + 2.5 and not _no_lago(p, 4.0):
+			return p
+	return _ring_pos()
+
+## De longe, a árvore vira uma foto virada para a câmera (impostor): bem mais leve para o tablet.
+static var _mat_imp := {}
+func _impostor(n: Node3D, scene: PackedScene, h: float) -> void:
+	var nome := scene.resource_path.get_file().get_basename()
+	if not IMPOSTOR.has(nome):
+		return
+	var arq := "res://assets/nature/impostores/%s.png" % nome
+	if not ResourceLoader.exists(arq):
+		return
+	if not _mat_imp.has(nome):
+		var m := StandardMaterial3D.new()
+		m.albedo_texture = load(arq)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		m.alpha_scissor_threshold = 0.45
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.roughness = 1.0
+		_mat_imp[nome] = m
+	var alto: float = h * float(IMPOSTOR[nome])
+	var q := QuadMesh.new()
+	q.size = Vector2(alto * 0.5, alto)
+	var mi := MeshInstance3D.new()
+	mi.mesh = q
+	mi.material_override = _mat_imp[nome]
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.visibility_range_begin = DIST_ARVORE
+	mi.visibility_range_begin_margin = DIST_ARVORE * 0.1
+	mi.visibility_range_end = DIST_IMPOSTOR
+	var s := n.scale.x
+	mi.scale = Vector3.ONE / s
+	mi.position = Vector3(0, (h * 0.5 - n.position.y) / s, 0)
+	n.add_child(mi)
+
 func _perto_de_predio(p: Vector3) -> bool:
 	for f in _fixos:
 		if Vector2(p.x - f.pos.x, p.z - f.pos.z).length() < float(f.r) + 1.0:
@@ -544,12 +615,13 @@ func _malha_de(cena: PackedScene) -> Dictionary:
 func _place(holder: Node3D, scene: PackedScene, h: float, tipo: String, hp: int) -> void:
 	var n: Node3D = scene.instantiate()
 	holder.add_child(n)
-	n.position = _ring_pos()
+	n.position = _pos_arvore() if tipo == "madeira" else _ring_pos()
 	n.rotation.y = _rng.randf() * TAU
 	Fit.to_height(n, h)
 	if tipo == "madeira":       # árvores balançam ao vento
 		Efeitos.vento(n, 0.18, h)
-		Efeitos.distancia(n, DIST_ARVORE)
+		Efeitos.distancia(n, DIST_ARVORE, true)
+		_impostor(n, scene, h)
 	elif tipo == "comida" or (tipo == "" and h < 1.5):   # arbustos e plantas, de leve
 		Efeitos.vento(n, 0.06, h)
 		Efeitos.distancia(n, 45.0)

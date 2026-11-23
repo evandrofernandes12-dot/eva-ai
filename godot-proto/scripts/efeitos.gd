@@ -41,13 +41,13 @@ static func vento(raiz: Node, forca: float, altura: float) -> void:
 			mi.set_surface_override_material(i, _vento[chave])
 
 ## Some de longe: árvores e plantas distantes não são desenhadas (a neblina disfarça).
-static func distancia(raiz: Node, ate: float) -> void:
+static func distancia(raiz: Node, ate: float, sombra := false) -> void:
 	var malhas: Array = []
 	Fit._collect(raiz, malhas)
 	for mi: MeshInstance3D in malhas:
 		mi.visibility_range_end = ate
 		mi.visibility_range_end_margin = ate * 0.1
-		if ate < 50.0:
+		if ate < 50.0 and not sombra:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 ## Luz de borda por cima de todos os materiais do modelo.
