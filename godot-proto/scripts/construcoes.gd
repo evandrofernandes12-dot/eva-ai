@@ -171,7 +171,18 @@ static func solido(pai: Node3D, pos: Vector3, tam: Vector3) -> void:
 	pai.add_child(sb)
 
 ## Poste com lampião (vidro com brilho próprio, sem luz de verdade para não pesar no tablet).
-static func lampiao() -> Node3D:
+## Vidro dos lampiões: um material só, para o Ceu acender/apagar todos de uma vez.
+static func vidro_lampiao() -> StandardMaterial3D:
+	if not _mats.has("vidro_lampiao"):
+		var vidro := StandardMaterial3D.new()
+		vidro.albedo_color = Color(1.0, 0.75, 0.35)
+		vidro.emission_enabled = true
+		vidro.emission = Color(1.0, 0.62, 0.22)
+		vidro.emission_energy_multiplier = 0.3
+		_mats["vidro_lampiao"] = vidro
+	return _mats["vidro_lampiao"]
+
+static func lampiao(com_luz := false) -> Node3D:
 	var r := Node3D.new()
 	var me := mat(MADEIRA_ESCURA)
 	var ferro := mat(Color(0.12, 0.12, 0.13), false, 0.5)
@@ -180,12 +191,16 @@ static func lampiao() -> Node3D:
 	tora(r, Vector3(0.55, 2.85, 0), Vector3(0.55, 2.6, 0), 0.008, ferro)
 	caixa(r, Vector3(0.55, 2.45, 0), Vector3(0.24, 0.04, 0.24), ferro)
 	caixa(r, Vector3(0.55, 2.2, 0), Vector3(0.22, 0.04, 0.22), ferro)
-	var vidro := StandardMaterial3D.new()
-	vidro.albedo_color = Color(1.0, 0.75, 0.35)
-	vidro.emission_enabled = true
-	vidro.emission = Color(1.0, 0.62, 0.22)
-	vidro.emission_energy_multiplier = 1.6
-	caixa(r, Vector3(0.55, 2.32, 0), Vector3(0.17, 0.22, 0.17), vidro)
+	caixa(r, Vector3(0.55, 2.32, 0), Vector3(0.17, 0.22, 0.17), vidro_lampiao())
+	if com_luz:   # luz de verdade (acende à noite pelo Ceu); só em poucos lampiões, para não pesar
+		var o := OmniLight3D.new()
+		o.name = "Luz"
+		o.position = Vector3(0.55, 2.2, 0)
+		o.light_color = Color(1.0, 0.7, 0.4)
+		o.omni_range = 9.0
+		o.light_energy = 0.0
+		o.visible = false
+		r.add_child(o)
 	return r
 
 ## Placa de direção com tábuas apontando para os lugares.
@@ -412,6 +427,16 @@ static func ponte(comp: float, larg: float, pedra: bool) -> Node3D:
 			for s: float in [-1.0, 1.0]:   # vigas em arco por baixo das bordas
 				var vg := caixa(r, meio + Vector3(0, -0.12, s * (larg * 0.5 - 0.15)), Vector3(seg + 0.02, 0.25, 0.22), me)
 				vg.rotation.z = incl
+		for lado_b: float in [-1.0, 1.0]:   # barreira invisível no corrimão: quem está na ponte só sai pelas pontas
+			var bb := StaticBody3D.new()
+			var bc := CollisionShape3D.new()
+			var bs := BoxShape3D.new()
+			bs.size = Vector3(seg + 0.05, 1.4, 0.2)
+			bc.shape = bs
+			bb.add_child(bc)
+			bb.position = meio + Vector3(0, 0.85, lado_b * (larg * 0.5 - 0.1))
+			bb.rotation.z = incl
+			r.add_child(bb)
 		for s: float in [-1.0, 1.0]:   # corrimão (madeira) ou mureta (pedra)
 			if pedra:
 				var mu := caixa(r, meio + Vector3(0, 0.55, s * (larg * 0.5 - 0.2)), Vector3(seg + 0.02, 0.7, 0.4), me)

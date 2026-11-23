@@ -57,9 +57,29 @@ func _andar(dest: Vector3, delta: float) -> bool:
 	Fit.play(_ap, _run)
 	return false
 
+## Noite: larga o trabalho, entrega o que carrega e vai para casa (some lá dentro). De manhã volta.
+func dormir(sim: bool) -> void:
+	if sim:
+		if alvo != null and alvo is Dictionary and alvo.get("dono") == self:
+			alvo.dono = null
+		alvo = null
+		estado = "casa"
+	else:
+		visible = true
+		estado = "busca"
+		_t = randf() * 2.0
+
 func _process(delta: float) -> void:
 	_t -= delta
 	match estado:
+		"casa":
+			if not visible:
+				return
+			if carga > 0 and _andar(jogo.deposito(), delta):
+				jogo.res[papel] += carga
+				carga = 0
+			elif carga == 0 and _andar(jogo.casa_perto(global_position), delta):
+				visible = false
 		"busca":
 			Fit.play(_ap, _idle)
 			if _t > 0.0:

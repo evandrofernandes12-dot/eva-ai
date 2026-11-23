@@ -28,7 +28,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v45"
+const VERSAO := "v46"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -69,6 +69,7 @@ var aldeoes: Array = []
 var tiros: Array = []            # projéteis: {node, alvo, dano, area}
 var _renascer: Array = []        # recursos que voltam a nascer: {t, scene, h, tipo, hp}
 var _holder: Node3D
+var ceu: Ceu                     # dia, noite e chuva (scripts/ceu.gd)
 var _painel: Control
 var boss: Node3D                 # Minotauro Dark, quando está vivo
 var boss_derrotas := 0
@@ -347,7 +348,10 @@ func _aldeia_extra() -> void:
 		n.rotation.y = giro
 		r.add_child(n)
 	for p in [Vector3(7, 0, -6), Vector3(-7, 0, -6), Vector3(-8, 0, 4), Vector3(2.5, 0, 16), Vector3(-2.5, 0, 28), Vector3(16, 0, -2.5), Vector3(-16, 0, 2.5), Vector3(-2.5, 0, -15), Vector3(2.5, 0, -15)]:
-		por.call(Construcoes.lampiao(), p, atan2(-p.x, -p.z) + PI / 2.0)
+		var lp := Construcoes.lampiao(p.length() < 9.0)   # os da praça têm luz de verdade à noite
+		por.call(lp, p, atan2(-p.x, -p.z) + PI / 2.0)
+		var luz := lp.get_node_or_null("Luz")
+		ceu.lampioes.append([Construcoes.vidro_lampiao(), luz])
 	var alvos := {"Salão do Rei": Vector3(0, 0, -27), "Forja": Vector3(27, 0, 4), "Moinho": Vector3(29, 0, -13), "Portão Sul": Vector3(0, 0, 40)}
 	var pl := Vector3(3.5, 0, 6.5)
 	var giros: Array = []
@@ -368,18 +372,32 @@ func _aldeia_extra() -> void:
 
 ## Céu: foto 360° (Sketchfab, CC-BY: Marcin Lubecki), no lugar do céu liso. A luz ambiente continua branca.
 func _ceu() -> void:
-	if not ResourceLoader.exists("res://models/ceu.jpg"):
-		return
-	var env: Environment = $Ambiente.environment
-	var mat := PanoramaSkyMaterial.new()
-	mat.panorama = load("res://models/ceu.jpg")
-	var sky := Sky.new()
-	sky.sky_material = mat
-	env.background_mode = Environment.BG_SKY
-	env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.58, 0.62, 0.7)   # luz ambiente suave (branca demais deixava todos lavados)
-	env.ambient_light_energy = 0.7
+	ceu = Ceu.new()
+	ceu.name = "Ceu"
+	add_child(ceu)
+	ceu.iniciar($Sol, $Ambiente.environment, cam)
+	ceu.mudou_periodo.connect(_periodo)
+
+## Noite: aldeões vão para casa; de manhã voltam ao trabalho.
+func _periodo(e_noite: bool) -> void:
+	say("Anoiteceu. Os aldeões foram para casa." if e_noite else "Amanheceu!", 3.0)
+	for v in aldeoes:
+		if is_instance_valid(v):
+			v.dormir(e_noite)
+
+## Porta da casa mais perta (para os aldeões dormirem).
+func casa_perto(de: Vector3) -> Vector3:
+	var melhor := Vector3(0, 0, 4)
+	var bd := 1e9
+	for f in _fixos:
+		if String(f.nome).begins_with("Casa"):
+			var c: Vector3 = Vector3(f.pos.x, 0, f.pos.z)
+			var porta: Vector3 = c - c.normalized() * (float(f.r) + 0.5)
+			var dd := porta.distance_to(de)
+			if dd < bd:
+				bd = dd
+				melhor = porta
+	return melhor
 
 func say(t: String, secs := 4.0) -> void:
 	msg.text = t
@@ -1543,6 +1561,8 @@ func contratar(papel: String, pagar := true) -> void:
 	v.position = deposito() + Vector3(_rng.randf_range(-3, 3), 0, _rng.randf_range(-3, 3))
 	add_child(v)
 	aldeoes.append(v)
+	if ceu != null and ceu.noite:
+		v.dormir.call_deferred(true)
 	if pagar:
 		say("%s contratado!" % v.NOMES[papel])
 		_save()
@@ -1765,7 +1785,7 @@ func _save() -> void:
 		papeis.append(v.papel)
 	var f := FileAccess.open(SAVE, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual}))
+		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual, "hora": ceu.hora, "dia": ceu.dia}))
 
 func _load() -> bool:
 	if not FileAccess.file_exists(SAVE):
@@ -1780,6 +1800,7 @@ func _load() -> bool:
 	var c := String(d.get("classe", ""))
 	classe = c if CLASSES.has(c) else ""
 	magia = String(d.get("magia", "orbe"))
+	ceu.definir(float(d.get("hora", 9.0)), int(d.get("dia", 0)))
 	var vis = d.get("visual", {})
 	visual = vis if vis is Dictionary else {}
 	var hid := String(d.get("heroi", ""))
