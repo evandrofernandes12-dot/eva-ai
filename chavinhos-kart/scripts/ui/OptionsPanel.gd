@@ -37,6 +37,13 @@ func _ready() -> void:
 	mode.select(int(Save.get_setting("touch_mode", 0)))
 	mode.item_selected.connect(func(i: int) -> void: Save.set_setting("touch_mode", i))
 	col.add_child(_row("Botões de toque", mode))
+	var steer := OptionButton.new()
+	steer.custom_minimum_size = Vector2(320, 48)
+	steer.add_item("Joystick (aparece onde tocar)", 0)
+	steer.add_item("Botões de seta", 1)
+	steer.select(int(Save.get_setting("steer_mode", 0)))
+	steer.item_selected.connect(func(i: int) -> void: Save.set_setting("steer_mode", i))
+	col.add_child(_row("Direção no toque", steer))
 	col.add_child(_row("Tamanho dos botões", _make_slider("touch_scale", 1.0, 0.5, 1.4)))
 	col.add_child(_row("Opacidade dos botões", _make_slider("touch_alpha", 1.0, 0.3, 1.0)))
 

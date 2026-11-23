@@ -7,14 +7,22 @@ extends Control
 signal pause_pressed
 
 var _buttons: Array[TouchButton] = []
+var _steer_buttons: Array[TouchButton] = []
+var _joystick: Joystick
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# esquerda: volante
-	_add("", "steer_left", 20, 24, 132, false).arrow = -1
-	_add("", "steer_right", 166, 24, 132, false).arrow = 1
-	_add("VOLTAR", "reset_kart", 20, 172, 78, false, 15)
+	# esquerda: joystick invisível (aparece onde o dedo tocar) — criado primeiro para ficar por baixo dos botões
+	_joystick = Joystick.new()
+	add_child(_joystick)
+	# ...ou botões de direção (opção "Botões" nas Opções)
+	var left_b: TouchButton = _add("", "steer_left", 20, 24, 150, false)
+	left_b.arrow = -1
+	var right_b: TouchButton = _add("", "steer_right", 184, 24, 150, false)
+	right_b.arrow = 1
+	_steer_buttons = [left_b, right_b]
+	_add("VOLTAR", "reset_kart", 20, 215, 78, false, 15)
 	# direita: pedais e ações
 	_add("ACEL", "accelerate", 20, 20, 150, true, 24)
 	_add("FREIO", "brake", 184, 20, 112, true, 20)
@@ -34,6 +42,14 @@ func refresh() -> void:
 	var auto_on: bool = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
 	visible = (mode == 1) or (mode == 0 and auto_on)
 	modulate.a = float(Save.get_setting("touch_alpha", 1.0))
+	var joystick_mode: bool = int(Save.get_setting("steer_mode", 0)) == 0
+	_joystick.visible = joystick_mode
+	for b in _steer_buttons:
+		b.visible = not joystick_mode
+		if joystick_mode:
+			b.release()
+	if not joystick_mode:
+		_joystick.release()
 	_layout()
 
 
@@ -50,6 +66,10 @@ func _layout() -> void:
 		var y: float = b.from_top if b.from_top >= 0.0 else vs.y - b.bottom * sc - sz
 		b.position = Vector2(x, y)
 		b.size = Vector2(sz, sz)
+	# área do joystick: metade esquerda, abaixo do minimapa
+	_joystick.position = Vector2(0, vs.y * 0.3)
+	_joystick.size = Vector2(vs.x * 0.46, vs.y * 0.7)
+	_joystick.radius = 78.0 * sc
 
 
 func _input(event: InputEvent) -> void:
@@ -61,6 +81,7 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree():
 		for b in _buttons:
 			b.release()
+		_joystick.release()
 
 
 func _add(text: String, action: String, margin: float, bottom: float, size_px: float, right_side: bool, font: int = 28) -> TouchButton:
@@ -149,3 +170,102 @@ class TouchButton extends Control:
 		var ts: Vector2 = font.get_string_size(label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 		draw_string(font, Vector2(c.x - ts.x * 0.5, c.y + ts.y * 0.3), label_text,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color.WHITE if not _down else Color(0.2, 0.1, 0.0))
+
+
+
+## Joystick flutuante: invisível até tocar; nasce onde o dedo encostou e vira o kart conforme o
+## arraste para os lados (analógico: quanto mais longe, mais vira).
+class Joystick extends Control:
+	var radius: float = 78.0
+	var _touch: int = -99
+	var _center: Vector2 = Vector2.ZERO
+	var _knob: Vector2 = Vector2.ZERO
+	var _active: bool = false
+
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_STOP
+
+	func _gui_input(event: InputEvent) -> void:
+		if event is InputEventScreenTouch:
+			var t: InputEventScreenTouch = event
+			if t.pressed and not _active:
+				_begin(t.index, t.position)
+			elif not t.pressed and t.index == _touch:
+				release()
+			accept_event()
+		elif event is InputEventScreenDrag:
+			var d: InputEventScreenDrag = event
+			if _active and d.index == _touch:
+				_move(d.position)
+			accept_event()
+		elif event is InputEventMouseButton:
+			# mouse / toque emulado como mouse (só se nenhum dedo já controla o joystick)
+			var m: InputEventMouseButton = event
+			if m.button_index == MOUSE_BUTTON_LEFT:
+				if m.pressed and not _active:
+					_begin(-1, m.position)
+				elif not m.pressed and _touch == -1:
+					release()
+				accept_event()
+		elif event is InputEventMouseMotion and _active and _touch == -1:
+			_move((event as InputEventMouseMotion).position)
+
+	func _begin(index: int, pos: Vector2) -> void:
+		_touch = index
+		_active = true
+		_center = pos
+		_knob = pos
+		_apply()
+		queue_redraw()
+
+	func _move(pos: Vector2) -> void:
+		var off: Vector2 = pos - _center
+		if off.length() > radius * 1.6: # o centro acompanha o dedo se ele for longe demais
+			_center = pos - off.normalized() * radius * 1.6
+			off = pos - _center
+		if off.length() > radius:
+			off = off.normalized() * radius
+		_knob = _center + off
+		_apply()
+		queue_redraw()
+
+	func release() -> void:
+		_active = false
+		_touch = -99
+		Input.action_release("steer_left")
+		Input.action_release("steer_right")
+		queue_redraw()
+
+	func _apply() -> void:
+		var x: float = clampf((_knob.x - _center.x) / (radius * 0.8), -1.0, 1.0)
+		if absf(x) < 0.12: # zona morta
+			x = 0.0
+		if x > 0.0:
+			Input.action_press("steer_right", x)
+			Input.action_release("steer_left")
+		elif x < 0.0:
+			Input.action_press("steer_left", -x)
+			Input.action_release("steer_right")
+		else:
+			Input.action_release("steer_left")
+			Input.action_release("steer_right")
+
+	func _draw() -> void:
+		if not _active:
+			# dica bem discreta de onde tocar
+			var hint := Vector2(radius + 30.0, size.y - radius - 30.0)
+			draw_arc(hint, radius, 0.0, TAU, 48, Color(1, 1, 1, 0.18), 3.0, true)
+			_arrows(hint, Color(1, 1, 1, 0.22))
+			return
+		draw_circle(_center, radius, Color(0.08, 0.05, 0.02, 0.35))
+		draw_arc(_center, radius, 0.0, TAU, 48, Color(1, 1, 1, 0.75), 4.0, true)
+		_arrows(_center, Color(1, 1, 1, 0.6))
+		draw_circle(_knob, radius * 0.42, Color(1.0, 0.85, 0.3, 0.85))
+		draw_arc(_knob, radius * 0.42, 0.0, TAU, 32, Color(1, 1, 1, 0.9), 3.0, true)
+
+	func _arrows(c: Vector2, col: Color) -> void:
+		var r: float = radius * 0.16
+		for side: float in [-1.0, 1.0]:
+			var tip := Vector2(c.x + side * radius * 0.82, c.y)
+			var back: float = tip.x - side * r * 1.4
+			draw_colored_polygon(PackedVector2Array([tip, Vector2(back, c.y - r), Vector2(back, c.y + r)]), col)

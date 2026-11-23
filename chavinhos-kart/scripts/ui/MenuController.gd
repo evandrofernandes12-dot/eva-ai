@@ -117,8 +117,9 @@ func _build_controls_panel() -> void:
 		"E/Enter: usar item  ·  R: voltar à pista  ·  Esc: pausa",
 		"",
 		"TOQUE (tablet/celular): botões na tela",
-		"Setas virar  ·  ACEL / FREIO  ·  DRIFT  ·  ITEM  ·  VOLTAR  ·  II pausa",
-		"Ajuste tamanho e opacidade em OPÇÕES.",
+		"Direção: toque e arraste na metade esquerda (joystick)",
+		"ACEL / FREIO  ·  DRIFT  ·  ITEM  ·  VOLTAR  ·  II pausa",
+		"Prefere setas? Troque em OPÇÕES (Direção no toque).",
 	]
 	for line in lines:
 		col.add_child(UIStyle.label(line, 22, Color.WHITE, 4))
