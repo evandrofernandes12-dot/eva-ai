@@ -39,14 +39,14 @@ void sky() {
 	c += cor_sol * (smoothstep(0.9993, 0.9996, ds) * 6.0 + pow(max(ds, 0.0), 180.0) * 0.8 + pow(max(ds, 0.0), 12.0) * 0.18 * dia) * (1.0 - chuva * 0.9);
 	// lua: disco com sombra de fase e halo azulado
 	float dl = dot(d, normalize(lua_dir));
-	if (dl > 0.9990) {
+	if (dl > 0.9982) {
 		vec3 lado = normalize(cross(normalize(lua_dir), vec3(0.0, 1.0, 0.0)));
-		float x = dot(d - normalize(lua_dir) * dl, lado) / 0.0447;   // -1..1 no disco
+		float x = dot(d - normalize(lua_dir) * dl, lado) / 0.06;   // -1..1 no disco
 		float luz = smoothstep(-0.1, 0.1, x + 2.0 * fase_lua - 1.0);   // 1 = cheia, 0 = nova
 		float mancha = 0.85 + 0.15 * hash(floor(d * 900.0));
-		c = mix(c, vec3(0.92, 0.93, 0.88) * mancha, smoothstep(0.9990, 0.9993, dl) * max(luz, 0.08) * (1.0 - chuva * 0.8));
+		c = mix(c, vec3(0.92, 0.93, 0.88) * mancha, smoothstep(0.9982, 0.9986, dl) * max(luz, 0.08) * (1.0 - chuva * 0.8));
 	}
-	c += vec3(0.5, 0.6, 0.8) * pow(max(dl, 0.0), 300.0) * 0.5 * noite * (1.0 - chuva);
+	c += vec3(0.5, 0.6, 0.8) * (pow(max(dl, 0.0), 300.0) * 0.6 + pow(max(dl, 0.0), 40.0) * 0.12) * noite * (1.0 - chuva);   // halo
 	// nuvens: textura de ruído projetada no céu, andando com o tempo
 	if (d.y > 0.0) {
 		vec2 uv = d.xz / (d.y + 0.15) * 0.25 + vec2(TIME * 0.004, TIME * 0.0015);

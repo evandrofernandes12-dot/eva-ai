@@ -80,7 +80,8 @@ func _quer_chuva() -> bool:
 func _atualizar(delta: float) -> void:
 	var ang := (hora - 6.0) / 24.0 * TAU            # 0 = nascer (6h), PI/2 = meio-dia, PI = pôr (18h)
 	var dir_sol := Vector3(cos(ang) * 0.85, sin(ang), cos(ang) * 0.35 + 0.4).normalized()
-	var dir_lua := -dir_sol
+	# lua: caminho baixo no céu (no máx. ~28°), do lado para onde a câmera olha (-Z), para aparecer na tela
+	var dir_lua := Vector3(-cos(ang) * 0.85, -sin(ang) * 0.42, -0.8).normalized()
 	sol.look_at_from_position(Vector3.ZERO, -dir_sol, Vector3.UP if absf(dir_sol.y) < 0.99 else Vector3.FORWARD)
 	lua.look_at_from_position(Vector3.ZERO, -dir_lua, Vector3.UP if absf(dir_lua.y) < 0.99 else Vector3.FORWARD)
 	var alto := dir_sol.y
