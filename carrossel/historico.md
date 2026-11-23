@@ -1,11 +1,12 @@
 # Histórico e controle de rotação (não repetir)
 
 ## Controle de rotação
-- proximo_tema_psicanalise: 10  (ver temas-psicanalise.md; os nº 4 a 9 já foram feitos)
+- proximo_tema_psicanalise: 11  (ver temas-psicanalise.md; os nº 4 a 10 já foram feitos)
 - pular_na_rotacao: (nenhum; 4, 5, 6 e 7 já foram feitos)
 - proximo_tema_fe: 5            (ver temas-fe.md)
 
 ## Já publicados
+- 2026-11-24 (terça, comum, com reel): "Defesas do ego" (temas-psicanalise.md nº 10). Pacote (ZIP) entregue na noite de 23/11 para postagem manual.
 - 2026-11-23 (segunda, comum, sem reel): "Melancolia e autocrítica" (temas-psicanalise.md nº 9). Pacote (ZIP) entregue na noite de 22/11 para postagem manual.
 - 2026-11-22 (domingo, fé, sem reel): "Fé e dúvida" (temas-fe.md nº 4). Pacote (ZIP) entregue na noite de 21/11 para postagem manual. Versículo: Marcos 9:24 (NVI), redação "Eu creio; ajuda-me a vencer a minha incredulidade!" (bible.com); o Bíblia Online traz "Creio, ajuda-me..." (só pontuação/"Eu").
 - 2026-11-21 (sábado, comum, com reel): "Sabotagem amorosa" (temas-psicanalise.md nº 8). Pacote (ZIP com carrossel, reel, 2 stories e legendas) entregue na manhã de 21/11 para postagem manual (o aviso das 19:00 de 20/11 só chegou à sessão em 21/11 às 06:33).
