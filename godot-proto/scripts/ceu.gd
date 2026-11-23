@@ -48,6 +48,7 @@ func iniciar(luz_sol: DirectionalLight3D, ambiente: Environment, camera: Camera3
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.fog_sky_affect = 0.0   # a neblina NÃO cobre o céu (por padrão cobria tudo: sol, lua, estrelas e nuvens sumiam)
 	_criar_chuva()
 	_atualizar(0.0)
 

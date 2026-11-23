@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v50"
+const VERSAO := "v51"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -91,6 +91,7 @@ var _cam_off := Vector3(0, 9, 10)
 var _olhar := 0.0               # arrastar um dedo: 0 = normal, 1 = olhando o céu, negativo = mais para o chão
 const OLHAR_MIN := -0.3
 const OLHAR_MAX := 1.0
+var _giro := 0.0                # arrastar para os lados: gira a câmera em volta do personagem
 var _tapado_t := 0.0
 var _arv_t := 0.0
 var _fixos: Array = []           # construções prontas da aldeia: {pos, r, h}
@@ -931,7 +932,7 @@ func _camera(delta: float) -> void:
 		alvo = Vector3(0, 40, 8) * _zoom
 	else:
 		# se uma construção fica entre a câmera e o boneco, a câmera sobe e olha por cima do telhado
-		if _dentro == "" and _tapado(pp + Vector3(0, 9, 10) * _zoom, pp + Vector3(0, 1.2, 0)):
+		if _dentro == "" and _tapado(pp + (Vector3(0, 9, 10) * _zoom).rotated(Vector3.UP, _giro), pp + Vector3(0, 1.2, 0)):
 			_tapado_t = 0.7
 		_tapado_t -= delta
 		if _tapado_t > 0.0:
@@ -940,6 +941,8 @@ func _camera(delta: float) -> void:
 			if _dentro == "" and _tapado(cam.global_position, pp + Vector3(0, 1.2, 0)) and _cam_off.y < 15.0:
 				_cam_off = alvo
 				cam.global_position = pp + _cam_off
+	alvo = alvo.rotated(Vector3.UP, _giro)
+	player.giro_cam = _giro
 	_cam_off = _cam_off.lerp(alvo, minf(1.0, 5.0 * delta))
 	cam.global_position = cam.global_position.lerp(pp + _cam_off, minf(1.0, 8.0 * delta))
 	cam.look_at(pp + Vector3(0, 1.2 + (_olhar * 16.0 if cam_modo == 0 else 0.0), 0))
@@ -968,6 +971,7 @@ func _input(e: InputEvent) -> void:
 		_toques[e.index] = e.position
 		if _toques.size() == 1 and e.position.x < get_viewport().get_visible_rect().size.x * 0.68:   # um dedo arrastando: olha para cima/baixo
 			_olhar = clampf(_olhar - e.relative.y * 0.004, OLHAR_MIN, OLHAR_MAX)
+			_giro -= e.relative.x * 0.006   # para os lados: gira a câmera em volta do personagem
 		if _toques.size() == 2 and _mag_t <= 0.0:
 			var k: Array = _toques.keys()
 			var d: float = (_toques[k[0]] - _toques[k[1]]).length()
@@ -976,6 +980,7 @@ func _input(e: InputEvent) -> void:
 			_pinca_d = d
 	elif e is InputEventMouseMotion and (e.button_mask & MOUSE_BUTTON_MASK_RIGHT):   # botão direito arrastando (computador)
 		_olhar = clampf(_olhar - e.relative.y * 0.004, OLHAR_MIN, OLHAR_MAX)
+		_giro -= e.relative.x * 0.006
 	elif e is InputEventMouseButton and e.pressed:   # roda do mouse (computador)
 		if e.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_zoom = clampf(_zoom * 0.9, ZOOM_MIN, ZOOM_MAX)

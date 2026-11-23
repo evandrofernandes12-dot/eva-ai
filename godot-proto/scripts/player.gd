@@ -18,6 +18,7 @@ var _ap: AnimationPlayer
 var _idle: StringName
 var _run: StringName
 var _atk: StringName
+var giro_cam := 0.0   # giro da câmera em volta do personagem (main.gd): o direcional segue a câmera
 var _arco: Node   # arco_ik.gd do arqueiro (levanta o arco e puxa a corda)
 var _dead := false
 var _morte: StringName = &""
@@ -88,7 +89,7 @@ func _physics_process(delta: float) -> void:
 	if v.length() > 1.0:
 		v = v.normalized()
 	# a câmera olha de trás e de cima, então "para cima" na tela é -Z no mundo
-	var dir := Vector3(v.x, 0, v.y)
+	var dir := Vector3(v.x, 0, v.y).rotated(Vector3.UP, giro_cam)   # relativo ao giro da câmera
 	if primeira_pessoa:
 		rotation.y -= v.x * 2.4 * delta
 		dir = global_basis.z * (-v.y)
