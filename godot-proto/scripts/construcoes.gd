@@ -325,13 +325,29 @@ static func banca(cor: Color) -> Node3D:
 	solido(r, Vector3(0, 0.6, 0.2), Vector3(2.6, 1.2, 1.2))
 	return r
 
+## Terra batida PBR (ambientCG Ground037), em coordenadas do mundo (não estica nos caminhos compridos).
+static func mat_terra() -> StandardMaterial3D:
+	if _mats.has("terra_pbr"):
+		return _mats["terra_pbr"]
+	const T := "res://assets/textures/ground/Ground037/Ground037_1K-JPG_"
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = load(T + "Color.jpg")
+	m.albedo_color = Color(0.95, 0.9, 0.85)
+	m.normal_enabled = true
+	m.normal_texture = load(T + "NormalGL.jpg")
+	m.roughness_texture = load(T + "Roughness.jpg")
+	m.uv1_triplanar = true
+	m.uv1_world_triplanar = true
+	m.uv1_scale = Vector3.ONE * 0.33
+	_mats["terra_pbr"] = m
+	return m
+
 ## Faixa de terra batida (caminho) de `a` a `b`, rente ao chão.
 static func caminho(pai: Node3D, a: Vector3, b: Vector3, largura: float) -> void:
 	var mi := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(largura, a.distance_to(b))
-	var m := mat(Color(0.56, 0.47, 0.35))
-	pm.material = m
+	pm.material = mat_terra()
 	mi.mesh = pm
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.position = (a + b) * 0.5 + Vector3(0, 0.007, 0)

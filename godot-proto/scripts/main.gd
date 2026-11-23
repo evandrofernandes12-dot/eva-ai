@@ -2,14 +2,23 @@ extends Node3D
 ## Protótipo: aldeia + floresta + jogador + inimigos + construção + missões + save.
 ## Casas prontas ficam no nó "Aldeia"; os lotes para construir ficam em "Lotes".
 
-const TREES := [
-	preload("res://models/PineTree_1.glb"),
-	preload("res://models/CommonTree_1.glb"),
-	preload("res://models/BirchTree_1.glb"),
-]
-const ROCK := preload("res://models/Resource_Rock_1.glb")
-const BUSH := preload("res://models/Bush_1.glb")
-const FLOWERS := preload("res://models/Flowers.glb")
+## Natureza: Quaternius Stylized Nature MegaKit e KayKit Forest Nature Pack (CC0), em assets/nature/.
+const QN := "res://assets/nature/quaternius/"
+const KK := "res://assets/nature/kaykit/"
+const TREES := [QN + "CommonTree_1.gltf", QN + "CommonTree_2.gltf", QN + "CommonTree_3.gltf", QN + "CommonTree_4.gltf", QN + "CommonTree_5.gltf",
+	QN + "Pine_1.gltf", QN + "Pine_2.gltf", QN + "Pine_3.gltf", QN + "Pine_4.gltf", QN + "Pine_5.gltf",
+	QN + "TwistedTree_1.gltf", QN + "TwistedTree_2.gltf", QN + "TwistedTree_3.gltf"]
+const ROCKS := [QN + "Rock_Medium_1.gltf", QN + "Rock_Medium_2.gltf", QN + "Rock_Medium_3.gltf",
+	KK + "Rock_1_A_Color1.gltf", KK + "Rock_1_D_Color1.gltf", KK + "Rock_2_A_Color1.gltf", KK + "Rock_3_C_Color1.gltf"]
+const BUSHES := [QN + "Bush_Common.gltf", QN + "Bush_Common_Flowers.gltf"]
+## Enfeites sem coleta (sem colisão): [arquivo, altura mín., altura máx., quantidade]
+const ENFEITES := [[QN + "Flower_3_Group.gltf", 0.35, 0.55, 45], [QN + "Flower_4_Group.gltf", 0.35, 0.55, 45],
+	[QN + "Fern_1.gltf", 0.7, 1.1, 50], [QN + "Plant_1.gltf", 0.6, 1.0, 30], [QN + "Plant_7.gltf", 0.6, 1.0, 25],
+	[QN + "Mushroom_Common.gltf", 0.25, 0.4, 35], [QN + "Mushroom_Laetiporus.gltf", 0.3, 0.45, 15],
+	[QN + "DeadTree_1.gltf", 5.0, 7.0, 6], [QN + "DeadTree_3.gltf", 4.0, 6.0, 6],
+	[QN + "Clover_1.gltf", 0.15, 0.25, 30], [QN + "Pebble_Round_2.gltf", 0.15, 0.3, 30], [QN + "Pebble_Square_3.gltf", 0.15, 0.3, 20]]
+const TUFOS := [QN + "Grass_Common_Short.gltf", QN + "Grass_Common_Tall.gltf", QN + "Grass_Wispy_Short.gltf", QN + "Grass_Wispy_Tall.gltf"]
+const DIST_ARVORE := 85.0        # árvores somem (com fade) a partir daqui: alivia o tablet; a neblina disfarça
 const ORC := preload("res://models/Orc.gltf")
 const KNIGHT := preload("res://models/Knight.glb")
 const VILLAGER := preload("res://scripts/villager.gd")
@@ -19,7 +28,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v44"
+const VERSAO := "v45"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -285,7 +294,7 @@ func _aldeia_extra() -> void:
 	pc.bottom_radius = 8.5
 	pc.height = 0.004
 	pc.radial_segments = 32
-	pc.material = Construcoes.mat(Color(0.56, 0.47, 0.35))
+	pc.material = Construcoes.mat_terra()
 	praca.mesh = pc
 	praca.position.y = 0.008
 	praca.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -303,6 +312,36 @@ func _aldeia_extra() -> void:
 		pt.position = Vector3(cos(ang), 0, sin(ang)) * _rio_raio(ang)
 		pt.rotation.y = -ang
 		r.add_child(pt)
+	# calçamento: pedras chatas na beira da praça e ao longo dos caminhos (Quaternius RockPath)
+	var pedras := [load(QN + "RockPath_Round_Small_1.gltf"), load(QN + "RockPath_Round_Small_2.gltf"), load(QN + "RockPath_Square_Small_1.gltf"), load(QN + "RockPath_Round_Thin.gltf")]
+	for i in 40:
+		var a := TAU * i / 40.0 + _rng.randf() * 0.05
+		_pedra_chao(r, pedras[i % pedras.size()], Vector3(cos(a), 0, sin(a)) * _rng.randf_range(7.6, 8.6))
+	for eixo: Vector3 in [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]:
+		var lado := Vector3(eixo.z, 0, eixo.x)
+		var fim := 21.0 if eixo.z < 0 else RIO_R - 4.0
+		var d := 10.0
+		while d < fim:
+			_pedra_chao(r, pedras[_rng.randi() % pedras.size()], eixo * d + lado * _rng.randf_range(-1.1, 1.1))
+			d += _rng.randf_range(1.4, 2.6)
+	# canteiros: flores, samambaias e arbustos encostados nos prédios da aldeia
+	var canteiro := [load(QN + "Flower_3_Group.gltf"), load(QN + "Flower_4_Group.gltf"), load(QN + "Fern_1.gltf"), load(QN + "Bush_Common_Flowers.gltf"), load(QN + "Plant_1.gltf")]
+	for f in _fixos:
+		if not Interior.SALAS.has(f.nome) and f.nome != "Moinho":
+			continue
+		for k in 6:
+			var a := _rng.randf() * TAU
+			var p: Vector3 = Vector3(f.pos.x, 0, f.pos.z) + Vector3(cos(a), 0, sin(a)) * (float(f.r) + 0.6)
+			if minf(absf(p.x), absf(p.z)) < 2.2 or Vector2(p.x, p.z).length() < 9.0:
+				continue
+			var c: PackedScene = canteiro[_rng.randi() % canteiro.size()]
+			var n: Node3D = c.instantiate()
+			r.add_child(n)
+			n.position = p
+			n.rotation.y = _rng.randf() * TAU
+			Fit.to_height(n, _rng.randf_range(0.45, 0.9))
+			Efeitos.vento(n, 0.05, 0.9)
+			Efeitos.distancia(n, 45.0)
 	var por := func(n: Node3D, pos: Vector3, giro: float) -> void:
 		n.position = pos
 		n.rotation.y = giro
@@ -397,13 +436,92 @@ func _scatter_forest() -> void:
 	add_child(holder)
 	_holder = holder
 	for i in tree_count:
-		_place(holder, TREES[_rng.randi() % TREES.size()], _rng.randf_range(6.0, 9.5), "madeira", 3)
+		_place(holder, load(TREES[_rng.randi() % TREES.size()]), _rng.randf_range(6.5, 10.5), "madeira", 3)
 	for i in rock_count:
-		_place(holder, ROCK, _rng.randf_range(1.2, 1.9), "pedra", 3)
+		_place(holder, load(ROCKS[_rng.randi() % ROCKS.size()]), _rng.randf_range(1.2, 2.0), "pedra", 3)
 	for i in bush_count:
-		_place(holder, BUSH, _rng.randf_range(0.9, 1.3), "comida", 2)
-	for i in 60:
-		_place(holder, FLOWERS, _rng.randf_range(0.5, 0.8), "", 0)
+		_place(holder, load(BUSHES[_rng.randi() % BUSHES.size()]), _rng.randf_range(1.0, 1.5), "comida", 2)
+	for e: Array in ENFEITES:
+		var cena: PackedScene = load(e[0])
+		for i in int(e[3]):
+			_place(holder, cena, _rng.randf_range(e[1], e[2]), "", 0)
+	_tufos_grama(holder)
+
+## Tufos de grama espalhados por toda a volta (MultiMesh: centenas de tufos com poucas chamadas de desenho).
+## Divididos em 8 setores, para a câmera descartar os que estão fora da tela.
+@export var tufos_grama := 900   # quantidade de tufos (diminua se o tablet ficar lento)
+func _tufos_grama(holder: Node3D) -> void:
+	var setores := 8
+	for k in TUFOS.size():
+		var malha: Dictionary = _malha_de(load(TUFOS[k]))
+		if malha.is_empty():
+			continue
+		var pos: Array = []
+		for i in tufos_grama / TUFOS.size():
+			var a := _rng.randf() * TAU
+			var r := sqrt(_rng.randf_range(pow(10.0 / forest_radius, 2.0), 1.0)) * forest_radius
+			var pp := Vector3(cos(a) * r, 0, sin(a) * r)
+			if absf(r - _rio_raio(a)) < RIO_LARG * 0.5 + 0.5 or absf(r - MURO_R) < 1.0 or minf(absf(pp.x), absf(pp.z)) < 2.2 or (r < MURO_R and _perto_de_predio(pp)):   # fora da água, da muralha, dos caminhos e dos prédios
+				continue
+			pos.append(Vector3(cos(a) * r, 0, sin(a) * r))
+		for sct in setores:
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.mesh = malha.mesh as Mesh
+			var meus: Array = []
+			for p: Vector3 in pos:
+				if int(fposmod(atan2(p.z, p.x), TAU) / TAU * setores) == sct:
+					meus.append(p)
+			mm.instance_count = meus.size()
+			for i in meus.size():
+				var esc: float = _rng.randf_range(0.7, 1.3) * float(malha.esc)
+				mm.set_instance_transform(i, Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * esc), meus[i]))
+			var mi := MultiMeshInstance3D.new()
+			mi.multimesh = mm
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			if malha.mat != null:
+				mi.material_override = malha.mat as Material
+			holder.add_child(mi)
+
+## Pedra chata de calçamento rente ao chão (sem colisão).
+func _pedra_chao(pai: Node3D, cena: PackedScene, pos: Vector3) -> void:
+	var n: Node3D = cena.instantiate()
+	pai.add_child(n)
+	n.position = pos
+	n.rotation.y = _rng.randf() * TAU
+	var bb := Heroi._caixa(n)
+	var esc := _rng.randf_range(0.7, 1.1) / maxf(maxf(bb.size.x, bb.size.z), 0.01)
+	n.scale = Vector3.ONE * esc
+	n.position.y = -bb.position.y * esc - bb.size.y * esc * 0.6   # quase enterrada: não tropeça e não esconde o pé
+	Efeitos.distancia(n, 40.0)
+
+func _perto_de_predio(p: Vector3) -> bool:
+	for f in _fixos:
+		if Vector2(p.x - f.pos.x, p.z - f.pos.z).length() < float(f.r) + 1.0:
+			return true
+	return false
+
+## Primeira malha de um modelo, com a escala para ~0,5 m de altura e o material com vento.
+func _malha_de(cena: PackedScene) -> Dictionary:
+	var n: Node3D = cena.instantiate()
+	var lista: Array = []
+	Fit._collect(n, lista)
+	if lista.is_empty():
+		n.free()
+		return {}
+	var mi: MeshInstance3D = lista[0]
+	var bb := mi.mesh.get_aabb()
+	var mat: Material = null
+	var tmp := Node3D.new()
+	var copia := MeshInstance3D.new()
+	copia.mesh = mi.mesh
+	tmp.add_child(copia)
+	Efeitos.vento(tmp, 0.05, 0.6)
+	mat = copia.get_surface_override_material(0)
+	tmp.free()
+	var r := {"mesh": mi.mesh, "esc": 0.5 / maxf(bb.size.y, 0.01), "mat": mat}
+	n.free()
+	return r
 
 func _place(holder: Node3D, scene: PackedScene, h: float, tipo: String, hp: int) -> void:
 	var n: Node3D = scene.instantiate()
@@ -413,8 +531,15 @@ func _place(holder: Node3D, scene: PackedScene, h: float, tipo: String, hp: int)
 	Fit.to_height(n, h)
 	if tipo == "madeira":       # árvores balançam ao vento
 		Efeitos.vento(n, 0.18, h)
-	elif tipo == "comida":      # arbustos, de leve
+		Efeitos.distancia(n, DIST_ARVORE)
+	elif tipo == "comida" or (tipo == "" and h < 1.5):   # arbustos e plantas, de leve
 		Efeitos.vento(n, 0.06, h)
+		Efeitos.distancia(n, 45.0)
+	else:
+		Efeitos.distancia(n, 60.0)
+	if tipo == "":   # enfeites: sem colisão e sem sombra (mais leve)
+		for c in n.find_children("*", "StaticBody3D", true, false):
+			c.queue_free()
 	if tipo != "":
 		nodes.append({"node": n, "tipo": tipo, "hp": hp, "scene": scene, "h": h, "maxhp": hp, "dono": null})
 
