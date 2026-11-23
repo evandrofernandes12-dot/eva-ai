@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v48"
+const VERSAO := "v49"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 40.0             # raio da muralha
@@ -1691,7 +1691,7 @@ func _pilhas_armazem() -> void:
 	for p in plots:
 		if p.efeito == "armazem" and p.construido:
 			for tipo: String in ["madeira", "pedra", "comida"]:
-				var pilha := p.find_child("Pilha_" + tipo, true, false)
+				var pilha: Node = p.find_child("Pilha_" + tipo, true, false)
 				if pilha == null:
 					continue
 				var qtd := mini(6, int(res[tipo]) / 25)
