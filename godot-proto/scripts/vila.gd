@@ -38,7 +38,7 @@ func montar(o_jogo: Node) -> void:
 	for k: String in PREDIOS:
 		var d: Array = PREDIOS[k]
 		var g := Construcoes.galpao(d[1], d[2])
-		_por(g, d[0], 7.0)
+		_por(g, d[0], 7.0, String(d[1]))   # o nome deixa entrar (interior em interior.gd)
 		_pilhas[d[2]] = g.get_node("Pilha")
 		ponto[k] = g.to_global(Vector3(0, 0, 3.2))
 	var coz := Construcoes.cozinha()
@@ -62,11 +62,11 @@ func montar(o_jogo: Node) -> void:
 	_gente()
 
 ## Põe um prédio virado para o centro da aldeia e registra para a grama e as plantas não nascerem dentro.
-func _por(n: Node3D, pos: Vector3, raio: float) -> void:
+func _por(n: Node3D, pos: Vector3, raio: float, nome := "") -> void:
 	n.position = pos
 	n.rotation.y = atan2(-pos.x, -pos.z)
 	add_child(n)
-	jogo._fixos.append({"pos": pos, "r": raio, "h": 4.0, "nome": "vila_" + str(jogo._fixos.size())})
+	jogo._fixos.append({"pos": pos, "r": raio, "h": 4.0, "nome": nome if nome != "" else "vila_" + str(jogo._fixos.size())})
 
 func _horta() -> void:
 	var r := Node3D.new()

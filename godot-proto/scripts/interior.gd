@@ -8,14 +8,18 @@ const FOGO := preload("res://models/Bonfire_Lit.glb")
 ## nome do nó em "Aldeia": título, largura, fundo, altura (m), cor do piso, cor das paredes, cor do tapete
 const SALAS := {
 	"SalaoDoChefe": {"nome": "Salão do Rei", "w": 26.0, "d": 22.0, "alt": 8.0, "piso": Color(0.5, 0.48, 0.46), "parede": Color(0.62, 0.6, 0.56), "tapete": Color(0.13, 0.22, 0.52)},
-	"Casa1": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.45, 0.32, 0.2), "parede": Color(0.74, 0.62, 0.46), "tapete": Color(0.62, 0.15, 0.12)},
-	"Casa2": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.4, 0.34, 0.22), "parede": Color(0.55, 0.68, 0.5), "tapete": Color(0.18, 0.45, 0.25)},
+	"Casa1": {"nome": "Casa", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color(0.45, 0.32, 0.2), "parede": Color(0.74, 0.62, 0.46), "tapete": Color(0.62, 0.15, 0.12)},
+	"Casa2": {"nome": "Casa", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color(0.4, 0.34, 0.22), "parede": Color(0.55, 0.68, 0.5), "tapete": Color(0.18, 0.45, 0.25)},
 	"Casa3": {"nome": "Casa do Alquimista", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.42, 0.34, 0.26), "parede": Color(0.52, 0.6, 0.78), "tapete": Color(0.18, 0.28, 0.6)},
-	"LoteCasa": {"nome": "Casa", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.36, 0.22), "parede": Color(0.8, 0.7, 0.52), "tapete": Color(0.55, 0.35, 0.15)},
-	"LoteEstalagem": {"nome": "Estalagem", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.38, 0.24, 0.14), "parede": Color(0.75, 0.5, 0.38), "tapete": Color(0.5, 0.12, 0.12)},
-	"LoteSerraria": {"nome": "Serraria", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.4, 0.26), "parede": Color(0.7, 0.55, 0.35), "tapete": Color(0.4, 0.3, 0.15)},
-	"Moinho": {"nome": "Moinho", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.55, 0.5, 0.42), "parede": Color(0.9, 0.86, 0.76), "tapete": Color(0.55, 0.5, 0.4)},
-	"Barraca": {"nome": "Barraca", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.5, 0.42, 0.3), "parede": Color(0.85, 0.72, 0.5), "tapete": Color(0.6, 0.45, 0.25)},
+	"LoteCasa": {"nome": "Casa", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color(0.5, 0.36, 0.22), "parede": Color(0.8, 0.7, 0.52), "tapete": Color(0.55, 0.35, 0.15)},
+	"LoteEstalagem": {"nome": "Estalagem", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color(0.38, 0.24, 0.14), "parede": Color(0.75, 0.5, 0.38), "tapete": Color(0.5, 0.12, 0.12)},
+	"LoteSerraria": {"nome": "Serraria", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color(0.5, 0.4, 0.26), "parede": Color(0.7, 0.55, 0.35), "tapete": Color(0.4, 0.3, 0.15)},
+	"Moinho": {"nome": "Moinho", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color(0.55, 0.5, 0.42), "parede": Color(0.9, 0.86, 0.76), "tapete": Color(0.55, 0.5, 0.4)},
+	"Barraca": {"nome": "Barraca", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color(0.5, 0.42, 0.3), "parede": Color(0.85, 0.72, 0.5), "tapete": Color(0.6, 0.45, 0.25)},
+	"Pedreira": {"nome": "Pedreira", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color.GRAY, "parede": Color.GRAY, "tapete": Color.GRAY},
+	"Madeireira": {"nome": "Madeireira", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color.GRAY, "parede": Color.GRAY, "tapete": Color.GRAY},
+	"Mantimentos": {"nome": "Mantimentos", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color.GRAY, "parede": Color.GRAY, "tapete": Color.GRAY},
+	"Açougue": {"nome": "Açougue", "w": 12.0, "d": 10.0, "alt": 3.12, "piso": Color.GRAY, "parede": Color.GRAY, "tapete": Color.GRAY},
 	"Forja": {"nome": "Forja", "w": 14.0, "d": 10.0, "alt": 3.8, "piso": Color(0.27, 0.26, 0.26), "parede": Color(0.4, 0.37, 0.36), "tapete": Color(0.2, 0.2, 0.2)},
 }
 const MADEIRA := Color(0.42, 0.27, 0.14)
@@ -151,6 +155,15 @@ static func escada(pai: Node3D, topo: Vector3, dir: Vector3, run: float, alt: fl
 static func construir(id: String) -> Node3D:
 	_autoluz = 0.0 if id == "SalaoDoChefe" else 0.25   # menos brilho próprio (achatava as cores); compensado nas luzes
 	var s: Dictionary = SALAS[id]
+	if id in CASAS_MEDIEVAIS or ARMAZENS.has(id):   # salas montadas com as peças medievais
+		_autoluz = 0.0
+		var rm := Node3D.new()
+		rm.name = "Interior_" + id
+		if ARMAZENS.has(id):
+			_armazem_medieval(rm, ARMAZENS[id])
+		else:
+			_casa_medieval(rm, s.tapete)
+		return rm
 	var w: float = s.w
 	var d: float = s.d
 	var alt: float = s.alt
@@ -665,3 +678,185 @@ static func _trono_com(r: Node3D, p: Vector3, altura: float, k: float, figura: N
 	nome.position = Vector3(0, altura * 1.2 + 0.4, 0)
 	no.add_child(nome)
 	return no
+
+# ---------- interiores medievais (Quaternius Medieval Village MegaKit + Fantasy Props MegaKit, CC0) ----------
+const MV := "res://assets/medieval/vila/"
+const MP := "res://assets/medieval/props/"
+## Salas montadas com as peças medievais: casas comuns e os armazéns da vila.
+const CASAS_MEDIEVAIS := ["Casa1", "Casa2", "LoteCasa", "LoteEstalagem", "LoteSerraria", "Moinho", "Barraca"]
+const ARMAZENS := {"Pedreira": "pedra", "Madeireira": "madeira", "Mantimentos": "comida", "Açougue": "carne"}
+const MW := 12.0   # largura da sala medieval (6 módulos de 2 m)
+const MD := 10.0   # fundo (5 módulos)
+const MH := 3.12   # altura das paredes do kit
+
+## Peça do kit no tamanho original (as peças já vêm em metros).
+static func peca(pai: Node3D, arq: String, pos: Vector3, giro := 0.0, esc := 1.0) -> Node3D:
+	if not ResourceLoader.exists(arq):
+		return null
+	var n: Node3D = (load(arq) as PackedScene).instantiate()
+	n.position = pos
+	n.rotation.y = giro
+	n.scale = Vector3.ONE * esc
+	pai.add_child(n)
+	return n
+
+## Piso, quatro paredes (janelas nas laterais e no fundo, porta na frente), teto de tábuas, colisões e luzes.
+static func _sala_medieval(r: Node3D, tijolo: bool) -> void:
+	var parede := "Wall_UnevenBrick_" if tijolo else "Wall_Plaster_"
+	var piso := "Floor_UnevenBrick" if tijolo else "Floor_WoodDark"
+	for i in 6:
+		for j in 5:
+			peca(r, MV + piso + ".gltf", Vector3(-5.0 + i * 2.0, 0, -4.0 + j * 2.0))
+			var teto := peca(r, MV + "Floor_WoodDark.gltf", Vector3(-5.0 + i * 2.0, MH, -4.0 + j * 2.0))
+			if teto != null:
+				teto.rotation.x = PI   # tábuas viradas para baixo
+	for i in 6:   # fundo (janela no meio) e frente (porta no meio)
+		var x := -5.0 + i * 2.0
+		peca(r, MV + parede + ("Window_Wide_Round" if i == 2 else "Straight") + ".gltf", Vector3(x, 0, -MD * 0.5))
+		peca(r, MV + parede + ("Door_Round" if i == 2 or i == 3 else "Straight") + ".gltf", Vector3(x, 0, MD * 0.5), PI)
+	for j in 5:   # laterais com uma janela cada
+		var z := -4.0 + j * 2.0
+		peca(r, MV + parede + ("Window_Wide_Round" if j == 2 else "Straight") + ".gltf", Vector3(-MW * 0.5, 0, z), PI * 0.5)
+		peca(r, MV + parede + ("Window_Wide_Round" if j == 2 else "Straight") + ".gltf", Vector3(MW * 0.5, 0, z), -PI * 0.5)
+	# luz do dia entrando pelas janelas (placas claras do lado de fora)
+	for p: Array in [[Vector3(-1.0, 1.7, -MD * 0.5 - 0.5), 0.0], [Vector3(-MW * 0.5 - 0.5, 1.7, 0), PI * 0.5], [Vector3(MW * 0.5 + 0.5, 1.7, 0), PI * 0.5]]:
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(2.0, 2.4, 0.05)
+		bm.material = _mat(Color(0.85, 0.92, 1.0), true)
+		mi.mesh = bm
+		mi.position = p[0]
+		mi.rotation.y = p[1]
+		r.add_child(mi)
+	caixa(r, Vector3(0, -0.5, 0), Vector3(MW, 1.0, MD), Color.BLACK, true, false)             # colisões
+	caixa(r, Vector3(0, MH * 0.5, -MD * 0.5 - 0.1), Vector3(MW, MH, 0.4), Color.BLACK, true, false)
+	caixa(r, Vector3(0, MH * 0.5, MD * 0.5 + 0.1), Vector3(MW, MH, 0.4), Color.BLACK, true, false)
+	caixa(r, Vector3(-MW * 0.5 - 0.1, MH * 0.5, 0), Vector3(0.4, MH, MD), Color.BLACK, true, false)
+	caixa(r, Vector3(MW * 0.5 + 0.1, MH * 0.5, 0), Vector3(0.4, MH, MD), Color.BLACK, true, false)
+	var lus := peca(r, MP + "Chandelier.gltf", Vector3(0, MH - 0.02, 0.5))
+	if lus != null:
+		lus.scale = Vector3.ONE * 0.8
+	luz(r, Vector3(0, MH - 1.3, 0.5), Color(1.0, 0.82, 0.55), 1.6, 11.0)
+	luz(r, Vector3(-3.5, 2.2, 2.5), Color(1.0, 0.9, 0.75), 0.6, 8.0)
+
+## Fogo de verdade (partículas) para a lareira.
+static func _chamas(pai: Node3D, pos: Vector3) -> void:
+	var p := CPUParticles3D.new()
+	p.amount = 30
+	p.lifetime = 0.8
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	p.emission_box_extents = Vector3(0.35, 0.05, 0.15)
+	p.direction = Vector3.UP
+	p.spread = 8.0
+	p.gravity = Vector3(0, 1.6, 0)
+	p.initial_velocity_min = 0.2
+	p.initial_velocity_max = 0.6
+	p.scale_amount_min = 0.6
+	p.scale_amount_max = 1.2
+	var g := Gradient.new()
+	g.set_color(0, Color(1.0, 0.9, 0.5, 0.0))
+	g.set_color(1, Color(0.7, 0.1, 0.02, 0.0))
+	g.add_point(0.25, Color(1.0, 0.6, 0.15, 0.95))
+	p.color_ramp = g
+	var q := QuadMesh.new()
+	q.size = Vector2(0.3, 0.45)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.vertex_color_use_as_albedo = true
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	var tex := GradientTexture2D.new()
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(0.5, 0.0)
+	var gg := Gradient.new()
+	gg.set_color(0, Color(1, 1, 1, 1))
+	gg.set_color(1, Color(1, 1, 1, 0))
+	tex.gradient = gg
+	m.albedo_texture = tex
+	q.material = m
+	p.mesh = q
+	p.position = pos
+	pai.add_child(p)
+
+## Casa de aldeão: lareira de tijolos com fogo, cama do casal e cama do filho, mesa com 4 cadeiras e louça,
+## banco em frente à lareira (onde a família senta à noite), estante, armário, baú, barris e lustre de velas.
+static func _casa_medieval(r: Node3D, tap: Color) -> void:
+	_sala_medieval(r, false)
+	var tij := Construcoes.textura_pedras()
+	var lx := 2.6
+	var zn := -MD * 0.5
+	caixa(r, Vector3(lx, 0.65, zn + 0.55), Vector3(2.6, 1.3, 0.8), Color(0.62, 0.42, 0.34), true, true, false, tij, 0.9)     # lareira
+	caixa(r, Vector3(lx, 1.38, zn + 0.6), Vector3(2.9, 0.14, 1.0), Color(0.45, 0.32, 0.25), false, true, false, tij, 0.9)    # prateleira
+	caixa(r, Vector3(lx, (1.45 + MH) * 0.5, zn + 0.45), Vector3(1.5, MH - 1.45, 0.6), Color(0.62, 0.42, 0.34), false, true, false, tij, 0.9)   # chaminé
+	caixa(r, Vector3(lx, 0.45, zn + 0.96), Vector3(1.5, 0.8, 0.04), Color(0.05, 0.04, 0.03))                                 # boca escura
+	for k in 3:   # lenha queimando
+		Construcoes.tora(r, Vector3(lx - 0.5, 0.12, zn + 1.05 + k * 0.08), Vector3(lx + 0.5, 0.12 + (k % 2) * 0.06, zn + 1.0 + k * 0.1), 0.07, Construcoes.mat(Color(0.18, 0.11, 0.07)))
+	_chamas(r, Vector3(lx, 0.2, zn + 1.05))
+	luz(r, Vector3(lx, 0.9, zn + 1.8), Color(1.0, 0.55, 0.2), 1.4, 6.0)
+	peca(r, MP + "Pot_1.gltf", Vector3(lx + 1.7, 0, zn + 0.9))
+	peca(r, MP + "Bucket_Wooden_1.gltf", Vector3(lx - 1.8, 0, zn + 0.9))
+	for k in 3:
+		peca(r, MP + "Vase_2.gltf", Vector3(lx - 0.9 + k * 0.9, 1.45, zn + 0.6), 0.0, 0.6)
+	peca(r, MP + "Bench.gltf", Vector3(lx, 0, -2.3))                                             # banco da família
+	peca(r, MP + "Bed_Twin1.gltf", Vector3(-4.7, 0, -3.6))                                      # cama do casal
+	peca(r, MP + "Nightstand_Shelf.gltf", Vector3(-3.3, 0, -4.6))
+	peca(r, MP + "CandleStick_Triple.gltf", Vector3(-3.3, 0.72, -4.6), 0.0, 0.8)
+	peca(r, MP + "Chest_Wood.gltf", Vector3(-4.7, 0, -1.9))
+	peca(r, MP + "Bed_Twin2.gltf", Vector3(-4.7, 0, 2.5), 0.0, 0.85)                            # cama do filho
+	peca(r, MP + "Table_Large.gltf", Vector3(2.6, 0, 1.6))                                      # mesa com 4 cadeiras
+	for x: float in [1.8, 3.4]:
+		peca(r, MP + "Chair_1.gltf", Vector3(x, 0, 0.85))
+		peca(r, MP + "Chair_1.gltf", Vector3(x, 0, 2.35), PI)
+		peca(r, MP + "Table_Plate.gltf", Vector3(x, 0.81, 1.35))
+		peca(r, MP + "Mug.gltf", Vector3(x + 0.3, 0.81, 1.5))
+	peca(r, MP + "Bookcase_2.gltf", Vector3(-1.4, 0, -MD * 0.5 + 0.35))
+	peca(r, MP + "Cabinet.gltf", Vector3(MW * 0.5 - 0.35, 0, -1.6), -PI * 0.5)
+	peca(r, MP + "Pot_1_Lid.gltf", Vector3(MW * 0.5 - 0.35, 1.0, -1.9))
+	peca(r, MP + "Barrel.gltf", Vector3(5.1, 0, 4.1))
+	peca(r, MP + "Barrel_Apples.gltf", Vector3(4.2, 0, 4.3))
+	peca(r, MP + "Lantern_Wall.gltf", Vector3(-1.9, 2.1, MD * 0.5 - 0.3), PI)
+	cilindro(r, Vector3(-0.4, 0, 0.0), 1.7, 0.02, tap.lightened(0.1))                          # tapete
+
+## Armazém por dentro: paredes de tijolo, prateleiras, caixotes, barris, sacos e o estoque do tipo.
+static func _armazem_medieval(r: Node3D, tipo: String) -> void:
+	_sala_medieval(r, true)
+	for i in 4:   # prateleiras nas laterais
+		peca(r, MP + "Shelf_Simple.gltf", Vector3(-MW * 0.5 + 0.35, 0, -3.5 + i * 2.2), PI * 0.5)
+		peca(r, MP + "Shelf_Simple.gltf", Vector3(MW * 0.5 - 0.35, 0, -3.5 + i * 2.2), -PI * 0.5)
+	for i in 5:
+		peca(r, MP + "Crate_Wooden.gltf", Vector3(-4.5 + i * 0.9, 0, -4.2), i * 0.4)
+		peca(r, MP + "Bag.gltf", Vector3(-4.0 + i * 0.95, 0, 3.6), i * 0.7)
+	peca(r, MP + "Workbench.gltf", Vector3(3.5, 0, -4.1))
+	peca(r, MP + "Barrel.gltf", Vector3(4.8, 0, 3.8))
+	peca(r, MP + "Barrel.gltf", Vector3(4.0, 0, 4.2))
+	peca(r, MP + "Rope_1.gltf", Vector3(3.2, 0.89, -4.1))
+	match tipo:
+		"madeira":   # toras empilhadas
+			for fila in 3:
+				for k in 6 - fila:
+					var x := -2.0 + (k - (5 - fila) * 0.5) * 0.45
+					Construcoes.tora(r, Vector3(x, 0.22 + fila * 0.4, -1.8), Vector3(x, 0.22 + fila * 0.4, 1.0), 0.21, Construcoes.mat(Color(0.45, 0.31, 0.18)))
+		"pedra":   # blocos de pedra
+			for k in 14:
+				caixa(r, Vector3(-3.0 + (k % 5) * 0.75, 0.25 + (k / 5) * 0.48, -0.6 + (k % 2) * 0.3), Vector3(0.65, 0.45, 0.6), Color(0.55, 0.55, 0.57), true, true, false, Construcoes.textura_pedras(), 1.2)
+		"comida":   # caixotes de feira com maçãs e cenouras, barris de maçã
+			for k in 6:
+				peca(r, MP + ("FarmCrate_Apple.gltf" if k % 2 == 0 else "FarmCrate_Carrot.gltf"), Vector3(-3.0 + (k % 3) * 1.1, (k / 3) * 0.45, -0.5), 0.0)
+			for k in 3:
+				peca(r, MP + "Barrel_Apples.gltf", Vector3(1.0 + k * 0.85, 0, -0.5))
+		"carne":   # mesa de corte e carnes penduradas
+			peca(r, MP + "Table_Large.gltf", Vector3(-1.0, 0, -0.5))
+			peca(r, MP + "Table_Knife.gltf", Vector3(-1.3, 0.81, -0.5))
+			for x: float in [-3.5, -2.3, 1.5, 2.7]:
+				Construcoes.tora(r, Vector3(x - 0.5, 2.2, -2.2), Vector3(x + 0.5, 2.2, -2.2), 0.03, Construcoes.mat(Construcoes.MADEIRA_ESCURA))
+				for k in 3:
+					var s := SphereMesh.new()
+					s.radius = 0.13
+					s.height = 0.45
+					s.material = _mat(Color(0.6, 0.18, 0.15))
+					var mi := MeshInstance3D.new()
+					mi.mesh = s
+					mi.position = Vector3(x - 0.35 + k * 0.35, 1.85, -2.2)
+					r.add_child(mi)

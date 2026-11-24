@@ -1182,26 +1182,62 @@ static func ferramenta(nome: String) -> Node3D:
 			r.add_child(gi)
 	return r
 
-## Carrinho de mão (frente em +Z): caçamba, roda e dois cabos. Nó "Carga" com pedras ou toras amarradas com corda.
+## Carrinho de mão (frente em +Z): caçamba de tábuas inclinadas com cintas de ferro, roda com aro, cubo e raios,
+## dois braços compridos com pegadores e dois pés com travas. Nó "Carga" com pedras ou toras amarradas.
 static func carrinho() -> Node3D:
 	var r := Node3D.new()
-	var m := mat(MADEIRA)
-	var me := mat(MADEIRA_ESCURA)
-	caixa(r, Vector3(0, 0.45, 0.25), Vector3(0.7, 0.06, 0.9), m)
-	for s: float in [-1.0, 1.0]:
-		var lado := caixa(r, Vector3(s * 0.36, 0.6, 0.25), Vector3(0.04, 0.3, 0.9), m)
-		lado.rotation.z = s * 0.2
-		tora(r, Vector3(s * 0.25, 0.42, -0.25), Vector3(s * 0.3, 0.75, -0.95), 0.025, me)   # cabos
-		tora(r, Vector3(s * 0.25, 0.42, -0.1), Vector3(s * 0.25, 0.0, -0.15), 0.025, me)    # pés
-	var roda := MeshInstance3D.new()
+	var tabua := mat(Color(0.62, 0.46, 0.3))
+	var braco := mat(Color(0.42, 0.29, 0.17))
+	var ferro := mat(Color(0.18, 0.18, 0.2), false, 0.45)
+	# braços: da roda até os pegadores, por baixo da caçamba
+	for s2: float in [-1.0, 1.0]:
+		tora(r, Vector3(s2 * 0.2, 0.3, 0.72), Vector3(s2 * 0.3, 0.62, -1.0), 0.03, braco)
+		tora(r, Vector3(s2 * 0.3, 0.62, -1.0), Vector3(s2 * 0.31, 0.64, -1.18), 0.035, mat(Color(0.25, 0.17, 0.1)))   # pegador
+		tora(r, Vector3(s2 * 0.26, 0.48, -0.35), Vector3(s2 * 0.28, 0.0, -0.42), 0.025, braco)                       # pé
+		tora(r, Vector3(s2 * 0.27, 0.1, -0.41), Vector3(s2 * 0.22, 0.38, -0.05), 0.012, ferro)                        # trava do pé
+	tora(r, Vector3(-0.28, 0.06, -0.42), Vector3(0.28, 0.06, -0.42), 0.015, ferro)
+	# caçamba: fundo + laterais inclinadas + frente inclinada + traseira
+	var fundo_y := 0.5
+	for k in 4:
+		caixa(r, Vector3(-0.21 + k * 0.14, fundo_y, 0.05), Vector3(0.13, 0.03, 0.8), tabua)
+	for s2: float in [-1.0, 1.0]:
+		for k in 3:
+			var lado := caixa(r, Vector3(s2 * (0.32 + k * 0.025), fundo_y + 0.07 + k * 0.08, 0.05), Vector3(0.025, 0.075, 0.82 - k * 0.04), tabua)
+			lado.rotation.z = s2 * 0.35
+		var cinta := caixa(r, Vector3(s2 * 0.4, fundo_y + 0.2, 0.05), Vector3(0.012, 0.025, 0.84), ferro)
+		cinta.rotation.z = s2 * 0.35
+	for k in 3:
+		var fr := caixa(r, Vector3(0, fundo_y + 0.08 + k * 0.08, 0.47 + k * 0.05), Vector3(0.62 + k * 0.05, 0.075, 0.025), tabua)
+		fr.rotation.x = -0.6
+	caixa(r, Vector3(0, fundo_y + 0.12, -0.36), Vector3(0.62, 0.2, 0.025), tabua)
+	# roda: aro de ferro, aro de madeira, cubo e 8 raios, eixo nos braços
+	var c := Vector3(0, 0.3, 0.72)
+	var aro := MeshInstance3D.new()
 	var t := TorusMesh.new()
-	t.inner_radius = 0.12
-	t.outer_radius = 0.2
-	t.material = mat(Color(0.2, 0.15, 0.1))
-	roda.mesh = t
-	roda.position = Vector3(0, 0.2, 0.75)
-	roda.rotation.z = PI * 0.5
-	r.add_child(roda)
+	t.inner_radius = 0.25
+	t.outer_radius = 0.3
+	t.rings = 24
+	t.ring_segments = 8
+	t.material = ferro
+	aro.mesh = t
+	aro.position = c
+	aro.rotation.z = PI * 0.5
+	r.add_child(aro)
+	var aro2 := aro.duplicate() as MeshInstance3D
+	var t2 := TorusMesh.new()
+	t2.inner_radius = 0.22
+	t2.outer_radius = 0.26
+	t2.rings = 24
+	t2.ring_segments = 8
+	t2.material = braco
+	aro2.mesh = t2
+	r.add_child(aro2)
+	var cubo := tora(r, c + Vector3(-0.05, 0, 0), c + Vector3(0.05, 0, 0), 0.05, braco)
+	cubo.name = "Cubo"
+	for k in 8:
+		var a := TAU * k / 8.0
+		tora(r, c, c + Vector3(0, cos(a) * 0.23, sin(a) * 0.23), 0.012, braco)
+	tora(r, c + Vector3(-0.22, 0, 0), c + Vector3(0.22, 0, 0), 0.015, ferro)
 	var carga := Node3D.new()
 	carga.name = "Carga"
 	r.add_child(carga)

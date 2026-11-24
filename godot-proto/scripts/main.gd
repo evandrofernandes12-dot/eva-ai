@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v54"
+const VERSAO := "v55"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -1100,26 +1100,26 @@ func _familia(sala: Node3D, id: String) -> void:
 		f = Node3D.new()
 		f.name = "Familia"
 		sala.add_child(f)
-		var pai := Heroi.montar("A2", false, true)   # corpo de personagem (antes era o boneco)
+		var pai := Heroi.montar("A2", false, true)   # o aldeão em pé, aquecendo-se na lareira
 		var np := Node3D.new()
-		np.position = Vector3(1.8, 0, -2.6)
-		np.rotation.y = PI * 0.8
+		np.position = Vector3(4.3, 0, -3.3)
+		np.rotation.y = -PI * 0.8
 		f.add_child(np)
 		np.add_child(pai)
 		Fit.to_height(pai, 1.75)
 		Fit.play(Fit.find_node_of(pai, "AnimationPlayer") as AnimationPlayer, &"Idle")
-		var lugares := [["A3", 1.68, 2.3], ["A2", 1.2, 3.55]]   # esposa e filho no banco: [corpo, altura, x]
+		var lugares := [["A3", 1.68, 2.05], ["A2", 1.2, 3.2]]   # esposa e filho no banco da lareira: [corpo, altura, x]
 		for l: Array in lugares:
 			var m := Heroi.montar(String(l[0]), false, true)
 			var n := Node3D.new()
-			# a animação de sentar põe a pélvis ~0,26 da altura acima da origem e ~0,19 atrás dela (como o Rei no trono):
-			# sobe até a almofada do banco (0,57 m) e recua para a pélvis cair no meio do assento (z = -0,6)
+			# banco em z = -2,3 com o assento a 0,53 m; a animação de sentar põe a pélvis ~0,26 da altura acima
+			# da origem e ~0,19 atrás dela: sobe e recua para a pélvis cair no meio do assento
 			var hh: float = l[1]
-			n.position = Vector3(float(l[2]), 0.57 - 0.26 * hh, -0.6 - 0.19 * hh)
+			n.position = Vector3(float(l[2]), 0.53 - 0.26 * hh, -2.3 - 0.19 * hh)
 			n.rotation.y = PI   # de frente para a lareira
 			f.add_child(n)
 			n.add_child(m)
-			Fit.to_height(m, float(l[1]))
+			Fit.to_height(m, hh)
 			Fit.play(Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer, &"Sitting_Idle")
 	f.visible = ceu != null and ceu.noite
 

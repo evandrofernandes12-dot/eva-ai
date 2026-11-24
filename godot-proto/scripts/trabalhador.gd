@@ -60,7 +60,7 @@ func _ready() -> void:
 	if oficio == "cacador" and sexo == "f":   # caçadora: lança e corda
 		Heroi._prender(_sk, Heroi.LANCA)
 	_carrinho = Construcoes.carrinho()
-	_carrinho.position = Vector3(0, 0, 0.95)
+	_carrinho.position = Vector3(0, 0, 1.5)   # pegadores na altura das mãos, à frente do corpo
 	_carrinho.visible = false
 	add_child(_carrinho)
 	_tag = Label3D.new()

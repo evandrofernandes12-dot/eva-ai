@@ -13,9 +13,9 @@ const TIPOS := {
 	"vaca": ["res://models/animais/Vaca.gltf", 1.5, "Idle", "WalkSlow", "Walk", "Death"],
 	"porco": ["res://models/animais/Porco.gltf", 0.9, "Idle", "WalkSlow", "Walk", "Death"],
 	"ovelha": ["res://models/animais/Ovelha.gltf", 1.0, "Idle", "WalkSlow", "Walk", "Death"],
-	"cavalo": ["res://models/animais/Cavalo.gltf", 1.7, "Idle", "WalkSlow", "Walk", "Death"],
+	"cavalo": ["res://models/pets/cavalo.glb", 1.75, "", "horse", "horse", "", Color(0.55, 0.35, 0.2)],   # o cavalo realista do pet, marrom
 }
-const VEL := {"coelho": 3.5, "cervo": 4.5, "corca": 4.5, "crocodilo": 0.8, "galinha": 0.7, "vaca": 0.8, "porco": 0.9, "ovelha": 0.8, "cavalo": 1.2}
+const VEL := {"coelho": 3.5, "cervo": 4.5, "corca": 4.5, "crocodilo": 0.8, "galinha": 0.7, "vaca": 0.8, "porco": 0.9, "ovelha": 0.8, "cavalo": 1.6}
 const CARNE := {"coelho": 3, "cervo": 10, "corca": 8, "crocodilo": 8, "galinha": 2, "vaca": 12, "porco": 8, "ovelha": 8, "cavalo": 10}
 
 var tipo := "coelho"
@@ -44,9 +44,12 @@ func _ready() -> void:
 			mi.visible = false
 		elif info.size() > 6:              # sem textura no arquivo: pinta (corça marrom, crocodilo verde)
 			var m := StandardMaterial3D.new()
+			m.vertex_color_use_as_albedo = true   # mantém o sombreado pintado nos vértices (cavalo)
 			m.albedo_color = info[6] if not mi.name.begins_with("Eye") else Color(0.05, 0.05, 0.05)
 			m.roughness = 0.8
 			mi.material_override = m
+	if tipo == "cavalo":
+		model.rotation.y = PI   # o modelo do cavalo olha para -Z (os outros já olham para +Z)
 	Fit.to_height(model, info[1])
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	hp = 2 if info[1] < 0.6 else 4
@@ -54,7 +57,11 @@ func _ready() -> void:
 	_tocar(info[2])
 
 func _tocar(nome: String, laco := true, vel := 1.0) -> void:
-	if _ap == null or nome == "":
+	if _ap == null:
+		return
+	if nome == "":   # sem animação de parado: congela a pose
+		if _ap.is_playing():
+			_ap.pause()
 		return
 	var a := Fit.find_anim(_ap, [nome])
 	if a != &"":
@@ -86,7 +93,7 @@ func _process(delta: float) -> void:
 		else:
 			_alvo = global_position
 		rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 6.0 * delta)
-		_tocar(info[4] if _fugindo > 0.0 else info[3], true, 1.0)
+		_tocar(info[4] if _fugindo > 0.0 else info[3], true, 0.45 if tipo == "cavalo" else 1.0)
 	else:
 		_tocar(info[2])
 		if _t <= 0.0:   # escolhe outro lugar para ir (às vezes fica parado mais um pouco)

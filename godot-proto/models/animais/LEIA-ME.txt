@@ -3,3 +3,4 @@ Animais (todos CC0 / domínio público):
 - Crocodilo.glb (Crocodile) — OpenGameArt. Peixe.glb (Fish animated) — XaosXV, OpenGameArt.
 - Vaca, Porco, Ovelha, Cavalo (.gltf + .bin) — Quaternius (Animated Animal Pack), via exemplos do three.js.
 Arquivos obtidos pelo catálogo CC0 https://oosawak.github.io/cc0-monsters/ e por https://threejs.org/manual/examples/resources/models/animals/.
+Interiores e móveis: Quaternius Medieval Village MegaKit e Fantasy Props MegaKit (CC0), em assets/medieval/ (texturas reduzidas para 1024 px).
