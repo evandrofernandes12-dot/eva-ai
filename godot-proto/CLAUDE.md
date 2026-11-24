@@ -8,7 +8,10 @@ Godot 4.3, renderizador Compatibilidade, testado em tablet Android. Idioma do c�
 - `scripts/player.gd`: movimento, ataque, defesa, corrida, estocada da lança.
 - `scripts/boss.gd` + `scripts/duas_maos.gd`: Minotauro (machado por código, IK das duas mãos).
 - `scripts/interior.gd` (`Interior`): casas, forja e Salão do Rei gerados por código.
-- `scripts/enemy.gd`, `villager.gd`, `plot.gd`, `fit.gd`, `joystick.gd`: inimigos, aldeões, lotes, utilidades, direcional.
+- `scripts/vila.gd` (`Vila`): aldeia funcionando — armazéns, cozinha, artesã, horta, curral, animais, trabalhadores, guardas, refeições.
+- `scripts/trabalhador.gd` (`Trabalhador`, 8 ofícios m/f, fila de tarefas), `guarda.gd` (`Guarda`), `animal.gd` (`Animal`).
+- `scripts/ceu.gd` (dia/noite/chuva), `lago.gd`, `fogueira.gd`, `construcoes.gd` (peças por código).
+- `scripts/enemy.gd`, `villager.gd` (antigo, sem uso), `plot.gd`, `fit.gd`, `joystick.gd`: inimigos, lotes, utilidades, direcional.
 - `models/` (GLB/glTF), `models/armas/`, `models/herois/`. Scripts do Blender ficam em `../scripts/`.
 
 ## Regras

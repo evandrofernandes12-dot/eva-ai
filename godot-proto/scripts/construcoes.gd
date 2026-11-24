@@ -811,3 +811,412 @@ static func armazem(nivel: int) -> Node3D:
 				mi.position = Vector3(-0.35 + col * 0.35, 0.27 + fila * 0.42, 0)
 				it.add_child(mi)
 	return r
+
+# ---------- aldeia que funciona: estoques, oficinas, horta, curral e ferramentas ----------
+static func _placa(r: Node3D, texto: String, pos: Vector3) -> void:
+	var p := Label3D.new()
+	p.text = texto
+	p.font_size = 64
+	p.pixel_size = 0.008
+	p.modulate = Color(0.2, 0.1, 0.04)
+	p.outline_size = 0
+	p.position = pos
+	r.add_child(p)
+	var t := p.duplicate() as Label3D   # dá para ler de longe (rótulo flutuante)
+	t.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	t.modulate = Color(1.0, 0.92, 0.7)
+	t.outline_size = 10
+	t.font_size = 44
+	t.pixel_size = 0.012
+	t.position = pos + Vector3(0, 2.2, 0)
+	t.visibility_range_end = 45.0
+	r.add_child(t)
+
+## Item de estoque (uma unidade da pilha) conforme o tipo.
+static func _item_estoque(tipo: String, i: int) -> Node3D:
+	var it := Node3D.new()
+	var fila := i / 3
+	var col := i % 3
+	var x := -0.42 + col * 0.42
+	match tipo:
+		"madeira":
+			var y := 0.18 + fila * 0.32
+			tora(it, Vector3(x, y, -0.7), Vector3(x, y, 0.7), 0.16, mat(Color(0.45, 0.31, 0.18)))
+		"pedra":
+			caixa(it, Vector3(x, 0.18 + fila * 0.34, 0), Vector3(0.38, 0.34, 0.42), mat(Color(0.55, 0.55, 0.57), true, 0.95), i * 0.7)
+		"carne":   # pernis e peças penduradas num cavalete
+			var sm := SphereMesh.new()
+			sm.radius = 0.16
+			sm.height = 0.42
+			sm.material = mat(Color(0.6, 0.18, 0.15), false, 0.6)
+			var mi := MeshInstance3D.new()
+			mi.mesh = sm
+			mi.position = Vector3(x, 1.3 - fila * 0.5, 0)
+			it.add_child(mi)
+		_:   # comida: cestos com frutas e legumes
+			var cm := CylinderMesh.new()
+			cm.top_radius = 0.2
+			cm.bottom_radius = 0.15
+			cm.height = 0.22
+			cm.material = mat(Color(0.6, 0.45, 0.25))
+			var c := MeshInstance3D.new()
+			c.mesh = cm
+			c.position = Vector3(x, 0.11 + fila * 0.26, 0)
+			it.add_child(c)
+			var fr := SphereMesh.new()
+			fr.radius = 0.17
+			fr.height = 0.16
+			fr.material = mat([Color(0.95, 0.5, 0.1), Color(0.8, 0.15, 0.12), Color(0.35, 0.6, 0.2)][i % 3], false, 0.5)
+			var f := MeshInstance3D.new()
+			f.mesh = fr
+			f.position = c.position + Vector3(0, 0.12, 0)
+			it.add_child(f)
+	return it
+
+## Galpão de estoque com nome (Pedreira, Madeireira, Mantimentos, Açougue). Pilha de 9 itens na frente ("Pilha").
+static func galpao(nome: String, tipo: String) -> Node3D:
+	var r := armazem(1)
+	for n in ["Pilha_madeira", "Pilha_pedra", "Pilha_comida"]:
+		var p := r.get_node_or_null(n)
+		if p != null:
+			p.free()
+	for c in r.get_children():   # troca o nome da placa
+		if c is Label3D:
+			c.free()
+	_placa(r, nome.to_upper(), Vector3(0, 3.75, 2.64))
+	var pilha := Node3D.new()
+	pilha.name = "Pilha"
+	pilha.position = Vector3(0, 0, 3.9)
+	r.add_child(pilha)
+	if tipo == "carne":   # cavalete para pendurar as carnes
+		var me := mat(MADEIRA_ESCURA)
+		for s: float in [-0.75, 0.75]:
+			tora(pilha, Vector3(s, 0, 0), Vector3(s, 1.65, 0), 0.06, me)
+		tora(pilha, Vector3(-0.8, 1.6, 0), Vector3(0.8, 1.6, 0), 0.05, me)
+	for i in 9:
+		var it := _item_estoque(tipo, i)
+		it.name = "Item%d" % i
+		it.visible = false
+		pilha.add_child(it)
+	return r
+
+## Cozinha: casa de pedra com chaminé, fogão a lenha e caldeirão na frente, balcão de servir e mesa comprida com bancos.
+static func cozinha() -> Node3D:
+	var r := Node3D.new()
+	var pedra := mat_pedra()
+	var m := mat(MADEIRA)
+	var me := mat(MADEIRA_ESCURA)
+	caixa(r, Vector3(0, 1.6, -1.5), Vector3(7.0, 3.2, 4.0), pedra)
+	for s: float in [-1.0, 1.0]:
+		var tel := caixa(r, Vector3(0, 3.75, -1.5 + s * 1.05), Vector3(7.6, 0.15, 2.5), mat(Color(0.24, 0.32, 0.5)))
+		tel.rotation.x = -s * 0.55
+	caixa(r, Vector3(2.4, 4.4, -2.2), Vector3(0.8, 2.0, 0.8), pedra)   # chaminé
+	caixa(r, Vector3(0, 1.1, 0.52), Vector3(1.4, 2.2, 0.06), me)       # porta
+	_placa(r, "COZINHA", Vector3(0, 2.6, 0.56))
+	# fogão e caldeirão na frente
+	caixa(r, Vector3(-2.4, 0.45, 1.6), Vector3(1.4, 0.9, 1.0), pedra)
+	var cal := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.45
+	sm.height = 0.7
+	sm.material = mat(Color(0.1, 0.1, 0.11), false, 0.4)
+	cal.mesh = sm
+	cal.position = Vector3(-2.4, 1.15, 1.6)
+	r.add_child(cal)
+	caixa(r, Vector3(-2.4, 1.38, 1.6), Vector3(0.6, 0.02, 0.6), mat(Color(0.75, 0.55, 0.25), false, 0.3))   # sopa
+	# balcão de servir (fila de frente para ele) com pratos e panelas
+	caixa(r, Vector3(1.2, 0.5, 2.2), Vector3(3.0, 1.0, 0.7), m)
+	for i in 4:
+		cilindro_mesh(r, Vector3(0.1 + i * 0.7, 1.02, 2.2), 0.16, 0.03, Color(0.9, 0.88, 0.82))
+	# mesa comprida com bancos (onde comem)
+	var mz := 6.0
+	caixa(r, Vector3(0, 0.78, mz), Vector3(6.0, 0.1, 1.1), m)
+	for x: float in [-2.6, 2.6]:
+		for z: float in [-0.4, 0.4]:
+			caixa(r, Vector3(x, 0.37, mz + z), Vector3(0.1, 0.74, 0.1), me)
+	for z: float in [-0.95, 0.95]:
+		caixa(r, Vector3(0, 0.45, mz + z), Vector3(6.0, 0.08, 0.35), m)
+	solido(r, Vector3(0, 1.6, -1.5), Vector3(7.0, 3.2, 4.0))
+	solido(r, Vector3(1.2, 0.5, 2.2), Vector3(3.0, 1.0, 0.7))
+	return r
+
+static func cilindro_mesh(pai: Node3D, pos: Vector3, raio: float, alt: float, cor: Color) -> MeshInstance3D:
+	var cm := CylinderMesh.new()
+	cm.top_radius = raio
+	cm.bottom_radius = raio
+	cm.height = alt
+	cm.material = mat(cor, false, 0.6)
+	var mi := MeshInstance3D.new()
+	mi.mesh = cm
+	mi.position = pos
+	pai.add_child(mi)
+	return mi
+
+## Ateliê da artesã: casa de madeira com tear, varal de tecidos coloridos e manequim com roupa.
+static func artesa() -> Node3D:
+	var r := Node3D.new()
+	var m := mat(MADEIRA)
+	var me := mat(MADEIRA_ESCURA)
+	caixa(r, Vector3(0, 0.2, -1.5), Vector3(6.4, 0.4, 4.4), mat_pedra())
+	caixa(r, Vector3(0, 1.8, -1.5), Vector3(6.0, 2.9, 4.0), mat(Color(0.88, 0.82, 0.68)))
+	for s: float in [-1.0, 1.0]:
+		var tel := caixa(r, Vector3(0, 3.6, -1.5 + s * 1.05), Vector3(6.6, 0.15, 2.5), mat(Color(0.24, 0.32, 0.5)))
+		tel.rotation.x = -s * 0.55
+	caixa(r, Vector3(0, 1.1, 0.52), Vector3(1.3, 2.0, 0.06), me)
+	_placa(r, "ARTESÃ", Vector3(0, 2.5, 0.56))
+	# tear
+	var tx := -2.0
+	for s: float in [-0.7, 0.7]:
+		tora(r, Vector3(tx + s, 0, 2.0), Vector3(tx + s, 1.6, 2.0), 0.05, me)
+	tora(r, Vector3(tx - 0.75, 1.55, 2.0), Vector3(tx + 0.75, 1.55, 2.0), 0.04, me)
+	tora(r, Vector3(tx - 0.75, 0.6, 2.0), Vector3(tx + 0.75, 0.6, 2.0), 0.06, me)
+	caixa(r, Vector3(tx, 1.08, 2.0), Vector3(1.3, 0.9, 0.02), mat(Color(0.6, 0.15, 0.2), false, 1.0))
+	# varal com tecidos
+	var cores := [Color(0.15, 0.3, 0.6), Color(0.2, 0.45, 0.2), Color(0.8, 0.6, 0.2), Color(0.55, 0.2, 0.5), Color(0.85, 0.85, 0.8)]
+	tora(r, Vector3(0.8, 0, 2.6), Vector3(0.8, 1.9, 2.6), 0.05, me)
+	tora(r, Vector3(3.2, 0, 2.6), Vector3(3.2, 1.9, 2.6), 0.05, me)
+	tora(r, Vector3(0.8, 1.85, 2.6), Vector3(3.2, 1.85, 2.6), 0.01, mat(CORDA, false))
+	for i in 5:
+		caixa(r, Vector3(1.05 + i * 0.48, 1.45, 2.6), Vector3(0.4, 0.8, 0.02), mat(cores[i], false, 1.0))
+	# manequim com capa
+	tora(r, Vector3(3.2, 0, 0.9), Vector3(3.2, 1.2, 0.9), 0.04, me)
+	caixa(r, Vector3(3.2, 1.35, 0.9), Vector3(0.5, 0.6, 0.3), mat(Color(0.3, 0.15, 0.4), false, 1.0))
+	solido(r, Vector3(0, 1.6, -1.5), Vector3(6.4, 3.2, 4.4))
+	return r
+
+## Canteiro da horta (2 x 6 m) com uma cultura. tipo: alface, tomate, abobora, melancia, cenoura.
+static func canteiro(tipo: String) -> Node3D:
+	var r := Node3D.new()
+	var terra := mat(Color(0.32, 0.22, 0.14), true, 1.0)
+	caixa(r, Vector3(0, 0.06, 0), Vector3(2.0, 0.12, 6.0), terra)
+	for s: float in [-1.0, 1.0]:   # bordas de madeira
+		caixa(r, Vector3(s * 1.02, 0.1, 0), Vector3(0.06, 0.2, 6.0), mat(MADEIRA_ESCURA))
+	var verde := mat(Color(0.3, 0.6, 0.2), false, 0.7)
+	for i in 10:
+		for j in 2:
+			var p := Vector3(-0.45 + j * 0.9, 0.12, -2.6 + i * 0.58)
+			match tipo:
+				"alface":
+					var s := SphereMesh.new()
+					s.radius = 0.2
+					s.height = 0.22
+					s.material = mat(Color(0.45, 0.75, 0.3), false, 0.7)
+					var mi := MeshInstance3D.new()
+					mi.mesh = s
+					mi.position = p + Vector3(0, 0.08, 0)
+					r.add_child(mi)
+				"tomate":
+					tora(r, p, p + Vector3(0, 1.0, 0), 0.02, mat(MADEIRA))
+					var s2 := SphereMesh.new()
+					s2.radius = 0.16
+					s2.height = 0.5
+					s2.material = verde
+					var f := MeshInstance3D.new()
+					f.mesh = s2
+					f.position = p + Vector3(0, 0.55, 0)
+					r.add_child(f)
+					for k in 3:
+						var t := SphereMesh.new()
+						t.radius = 0.05
+						t.height = 0.1
+						t.material = mat(Color(0.85, 0.12, 0.08), false, 0.4)
+						var tm := MeshInstance3D.new()
+						tm.mesh = t
+						tm.position = p + Vector3(cos(k * 2.1) * 0.13, 0.4 + k * 0.15, sin(k * 2.1) * 0.13)
+						r.add_child(tm)
+				"abobora", "melancia":
+					if (i + j) % 2 == 0:
+						var s3 := SphereMesh.new()
+						s3.radius = 0.24 if tipo == "abobora" else 0.22
+						s3.height = 0.34 if tipo == "abobora" else 0.4
+						s3.material = mat(Color(0.95, 0.5, 0.1) if tipo == "abobora" else Color(0.15, 0.4, 0.12), false, 0.6)
+						var a := MeshInstance3D.new()
+						a.mesh = s3
+						a.position = p + Vector3(0, 0.15, 0)
+						a.scale = Vector3(1, 1, 1.0 if tipo == "abobora" else 1.4)
+						r.add_child(a)
+					var fo := SphereMesh.new()
+					fo.radius = 0.18
+					fo.height = 0.1
+					fo.material = verde
+					var fm := MeshInstance3D.new()
+					fm.mesh = fo
+					fm.position = p + Vector3(0.2, 0.06, 0.1)
+					r.add_child(fm)
+				_:   # cenoura: folhinhas
+					for k in 3:
+						tora(r, p + Vector3(k * 0.04 - 0.04, 0, 0), p + Vector3(k * 0.06 - 0.06, 0.3, 0.02), 0.012, verde)
+	return r
+
+## Árvore frutífera pequena: copa com frutas coloridas (laranja ou maçã).
+static func frutifera(cor_fruta: Color) -> Node3D:
+	var r := Node3D.new()
+	tora(r, Vector3.ZERO, Vector3(0, 1.6, 0), 0.12, mat(Color(0.4, 0.27, 0.16)))
+	var copa := SphereMesh.new()
+	copa.radius = 1.2
+	copa.height = 2.0
+	copa.material = mat(Color(0.22, 0.48, 0.18), true, 0.9)
+	var c := MeshInstance3D.new()
+	c.mesh = copa
+	c.position.y = 2.4
+	r.add_child(c)
+	for k in 14:
+		var a := TAU * k / 14.0
+		var f := SphereMesh.new()
+		f.radius = 0.09
+		f.height = 0.18
+		f.material = mat(cor_fruta, false, 0.4)
+		var mi := MeshInstance3D.new()
+		mi.mesh = f
+		mi.position = Vector3(cos(a) * 1.1, 2.0 + 0.6 * sin(k * 1.7), sin(a) * 1.1)
+		r.add_child(mi)
+	solido(r, Vector3(0, 0.8, 0), Vector3(0.4, 1.6, 0.4))
+	return r
+
+## Parreira: armação de madeira com cachos de uva.
+static func parreira() -> Node3D:
+	var r := Node3D.new()
+	var me := mat(MADEIRA_ESCURA)
+	for x: float in [-2.0, 0.0, 2.0]:
+		tora(r, Vector3(x, 0, 0), Vector3(x, 1.8, 0), 0.05, me)
+	tora(r, Vector3(-2.0, 1.75, 0), Vector3(2.0, 1.75, 0), 0.04, me)
+	var folha := mat(Color(0.25, 0.5, 0.18), false, 0.8)
+	for i in 9:
+		var p := Vector3(-1.8 + i * 0.45, 1.6, 0)
+		caixa(r, p, Vector3(0.5, 0.35, 0.35), folha, i * 0.4)
+		if i % 2 == 0:
+			for k in 5:
+				var u := SphereMesh.new()
+				u.radius = 0.05
+				u.height = 0.1
+				u.material = mat(Color(0.35, 0.1, 0.4), false, 0.3)
+				var mi := MeshInstance3D.new()
+				mi.mesh = u
+				mi.position = p + Vector3((k % 2) * 0.06 - 0.03, -0.25 - k * 0.05, 0.12)
+				r.add_child(mi)
+	return r
+
+## Cerca retangular de madeira (w x d) com abertura de porteira no lado +Z. Tem colisão.
+static func cerca(w: float, d: float) -> Node3D:
+	var r := Node3D.new()
+	var m := mat(MADEIRA)
+	var lados := [[Vector3(-w * 0.5, 0, -d * 0.5), Vector3(w * 0.5, 0, -d * 0.5)], [Vector3(w * 0.5, 0, -d * 0.5), Vector3(w * 0.5, 0, d * 0.5)],
+		[Vector3(-w * 0.5, 0, -d * 0.5), Vector3(-w * 0.5, 0, d * 0.5)], [Vector3(-w * 0.5, 0, d * 0.5), Vector3(-1.2, 0, d * 0.5)], [Vector3(1.2, 0, d * 0.5), Vector3(w * 0.5, 0, d * 0.5)]]
+	for l: Array in lados:
+		var a: Vector3 = l[0]
+		var b: Vector3 = l[1]
+		var n := maxi(1, int(a.distance_to(b) / 1.8))
+		for i in n + 1:
+			var p := a.lerp(b, float(i) / n)
+			tora(r, p, p + Vector3(0, 1.2, 0), 0.07, m)
+		for y: float in [0.5, 1.0]:
+			tora(r, a + Vector3(0, y, 0), b + Vector3(0, y, 0), 0.04, m)
+		solido(r, (a + b) * 0.5 + Vector3(0, 0.6, 0), Vector3(absf(b.x - a.x) + 0.15, 1.2, absf(b.z - a.z) + 0.15))
+	return r
+
+## Galinheiro: casinha de madeira sobre pés, com rampa e ninhos.
+static func galinheiro() -> Node3D:
+	var r := Node3D.new()
+	var m := mat(MADEIRA)
+	var me := mat(MADEIRA_ESCURA)
+	for x: float in [-0.9, 0.9]:
+		for z: float in [-0.6, 0.6]:
+			tora(r, Vector3(x, 0, z), Vector3(x, 0.6, z), 0.05, me)
+	caixa(r, Vector3(0, 1.1, 0), Vector3(2.0, 1.0, 1.4), m)
+	var tel := caixa(r, Vector3(0, 1.75, 0), Vector3(2.3, 0.1, 1.7), mat(Color(0.6, 0.35, 0.2)))
+	tel.rotation.x = 0.2
+	var rampa := caixa(r, Vector3(0, 0.3, 1.2), Vector3(0.4, 0.04, 1.2), m)
+	rampa.rotation.x = 0.55
+	caixa(r, Vector3(0, 1.0, 0.71), Vector3(0.4, 0.4, 0.02), mat(Color(0.05, 0.04, 0.03), false))
+	solido(r, Vector3(0, 0.9, 0), Vector3(2.0, 1.8, 1.4))
+	return r
+
+# ---------- ferramentas dos trabalhadores (cabo em +Y, ponta em cima; presas na mão por trabalhador.gd) ----------
+static func ferramenta(nome: String) -> Node3D:
+	var r := Node3D.new()
+	var cabo := mat(Color(0.5, 0.35, 0.2))
+	var ferro := mat(Color(0.45, 0.46, 0.48), false, 0.35)
+	match nome:
+		"martelo":
+			tora(r, Vector3(0, -0.15, 0), Vector3(0, 0.25, 0), 0.02, cabo)
+			caixa(r, Vector3(0, 0.27, 0), Vector3(0.06, 0.07, 0.16), ferro)
+		"enxada":
+			tora(r, Vector3(0, -0.5, 0), Vector3(0, 0.8, 0), 0.022, cabo)
+			caixa(r, Vector3(0, 0.78, 0.09), Vector3(0.2, 0.03, 0.18), ferro)
+		"colher":
+			tora(r, Vector3(0, -0.25, 0), Vector3(0, 0.35, 0), 0.015, cabo)
+			var s := SphereMesh.new()
+			s.radius = 0.07
+			s.height = 0.05
+			s.material = cabo
+			var mi := MeshInstance3D.new()
+			mi.mesh = s
+			mi.position.y = 0.4
+			r.add_child(mi)
+		"prato":
+			var p := cilindro_mesh(r, Vector3(0, 0.1, 0), 0.15, 0.03, Color(0.9, 0.88, 0.82))
+			p.rotation.x = PI * 0.5
+		"cesto":
+			cilindro_mesh(r, Vector3(0, 0.0, 0.0), 0.2, 0.25, Color(0.6, 0.45, 0.25))
+			var fr := SphereMesh.new()
+			fr.radius = 0.17
+			fr.height = 0.14
+			fr.material = mat(Color(0.95, 0.5, 0.1), false, 0.5)
+			var f := MeshInstance3D.new()
+			f.mesh = fr
+			f.position.y = 0.13
+			r.add_child(f)
+		"varinha":
+			tora(r, Vector3(0, -0.2, 0), Vector3(0, 0.35, 0), 0.012, mat(Color(0.3, 0.2, 0.35)))
+			var g := SphereMesh.new()
+			g.radius = 0.04
+			g.height = 0.08
+			var gm := StandardMaterial3D.new()
+			gm.albedo_color = Color(0.5, 0.8, 1.0)
+			gm.emission_enabled = true
+			gm.emission = Color(0.3, 0.6, 1.0)
+			g.material = gm
+			var gi := MeshInstance3D.new()
+			gi.mesh = g
+			gi.position.y = 0.38
+			r.add_child(gi)
+	return r
+
+## Carrinho de mão (frente em +Z): caçamba, roda e dois cabos. Nó "Carga" com pedras ou toras amarradas com corda.
+static func carrinho() -> Node3D:
+	var r := Node3D.new()
+	var m := mat(MADEIRA)
+	var me := mat(MADEIRA_ESCURA)
+	caixa(r, Vector3(0, 0.45, 0.25), Vector3(0.7, 0.06, 0.9), m)
+	for s: float in [-1.0, 1.0]:
+		var lado := caixa(r, Vector3(s * 0.36, 0.6, 0.25), Vector3(0.04, 0.3, 0.9), m)
+		lado.rotation.z = s * 0.2
+		tora(r, Vector3(s * 0.25, 0.42, -0.25), Vector3(s * 0.3, 0.75, -0.95), 0.025, me)   # cabos
+		tora(r, Vector3(s * 0.25, 0.42, -0.1), Vector3(s * 0.25, 0.0, -0.15), 0.025, me)    # pés
+	var roda := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = 0.12
+	t.outer_radius = 0.2
+	t.material = mat(Color(0.2, 0.15, 0.1))
+	roda.mesh = t
+	roda.position = Vector3(0, 0.2, 0.75)
+	roda.rotation.z = PI * 0.5
+	r.add_child(roda)
+	var carga := Node3D.new()
+	carga.name = "Carga"
+	r.add_child(carga)
+	return r
+
+static func encher_carrinho(c: Node3D, tipo: String) -> void:
+	var carga := c.get_node("Carga") as Node3D
+	for x in carga.get_children():
+		x.queue_free()
+	if tipo == "":
+		return
+	for i in 4:
+		if tipo == "madeira":
+			tora(carga, Vector3(-0.22 + (i % 2) * 0.22, 0.6 + (i / 2) * 0.15, -0.15), Vector3(-0.22 + (i % 2) * 0.22, 0.6 + (i / 2) * 0.15, 0.65), 0.08, mat(Color(0.45, 0.31, 0.18)))
+		else:
+			caixa(carga, Vector3(-0.15 + (i % 2) * 0.3, 0.58 + (i / 2) * 0.17, 0.1 + (i % 3) * 0.12), Vector3(0.25, 0.2, 0.25), mat(Color(0.55, 0.55, 0.57), true, 0.95), i * 0.6)
+	for z: float in [0.05, 0.45]:   # corda amarrando a carga
+		caixa(carga, Vector3(0, 0.75, z), Vector3(0.72, 0.02, 0.03), mat(CORDA, false))

@@ -153,7 +153,7 @@ custo_comida = 0
 efeito = "madeira"
 
 [node name="LoteTorre" type="Node3D" parent="Lotes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.3, 0, -28.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.8, 0, -36.8)
 script = ExtResource("p_s")
 nome = "Torre de Vigia"
 modelo = ExtResource("p_t")
@@ -164,7 +164,7 @@ custo_comida = 0
 efeito = "torre"
 
 [node name="LoteTorre2" type="Node3D" parent="Lotes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.3, 0, -28.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36.8, 0, -36.8)
 script = ExtResource("p_s")
 nome = "Torre de Vigia"
 modelo = ExtResource("p_t")
@@ -175,7 +175,7 @@ custo_comida = 0
 efeito = "torre"
 
 [node name="LoteTorre3" type="Node3D" parent="Lotes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.3, 0, 28.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.8, 0, 36.8)
 script = ExtResource("p_s")
 nome = "Torre de Vigia"
 modelo = ExtResource("p_t")
@@ -186,7 +186,7 @@ custo_comida = 0
 efeito = "torre"
 
 [node name="LoteTorre4" type="Node3D" parent="Lotes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.3, 0, 28.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36.8, 0, 36.8)
 script = ExtResource("p_s")
 nome = "Torre de Vigia"
 modelo = ExtResource("p_t")

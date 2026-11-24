@@ -31,11 +31,11 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v51"
+const VERSAO := "v52"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
-const MURO_R := 40.0             # raio da muralha
-const RIO_R := 64.0              # raio médio do riacho em volta da aldeia (ondula ±3,5 m)
+const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
+const RIO_R := 76.0              # raio médio do riacho em volta da aldeia (ondula ±3,5 m)
 const RIO_LARG := 5.0            # largura da água
 const LAGO_ANG := PI * 0.75      # o lago fica a noroeste, encostado no riacho (que o alimenta)
 const VIRAR_PARA_PRACA := ["SalaoDoChefe", "Casa1", "Casa2", "Casa3", "Forja", "Moinho", "Barraca"]
@@ -53,8 +53,8 @@ const CLASSES := {
 const ARMA_CUSTO := [{}, {"madeira": 40, "pedra": 30}, {"madeira": 90, "pedra": 70, "comida": 30}]
 const OFICIOS := ["madeira", "pedra", "comida"]
 
-@export var forest_radius := 95.0
-@export var village_radius := 46.0
+@export var forest_radius := 118.0
+@export var village_radius := 58.0
 @export var tree_count := 300
 @export var rock_count := 40
 @export var bush_count := 50
@@ -75,9 +75,11 @@ var _renascer: Array = []        # recursos que voltam a nascer: {t, scene, h, t
 var _holder: Node3D
 var ceu: Ceu                     # dia, noite e chuva (scripts/ceu.gd)
 var lago: Lago                   # lago da floresta (scripts/lago.gd)
+var vila: Vila                   # aldeia funcionando: trabalhadores, guardas, animais, armazéns (scripts/vila.gd)
 var fogueira: Fogueira           # fogueira grande do centro da vila (scripts/fogueira.gd)
 var _guardas_noite: Array = []   # guardas em volta da fogueira, só à noite
 var _pilha_t := 0.0
+var _viu_aldeoes := false
 var _painel: Control
 var boss: Node3D                 # Minotauro Dark, quando está vivo
 var boss_derrotas := 0
@@ -149,7 +151,7 @@ var QUESTS := [
 	{"t": "Construa a Casa (lote amarelo)", "p": func(): return _built("vida"), "n": 1, "r": {"pedra": 15}},
 	{"t": "Escolha classe e personagem (botão CLASSE)", "p": func(): return 0 if heroi == "" else 1, "n": 1, "r": {"comida": 20}},
 	{"t": "Derrote 3 orcs", "p": func(): return kills, "n": 3, "r": {"madeira": 30, "pedra": 20}},
-	{"t": "Contrate um aldeão (botão ALDEÕES)", "p": func(): return aldeoes.size(), "n": 1, "r": {"comida": 20}},
+	{"t": "Veja os trabalhadores da aldeia (botão ALDEÕES)", "p": func(): return 1 if _viu_aldeoes else 0, "n": 1, "r": {"comida": 20}},
 	{"t": "Construa a Serraria", "p": func(): return _built("madeira"), "n": 1, "r": {"comida": 20}},
 	{"t": "Colha arbustos: junte 30 de comida", "p": func(): return res.comida, "n": 30, "r": {"pedra": 30}},
 	{"t": "Melhore a Casa para o nível 2", "p": func(): return _lvl("vida"), "n": 2, "r": {"madeira": 40}},
@@ -214,6 +216,10 @@ func _ready() -> void:
 	var rl := RIO_R + Lago.RAIO * 0.85
 	lago.position = Vector3(cos(LAGO_ANG) * rl, 0, sin(LAGO_ANG) * rl)
 	add_child(lago)
+	vila = Vila.new()
+	vila.name = "Vila"
+	add_child(vila)
+	vila.montar(self)
 	_scatter_forest()
 	_ceu()
 	lago.montar(ceu)
@@ -287,20 +293,13 @@ func _castelo_extra(b: Node3D) -> void:
 		var t := Construcoes.torre_pedra(2.2, ALTURA_CASTELO * 1.05)
 		t.position = Vector3(c.x + sx * (meia_l + 1.6), 0, frente - 2.0)
 		add_child(t)
-		var g := Heroi.montar("G1")
-		g.position = Vector3(c.x + sx * 2.6, 0.05, frente + 1.6)
+		var g := Guarda.new()   # guardas do castelo: guerreiro e arqueiro, lutam se um inimigo chegar perto
+		g.tipo = "guerreiro" if sx < 0 else "arqueiro"
+		g.jogo = self
+		g.position = Vector3(c.x + sx * 2.6, 0.0, frente + 1.6)
 		add_child(g)
-		var ap := Fit.find_node_of(g, "AnimationPlayer") as AnimationPlayer
-		Fit.play(ap, &"Idle_Shield")
-		var rot := Label3D.new()
-		rot.text = "Guarda"
-		rot.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		rot.font_size = 32
-		rot.outline_size = 8
-		rot.pixel_size = 0.01
-		rot.position.y = 2.2
-		rot.visibility_range_end = 25.0
-		g.add_child(rot)
+		if vila != null:
+			vila.guardas.append(g)
 
 ## Detalhes da aldeia montados por código (caminhos, lampiões, placa, feno, lenha, varal, cocho, banca).
 func _aldeia_extra() -> void:
@@ -757,6 +756,8 @@ func _use() -> void:
 		_near.melhorar()
 	else:
 		_near.construir()
+	if vila != null:   # construtores e serralheiros vão martelar na obra
+		vila.nova_obra(_near.global_position)
 
 func _on_upgraded(p) -> void:
 	_recalc()
@@ -831,6 +832,8 @@ func _on_player_attack() -> void:
 				if d < best:
 					best = d
 					alvo = e
+		if alvo == null and vila != null:   # sem inimigo por perto: caça um animal
+			alvo = vila.animal_perto(p, best)
 		if alvo != null:
 			var to: Vector3 = alvo.global_position - p
 			player.rotation.y = atan2(to.x, to.z)
@@ -849,6 +852,8 @@ func _on_player_attack() -> void:
 				hit = true
 		if hit:
 			return
+	if vila != null and vila.golpe_jogador(p, 2.6, player.damage):   # caça de perto
+		return
 	for t in nodes:
 		var n = t.node
 		if not is_instance_valid(n) or t.hp <= 0:
@@ -1089,14 +1094,14 @@ func _familia(sala: Node3D, id: String) -> void:
 		f = Node3D.new()
 		f.name = "Familia"
 		sala.add_child(f)
-		var pai: Node3D = KNIGHT.instantiate()
-		f.add_child(pai)
+		var pai := Heroi.montar("A2", false, true)   # corpo de personagem (antes era o boneco)
+		var np := Node3D.new()
+		np.position = Vector3(1.8, 0, -2.6)
+		np.rotation.y = PI * 0.8
+		f.add_child(np)
+		np.add_child(pai)
 		Fit.to_height(pai, 1.75)
-		pai.position = Vector3(1.8, pai.position.y, -2.6)
-		pai.rotation.y = PI * 0.8
-		var ap := Fit.find_node_of(pai, "AnimationPlayer") as AnimationPlayer
-		if ap != null:
-			Fit.play(ap, Fit.find_anim(ap, ["Idle"]))
+		Fit.play(Fit.find_node_of(pai, "AnimationPlayer") as AnimationPlayer, &"Idle")
 		var lugares := [["A3", 1.68, Vector3(2.4, 0.0, -0.75)], ["A2", 1.2, Vector3(3.6, 0.0, -0.75)]]   # esposa e filho no banco
 		for l: Array in lugares:
 			var m := Heroi.montar(String(l[0]), false, true)
@@ -1606,6 +1611,13 @@ func _balista(p, e) -> void:   # p: lote (plot.gd), e: inimigo
 	m.global_position = (bal.get_node("Ponta") as Node3D).global_position
 	tiros.append({"node": m, "alvo": e, "dano": dano, "area": 0.0, "cor": Color.WHITE, "flecha": true})
 
+## Flecha disparada por um guarda arqueiro.
+func flecha_de(de: Vector3, alvo: Node3D, dano: int) -> void:
+	var m := _flecha()
+	add_child(m)
+	m.global_position = de
+	tiros.append({"node": m, "alvo": alvo, "dano": dano, "area": 0.0, "cor": Color.WHITE, "flecha": true})
+
 ## Faixa branca da lança, no instante da estocada.
 func _rastro(fwd: Vector3, alc: float) -> void:
 	await get_tree().create_timer(0.12).timeout
@@ -1927,17 +1939,19 @@ func _menu_escolha(cl := "") -> void:
 	_abrir(CLASSES[cl].nome, "Escolha o seu personagem.", rows)
 
 func _menu_aldeoes() -> void:
-	var conta := {"madeira": 0, "pedra": 0, "comida": 0}
-	for v in aldeoes:
-		conta[v.papel] += 1
-	var c := custo_aldeao()
-	var cheio := aldeoes.size() >= max_aldeoes()
-	var txt := "Aldeões: %d/%d (cada nível de Casa libera mais 2)\nLenhadores %d · Pedreiros %d · Coletores %d\nPróximo custa: %s" % [aldeoes.size(), max_aldeoes(), conta.madeira, conta.pedra, conta.comida, plots[0].texto(c)]
-	var rows: Array = []
-	var nomes := {"madeira": "Lenhador (traz madeira)", "pedra": "Pedreiro (traz pedra)", "comida": "Coletor (traz comida)"}
-	for k in OFICIOS:
-		rows.append({"t": "Contratar " + nomes[k], "off": cheio or not _can_pay(c), "cb": func(): contratar(k); _menu_aldeoes()})
-	_abrir("Aldeões", txt, rows)
+	_viu_aldeoes = true
+	var linhas: Array = []
+	if vila != null:
+		var por_oficio := {}
+		for w in vila.trabalhadores:
+			var k: String = Trabalhador.OFICIOS[w.oficio].nome
+			por_oficio[k] = por_oficio.get(k, []) + [w.nome()]
+		for k in por_oficio:
+			linhas.append("%s: %s" % [k, ", ".join(por_oficio[k])])
+		linhas.append("Guardas: %d (um guerreiro e um arqueiro em cada casa e armazém)" % vila.guardas.size())
+		linhas.append("Animais: %d (floresta e curral)" % vila.animais.size())
+	var txt := "\n".join(linhas) + "\n\nArmazéns: Pedreira (pedra), Madeireira (madeira), Mantimentos (comida), Açougue (caça).\nAlmoço 11h30 e jantar 16h45 na Cozinha. À noite todos vão para casa."
+	_abrir("Aldeia", txt, [])
 
 func _on_player_died() -> void:
 	say("Você caiu! Voltando para a aldeia...", 3.0)
@@ -1996,9 +2010,7 @@ func _load() -> bool:
 			_erguer_muralha(p.nivel)
 		p.built.connect(_on_built)
 		p.upgraded.connect(_on_upgraded)
-	for papel in d.get("aldeoes", []):
-		if OFICIOS.has(papel):
-			contratar(papel, false)
+	# (os aldeões antigos contratados foram substituídos pelos trabalhadores fixos da vila)
 	_recalc()
 	player.hp = player.max_hp
 	say("Jogo carregado.", 3.0)
