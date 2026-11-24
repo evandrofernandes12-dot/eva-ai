@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v52"
+const VERSAO := "v53"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -832,13 +832,13 @@ func _on_player_attack() -> void:
 				if d < best:
 					best = d
 					alvo = e
-		if alvo == null and vila != null:   # sem inimigo por perto: caça um animal
+		if alvo == null and vila != null and not _recurso_perto(p):   # sem inimigo e longe de árvore/pedra: caça um animal
 			alvo = vila.animal_perto(p, best)
 		if alvo != null:
 			var to: Vector3 = alvo.global_position - p
 			player.rotation.y = atan2(to.x, to.z)
-			if pet != null and is_instance_valid(pet):
-				pet.atacar(alvo)   # o pet ataca junto com o golpe
+			if pet != null and is_instance_valid(pet) and not (alvo is Animal):
+				pet.atacar(alvo)   # o pet ataca junto com o golpe (só orcs e chefe, não a caça)
 			_atirar(alvo)
 			return
 	elif classe == "lanceiro":
@@ -863,6 +863,12 @@ func _on_player_attack() -> void:
 			if golpear(t, true):
 				res[t.tipo] += 4
 			return
+
+func _recurso_perto(p: Vector3) -> bool:
+	for t in nodes:
+		if is_instance_valid(t.node) and t.hp > 0 and t.node.global_position.distance_to(p) < 2.8:
+			return true
+	return false
 
 ## Um golpe num recurso. Devolve true quando ele acaba (e some).
 func golpear(t: Dictionary, _do_jogador: bool) -> bool:

@@ -24,6 +24,7 @@ var centro := Vector3.ZERO     # área onde passeia (círculo)
 var raio := 10.0
 var hp := 3
 var morto := false
+var _dead := false             # mesmo nome dos inimigos (pets e tiros checam _dead)
 var reservado: Node = null     # caçador que escolheu este animal
 var jogador: Node3D
 var model: Node3D
@@ -103,6 +104,7 @@ func ferir(dano: int) -> bool:
 	if hp > 0:
 		return false
 	morto = true
+	_dead = true
 	var info: Array = TIPOS[tipo]
 	if info[5] != "":
 		_tocar(info[5], false)
