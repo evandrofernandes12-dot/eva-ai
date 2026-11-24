@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v53"
+const VERSAO := "v54"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -1108,11 +1108,14 @@ func _familia(sala: Node3D, id: String) -> void:
 		np.add_child(pai)
 		Fit.to_height(pai, 1.75)
 		Fit.play(Fit.find_node_of(pai, "AnimationPlayer") as AnimationPlayer, &"Idle")
-		var lugares := [["A3", 1.68, Vector3(2.4, 0.0, -0.75)], ["A2", 1.2, Vector3(3.6, 0.0, -0.75)]]   # esposa e filho no banco
+		var lugares := [["A3", 1.68, 2.3], ["A2", 1.2, 3.55]]   # esposa e filho no banco: [corpo, altura, x]
 		for l: Array in lugares:
 			var m := Heroi.montar(String(l[0]), false, true)
 			var n := Node3D.new()
-			n.position = l[2]
+			# a animação de sentar põe a pélvis ~0,26 da altura acima da origem e ~0,19 atrás dela (como o Rei no trono):
+			# sobe até a almofada do banco (0,57 m) e recua para a pélvis cair no meio do assento (z = -0,6)
+			var hh: float = l[1]
+			n.position = Vector3(float(l[2]), 0.57 - 0.26 * hh, -0.6 - 0.19 * hh)
 			n.rotation.y = PI   # de frente para a lareira
 			f.add_child(n)
 			n.add_child(m)
