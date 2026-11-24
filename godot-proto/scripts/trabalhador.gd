@@ -168,8 +168,8 @@ func nos_ombros(tipo: String) -> void:
 	var bb := Heroi._caixa(a)
 	var s := minf(0.9, Animal.TIPOS[tipo][1]) / maxf(bb.size.y, 0.01) * 0.8
 	a.scale = Vector3.ONE * s
-	a.rotation_degrees = Vector3(0, 90, 90)   # deitado atravessado nos ombros
-	a.position = Vector3(0, 0.25, -0.05)
+	a.rotation_degrees = Vector3(0, 90, 90)   # deitado atravessado nos ombros, nas costas
+	a.position = Vector3(0, 0.22, -0.24) - a.basis * (bb.get_center() * s)   # centralizado atrás do pescoço (antes ficava na frente)
 
 func carrinho(tipo: String, mostrar: bool) -> void:
 	_carrinho.visible = mostrar

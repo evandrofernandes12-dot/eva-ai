@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v55"
+const VERSAO := "v56"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -1100,23 +1100,23 @@ func _familia(sala: Node3D, id: String) -> void:
 		f = Node3D.new()
 		f.name = "Familia"
 		sala.add_child(f)
-		var pai := Heroi.montar("A2", false, true)   # o aldeão em pé, aquecendo-se na lareira
-		var np := Node3D.new()
-		np.position = Vector3(4.3, 0, -3.3)
-		np.rotation.y = -PI * 0.8
-		f.add_child(np)
-		np.add_child(pai)
-		Fit.to_height(pai, 1.75)
-		Fit.play(Fit.find_node_of(pai, "AnimationPlayer") as AnimationPlayer, &"Idle")
-		var lugares := [["A3", 1.68, 2.05], ["A2", 1.2, 3.2]]   # esposa e filho no banco da lareira: [corpo, altura, x]
+		# pai, mãe e filho sentados à mesa (cadeiras do kit: assento a 0,50 m; as de z = 0,85 olham para +Z,
+		# as de z = 2,35 para -Z). A animação de sentar põe a pélvis ~0,26 da altura acima da origem e ~0,19 atrás
+		# dela: a origem sobe e avança para a pélvis cair no meio do assento.
+		var lugares := [["A2", 1.75, Vector3(1.8, 0, 0.85), 0.0], ["A3", 1.66, Vector3(3.4, 0, 0.85), 0.0], ["A2", 1.2, Vector3(1.8, 0, 2.35), PI]]
 		for l: Array in lugares:
 			var m := Heroi.montar(String(l[0]), false, true)
-			var n := Node3D.new()
-			# banco em z = -2,3 com o assento a 0,53 m; a animação de sentar põe a pélvis ~0,26 da altura acima
-			# da origem e ~0,19 atrás dela: sobe e recua para a pélvis cair no meio do assento
+			for nm in ["Capa", "Capuz"]:   # dentro de casa, sem capa
+				var c := m.find_child(nm, true, false) as Node3D
+				if c != null:
+					c.visible = false
 			var hh: float = l[1]
-			n.position = Vector3(float(l[2]), 0.53 - 0.26 * hh, -2.3 - 0.19 * hh)
-			n.rotation.y = PI   # de frente para a lareira
+			var giro: float = l[3]
+			var cadeira: Vector3 = l[2]
+			var frente := Vector3(sin(giro), 0, cos(giro))
+			var n := Node3D.new()
+			n.position = cadeira + Vector3(0, 0.5 - 0.26 * hh, 0) + frente * 0.19 * hh
+			n.rotation.y = giro
 			f.add_child(n)
 			n.add_child(m)
 			Fit.to_height(m, hh)

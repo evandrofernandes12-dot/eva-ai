@@ -18,6 +18,36 @@ const TIPOS := {
 const VEL := {"coelho": 3.5, "cervo": 4.5, "corca": 4.5, "crocodilo": 0.8, "galinha": 0.7, "vaca": 0.8, "porco": 0.9, "ovelha": 0.8, "cavalo": 1.6}
 const CARNE := {"coelho": 3, "cervo": 10, "corca": 8, "crocodilo": 8, "galinha": 2, "vaca": 12, "porco": 8, "ovelha": 8, "cavalo": 10}
 
+const CORES_MAT := {"galinha": {"Comb": Color(0.8, 0.1, 0.08), "Material.001": Color(0.72, 0.52, 0.32)}}
+const LISOS := ["vaca", "porco", "ovelha"]
+
+## Normais suavizadas (média das faces que tocam cada ponto), mantendo ossos e pesos da animação.
+static var _lisos := {}
+static func _suavizar(m: ArrayMesh) -> ArrayMesh:
+	if m == null:
+		return m
+	if _lisos.has(m):
+		return _lisos[m]
+	var novo := ArrayMesh.new()
+	for si in m.get_surface_count():
+		var arr := m.surface_get_arrays(si)
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var ns: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+		var soma := {}
+		for i in vs.size():
+			var k := (vs[i] * 1000.0).round()
+			soma[k] = soma.get(k, Vector3.ZERO) + ns[i]
+		for i in vs.size():
+			var k2 := (vs[i] * 1000.0).round()
+			var n: Vector3 = soma[k2]
+			ns[i] = n.normalized() if n.length() > 0.0001 else ns[i]
+		arr[Mesh.ARRAY_NORMAL] = ns
+		arr[Mesh.ARRAY_TANGENT] = null
+		novo.add_surface_from_arrays(m.surface_get_primitive_type(si), arr, [], {}, m.surface_get_format(si) & Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS)
+		novo.surface_set_material(si, m.surface_get_material(si))
+	_lisos[m] = novo
+	return novo
+
 var tipo := "coelho"
 var selvagem := true
 var centro := Vector3.ZERO     # área onde passeia (círculo)
@@ -48,8 +78,19 @@ func _ready() -> void:
 			m.albedo_color = info[6] if not mi.name.begins_with("Eye") else Color(0.05, 0.05, 0.05)
 			m.roughness = 0.8
 			mi.material_override = m
-	if tipo == "cavalo":
-		model.rotation.y = PI   # o modelo do cavalo olha para -Z (os outros já olham para +Z)
+	if CORES_MAT.has(tipo):   # galinha: crista vermelha e parte de baixo creme (vinha branca)
+		var cm: Dictionary = CORES_MAT[tipo]
+		for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+			for i in mi.mesh.get_surface_count():
+				var mt := mi.mesh.surface_get_material(i)
+				if mt != null and cm.has(mt.resource_name):
+					var nm := StandardMaterial3D.new()
+					nm.albedo_color = cm[mt.resource_name]
+					nm.roughness = 0.8
+					mi.set_surface_override_material(i, nm)
+	if tipo in LISOS:   # vaca, porco e ovelha vinham "quadrados" (sombreado facetado): normais suavizadas
+		for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+			mi.mesh = _suavizar(mi.mesh as ArrayMesh)
 	Fit.to_height(model, info[1])
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	hp = 2 if info[1] < 0.6 else 4
