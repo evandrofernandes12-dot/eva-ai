@@ -6,6 +6,11 @@ signal killed
 @export var speed := 3.2
 @export var max_hp := 30
 @export var damage := 8
+@export var altura := 1.9        # altura do modelo (m)
+var guarda := false              # monstro de vila: fica perto de `casa` e só ataca quem chega perto
+var casa := Vector3.ZERO
+var raio_guarda := 22.0
+var rumo: Variant = null         # com o jogador longe, anda até aqui (orcs do barco vão para a aldeia)
 
 var hp := 30
 var target: Node3D
@@ -25,9 +30,12 @@ var model: Node3D
 var jogo: Node
 
 func setup(scene: PackedScene, player: Node3D) -> void:
+	setup_no(scene.instantiate(), player)
+
+func setup_no(m: Node3D, player: Node3D) -> void:
 	target = player
 	hp = max_hp
-	model = scene.instantiate()
+	model = m
 	add_child(model)
 	var shape := CollisionShape3D.new()
 	var cap := CapsuleShape3D.new()
@@ -38,13 +46,13 @@ func setup(scene: PackedScene, player: Node3D) -> void:
 	add_child(shape)
 
 func _ready() -> void:
-	Fit.to_height(model, 1.9)
+	Fit.to_height(model, altura)
 	model.position.y += 0.05   # pés um pouco acima do chão (sumiam na praça e nos caminhos de terra)
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	_idle = Fit.find_anim(_ap, ["Idle"])
 	_run = Fit.find_anim(_ap, ["Run", "Walk"])
-	_atk = Fit.find_anim(_ap, ["Punch", "Attack", "Weapon"])
-	_hit = Fit.find_anim(_ap, ["HitReact"])
+	_atk = Fit.find_anim(_ap, ["Punch", "Attack", "Weapon", "Throw", "creep"])
+	_hit = Fit.find_anim(_ap, ["HitReact", "Hit_A"])
 	_death = Fit.find_anim(_ap, ["Death"])
 	Fit.play(_ap, _idle)
 
@@ -53,6 +61,11 @@ func _physics_process(delta: float) -> void:
 		return
 	_cd = maxf(0.0, _cd - delta)
 	_busy = maxf(0.0, _busy - delta)
+	if guarda and _vigiar(delta):
+		return
+	if rumo != null and global_position.distance_to(target.global_position) >= 90.0:
+		_andar_ate(rumo, 20.0, delta)
+		return
 	var to := target.global_position - global_position
 	to.y = 0
 	var d := to.length()
@@ -121,6 +134,33 @@ func _physics_process(delta: float) -> void:
 	elif _busy <= 0.0:
 		Fit.play(_ap, _run if moving else _idle)
 
+## Guarda de vila: longe do jogador fica em casa. Devolve true quando não está perseguindo.
+func _vigiar(delta: float) -> bool:
+	var jc := target.global_position.distance_to(casa)
+	if jc > 150.0:   # jogador em outra região: nem processa
+		return true
+	if global_position.distance_to(target.global_position) < raio_guarda and jc < raio_guarda * 2.5 and target.get("hp") > 0:
+		return false
+	_andar_ate(casa, 2.5, delta)
+	return true
+
+func _andar_ate(p: Vector3, perto: float, delta: float) -> void:
+	var to: Vector3 = p - global_position
+	to.y = 0
+	if to.length() > perto and _busy <= 0.0:
+		var dir := to.normalized()
+		velocity.x = dir.x * speed * 0.6
+		velocity.z = dir.z * speed * 0.6
+		rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 6.0 * delta)
+		Fit.play(_ap, _run)
+	else:
+		velocity.x = 0
+		velocity.z = 0
+		if _busy <= 0.0:
+			Fit.play(_ap, _idle)
+	velocity.y = velocity.y - 20.0 * delta if not is_on_floor() else 0.0
+	move_and_slide()
+
 func hurt(amount: int) -> void:
 	if _dead:
 		return
@@ -129,7 +169,10 @@ func hurt(amount: int) -> void:
 		_dead = true
 		collision_layer = 0
 		collision_mask = 0
-		Fit.play(_ap, _death, false)
+		if _death != &"":
+			Fit.play(_ap, _death, false)
+		else:   # sem animação de morte (lobisomem): tomba de lado
+			create_tween().tween_property(model, "rotation:z", PI * 0.5, 0.5)
 		killed.emit()
 		await get_tree().create_timer(2.5).timeout
 		queue_free()

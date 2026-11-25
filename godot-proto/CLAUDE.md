@@ -10,12 +10,13 @@ Godot 4.3, renderizador Compatibilidade, testado em tablet Android. Idioma do c�
 - `scripts/interior.gd` (`Interior`): casas, forja e Salão do Rei gerados por código.
 - `scripts/vila.gd` (`Vila`): aldeia funcionando — armazéns, cozinha, artesã, horta, curral, animais, trabalhadores, guardas, refeições.
 - `scripts/trabalhador.gd` (`Trabalhador`, 8 ofícios m/f, fila de tarefas), `guarda.gd` (`Guarda`), `animal.gd` (`Animal`).
-- `scripts/ceu.gd` (dia/noite/chuva), `lago.gd`, `fogueira.gd`, `construcoes.gd` (peças por código).
+- `scripts/mundo.gd` (`Mundo`): mapa aberto 1800 m — Floresta da Escuridão (lobisomens), Cemitério Maldito (caveiras KayKit), Golems de Pedra (neve), Ilha dos Orcs (barco); regiões somem de longe; árvores em MultiMesh.
+- `scripts/ceu.gd` (dia/noite/chuva; `reg_*` = neblina da região), `lago.gd`, `fogueira.gd`, `construcoes.gd` (peças por código).
 - `scripts/enemy.gd`, `villager.gd` (antigo, sem uso), `plot.gd`, `fit.gd`, `joystick.gd`: inimigos, lotes, utilidades, direcional.
 - `models/` (GLB/glTF), `models/armas/`, `models/herois/`. Scripts do Blender ficam em `../scripts/`.
 
 ## Regras
-- Não dá para rodar o Godot neste ambiente: revise o GDScript com cuidado (tipagem com `:=` só quando o tipo é inferível; `Variant` precisa de tipo explícito). Laço sobre lista literal deve ter tipo: `for x: float in [-1.0, 1.0]` (senão `var y := x * 2` não compila). O usuário roda Godot 4.7.
+- O Godot 4.7.2 pode ser baixado do GitHub (godotengine/godot, releases) e rodado aqui com `xvfb-run` (renderizador Compatibilidade, Mesa llvmpipe): importar com `--editor --quit`, e tirar prints com um script `-s` que carrega `main.tscn`, move o jogador e salva `get_viewport().get_texture().get_image()`. Mesmo assim, revise o GDScript com cuidado (tipagem com `:=` só quando o tipo é inferível; `Variant` precisa de tipo explícito). Laço sobre lista literal deve ter tipo: `for x: float in [-1.0, 1.0]` (senão `var y := x * 2` não compila). O usuário roda Godot 4.7.
 - Mudanças pequenas e focadas. Não reescreva arquivos grandes; use edição pontual.
 - Valores ajustáveis ficam em `const`/`@export` com comentário (ex.: `alcance_machado`, `ZOOM_MIN`).
 - Compatibilidade (tablet): evite muitas luzes por sala (máx. ~6) e sombras extras.

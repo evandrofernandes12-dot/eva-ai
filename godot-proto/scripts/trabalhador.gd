@@ -62,7 +62,12 @@ func _ready() -> void:
 	if oficio == "cacador" and sexo == "f":   # caçadora: lança e corda
 		Heroi._prender(_sk, Heroi.LANCA)
 	_carrinho = Construcoes.carrinho()
-	_carrinho.position = Vector3(0, 0, 1.5)   # pegadores na altura das mãos, à frente do corpo
+	# carrinho levantado pelos pegadores (roda no chão): pegadores na altura das mãos com os braços quase esticados
+	var incl := atan2(0.98 - 0.64, 1.12 + 0.72)
+	_carrinho.rotation.x = incl
+	var roda := Vector3(0, 0.3, 0.72)
+	var roda_g := Basis(Vector3.RIGHT, incl) * roda
+	_carrinho.position = Vector3(0, 0.3 - roda_g.y, 1.3 - roda_g.z + roda.z)
 	_carrinho.visible = false
 	add_child(_carrinho)
 	_ik = MAOS.new()   # as mãos seguram os pegadores enquanto empurra o carrinho

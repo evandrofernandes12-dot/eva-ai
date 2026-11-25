@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v57"
+const VERSAO := "v58"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -75,6 +75,7 @@ var _renascer: Array = []        # recursos que voltam a nascer: {t, scene, h, t
 var _holder: Node3D
 var ceu: Ceu                     # dia, noite e chuva (scripts/ceu.gd)
 var lago: Lago                   # lago da floresta (scripts/lago.gd)
+var mundo: Mundo                 # mundo aberto: regiões inimigas, mar, Ilha dos Orcs e barcos (scripts/mundo.gd)
 var vila: Vila                   # aldeia funcionando: trabalhadores, guardas, animais, armazéns (scripts/vila.gd)
 var fogueira: Fogueira           # fogueira grande do centro da vila (scripts/fogueira.gd)
 var _guardas_noite: Array = []   # guardas em volta da fogueira, só à noite
@@ -220,6 +221,10 @@ func _ready() -> void:
 	vila.name = "Vila"
 	add_child(vila)
 	vila.montar(self)
+	mundo = Mundo.new()
+	mundo.name = "Mundo"
+	add_child(mundo)
+	mundo.montar(self)
 	_scatter_forest()
 	_ceu()
 	lago.montar(ceu)
@@ -660,7 +665,7 @@ func _process(delta: float) -> void:
 	_mag_t = maxf(0.0, _mag_t - delta)
 	if _dentro == "":
 		_spawn_t -= delta
-		if _spawn_t <= 0.0 and enemies.size() < max_enemies:
+		if _spawn_t <= 0.0 and enemies.filter(func(e): return not e.guarda).size() < max_enemies:
 			_spawn_t = 10.0
 			_spawn_enemy()
 		_chefe()
@@ -816,6 +821,13 @@ func _spawn_enemy() -> void:
 	e.max_hp = 30 + mini(50, kills * 2)
 	e.setup(ORC, player)
 	e.position = Vector3(cos(a), 0, sin(a)) * (village_radius + 14.0)
+	if mundo != null:   # os orcs chegam de barco, pelo cais a leste, e marcham até o portão leste
+		var pt = mundo.ponto_orc()
+		if pt == null:
+			e.free()
+			return
+		e.position = pt
+		e.rumo = Vector3(MURO_R + 8.0, 0, 0)
 	add_child(e)
 	e.killed.connect(func(): kills += 1)
 	enemies.append(e)
@@ -1068,7 +1080,7 @@ func _entrar(id: String) -> void:
 	_saida = player.global_position
 	if not _interiores.has(id):
 		var sala := Interior.construir(id)
-		sala.position = Vector3(600.0 + 60.0 * _interiores.size(), 0, 600.0)
+		sala.position = Vector3(600.0 + 60.0 * _interiores.size(), 0, 1400.0)   # fora do mapa (o mar e a ilha ficam em z perto de 0)
 		add_child(sala)
 		_interiores[id] = sala
 	_dentro = id

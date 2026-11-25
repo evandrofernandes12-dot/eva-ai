@@ -12,6 +12,11 @@ var hora := 9.0                   # 0..24 (o jogo começa de manhã)
 var dia := 0                      # dias que já passaram
 var chuva := 0.0                  # 0..1 (intensidade, com transição suave)
 var noite := false
+var reg_cor := Color(0, 0, 0)       # neblina da região onde o jogador está (mundo.gd)
+var reg_peso := 0.0                 # 0 fora, 1 no meio da região
+var reg_dens := 0.0                 # neblina extra
+var reg_ceu := 0.0                  # quanto a neblina da região cobre o céu
+var reg_escuro := 0.0               # quanto a região escurece (Floresta da Escuridão)
 var fator_noite := 0.0            # 0 = dia claro, 1 = noite fechada (lampiões, ambiente)
 
 var sol: DirectionalLight3D
@@ -104,6 +109,12 @@ func _atualizar(delta: float) -> void:
 	env.ambient_light_energy = lerpf(0.55, 0.7, claro)
 	env.fog_light_color = Color(0.05, 0.06, 0.1).lerp(Color(0.72, 0.82, 0.9), claro).lerp(Color(0.45, 0.48, 0.52), chuva * 0.7)
 	env.fog_density = 0.006 + chuva * 0.012
+	if reg_peso > 0.0:
+		env.fog_light_color = env.fog_light_color.lerp(reg_cor * lerpf(1.0, 0.35, fator_noite), reg_peso)
+		env.fog_density += reg_dens
+		env.ambient_light_color = env.ambient_light_color.lerp(Color(0.1, 0.08, 0.16), reg_escuro * 0.8)
+		sol.light_energy *= 1.0 - reg_escuro * 0.75
+	env.fog_sky_affect = reg_ceu
 	mat_ceu.set_shader_parameter("sol_dir", dir_sol)
 	mat_ceu.set_shader_parameter("lua_dir", dir_lua)
 	mat_ceu.set_shader_parameter("chuva", chuva)
