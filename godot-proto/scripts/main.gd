@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v56"
+const VERSAO := "v57"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -1106,7 +1106,7 @@ func _familia(sala: Node3D, id: String) -> void:
 		var lugares := [["A2", 1.75, Vector3(1.8, 0, 0.85), 0.0], ["A3", 1.66, Vector3(3.4, 0, 0.85), 0.0], ["A2", 1.2, Vector3(1.8, 0, 2.35), PI]]
 		for l: Array in lugares:
 			var m := Heroi.montar(String(l[0]), false, true)
-			for nm in ["Capa", "Capuz"]:   # dentro de casa, sem capa
+			for nm in ["Capa", "Capuz"] + (["Hair_Beard"] if float(l[1]) < 1.5 else []):   # dentro de casa, sem capa; o filho sem barba
 				var c := m.find_child(nm, true, false) as Node3D
 				if c != null:
 					c.visible = false
@@ -1121,6 +1121,20 @@ func _familia(sala: Node3D, id: String) -> void:
 			n.add_child(m)
 			Fit.to_height(m, hh)
 			Fit.play(Fit.find_node_of(m, "AnimationPlayer") as AnimationPlayer, &"Sitting_Idle")
+		# prato com comida e caneca no lugar do filho
+		Interior.peca(f, Interior.MP + "Table_Plate.gltf", Vector3(1.8, 0.81, 1.85), PI)
+		Interior.peca(f, Interior.MP + "Mug.gltf", Vector3(1.45, 0.81, 1.9))
+		var pao := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 0.07
+		sm.height = 0.07
+		var mp := StandardMaterial3D.new()
+		mp.albedo_color = Color(0.78, 0.52, 0.25)
+		sm.material = mp
+		pao.mesh = sm
+		pao.position = Vector3(1.8, 0.86, 1.85)
+		pao.scale = Vector3(1.4, 1, 1)
+		f.add_child(pao)
 	f.visible = ceu != null and ceu.noite
 
 func _sair() -> void:

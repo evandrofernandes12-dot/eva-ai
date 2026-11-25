@@ -1238,6 +1238,11 @@ static func carrinho() -> Node3D:
 		var a := TAU * k / 8.0
 		tora(r, c, c + Vector3(0, cos(a) * 0.23, sin(a) * 0.23), 0.012, braco)
 	tora(r, c + Vector3(-0.22, 0, 0), c + Vector3(0.22, 0, 0), 0.015, ferro)
+	for nm: String in ["PegaE", "PegaD"]:   # pontos onde as mãos seguram (maos_alvo.gd)
+		var mk := Marker3D.new()
+		mk.name = nm
+		mk.position = Vector3(0.31 if nm == "PegaE" else -0.31, 0.64, -1.12)
+		r.add_child(mk)
 	var carga := Node3D.new()
 	carga.name = "Carga"
 	r.add_child(carga)

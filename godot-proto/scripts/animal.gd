@@ -13,13 +13,14 @@ const TIPOS := {
 	"vaca": ["res://models/animais/Vaca.gltf", 1.5, "Idle", "WalkSlow", "Walk", "Death"],
 	"porco": ["res://models/animais/Porco.gltf", 0.9, "Idle", "WalkSlow", "Walk", "Death"],
 	"ovelha": ["res://models/animais/Ovelha.gltf", 1.0, "Idle", "WalkSlow", "Walk", "Death"],
-	"cavalo": ["res://models/pets/cavalo.glb", 1.75, "", "horse", "horse", "", Color(0.55, 0.35, 0.2)],   # o cavalo realista do pet, marrom
+	"cavalo": ["res://models/animais/Cavalo.gltf", 1.75, "Idle", "WalkSlow", "Walk", "Death"],   # (o do pet só tinha galope: ficava parado no ar)
 }
 const VEL := {"coelho": 3.5, "cervo": 4.5, "corca": 4.5, "crocodilo": 0.8, "galinha": 0.7, "vaca": 0.8, "porco": 0.9, "ovelha": 0.8, "cavalo": 1.6}
 const CARNE := {"coelho": 3, "cervo": 10, "corca": 8, "crocodilo": 8, "galinha": 2, "vaca": 12, "porco": 8, "ovelha": 8, "cavalo": 10}
 
 const CORES_MAT := {"galinha": {"Comb": Color(0.8, 0.1, 0.08), "Material.001": Color(0.72, 0.52, 0.32)}}
-const LISOS := ["vaca", "porco", "ovelha"]
+const LISOS := ["vaca", "porco", "ovelha", "cavalo"]
+const RAIO := {"coelho": 0.25, "cervo": 0.7, "corca": 0.6, "crocodilo": 0.8, "galinha": 0.25, "vaca": 1.0, "porco": 0.6, "ovelha": 0.55, "cavalo": 1.0}   # espaço que ocupa (um não entra no outro)
 
 ## Normais suavizadas (média das faces que tocam cada ponto), mantendo ossos e pesos da animação.
 static var _lisos := {}
@@ -91,7 +92,11 @@ func _ready() -> void:
 	if tipo in LISOS:   # vaca, porco e ovelha vinham "quadrados" (sombreado facetado): normais suavizadas
 		for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 			mi.mesh = _suavizar(mi.mesh as ArrayMesh)
-	Fit.to_height(model, info[1])
+	# altura e chão pela malha do modelo (pelos ossos ficava flutuando: os ossos dos pés ficam acima do casco)
+	var bb := Heroi._caixa(model)
+	var esc: float = float(info[1]) / maxf(bb.size.y, 0.001)
+	model.scale = Vector3.ONE * esc
+	model.position.y = -bb.position.y * esc
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	hp = 2 if info[1] < 0.6 else 4
 	_alvo = position
@@ -124,6 +129,18 @@ func _process(delta: float) -> void:
 			_alvo = global_position - d.normalized() * 10.0
 	if _fugindo > 0.0:
 		vel *= 2.2
+	# não entra no outro animal: empurra para fora quando encosta
+	var vizinhos = get_parent().get("animais")
+	if vizinhos == null:
+		vizinhos = []
+	for o in vizinhos:
+		if o == self or not is_instance_valid(o) or o.morto:
+			continue
+		var dd: Vector3 = global_position - o.global_position
+		dd.y = 0
+		var minimo: float = RAIO[tipo] + RAIO[o.tipo]
+		if dd.length() < minimo and dd.length() > 0.001:
+			global_position += dd.normalized() * minf(minimo - dd.length(), 2.0 * delta)
 	var to := _alvo - global_position
 	to.y = 0
 	if to.length() > 0.4:

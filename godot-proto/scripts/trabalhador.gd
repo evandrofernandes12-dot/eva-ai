@@ -30,6 +30,8 @@ var _mao_d: Node3D            # pivô da mão direita (ferramenta)
 var _mao_e: Node3D            # pivô da mão esquerda (cesto, prato)
 var _ombro: Node3D            # carcaça nos ombros
 var _carrinho: Node3D
+var _ik: Node
+const MAOS := preload("res://scripts/maos_alvo.gd")
 var _tag: Label3D
 var _t := 0.0
 var _periodo := ""
@@ -63,6 +65,10 @@ func _ready() -> void:
 	_carrinho.position = Vector3(0, 0, 1.5)   # pegadores na altura das mãos, à frente do corpo
 	_carrinho.visible = false
 	add_child(_carrinho)
+	_ik = MAOS.new()   # as mãos seguram os pegadores enquanto empurra o carrinho
+	_sk.add_child(_ik)
+	_ik.alvo_e = _carrinho.get_node("PegaE")
+	_ik.alvo_d = _carrinho.get_node("PegaD")
 	_tag = Label3D.new()
 	_tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_tag.font_size = 28
@@ -171,8 +177,14 @@ func nos_ombros(tipo: String) -> void:
 	a.rotation_degrees = Vector3(0, 90, 90)   # deitado atravessado nos ombros, nas costas
 	a.position = Vector3(0, 0.22, -0.24) - a.basis * (bb.get_center() * s)   # centralizado atrás do pescoço (antes ficava na frente)
 
+func empurrar(sim: bool) -> void:
+	_ik.ativo = sim and _carrinho.visible
+
 func carrinho(tipo: String, mostrar: bool) -> void:
 	_carrinho.visible = mostrar
+	_ik.ativo = mostrar
+	if mostrar:
+		segurar("")   # mãos livres para os pegadores (a ferramenta vai no carrinho)
 	Construcoes.encher_carrinho(_carrinho, tipo)
 
 func _tocar(nome: String, vel := 1.0) -> void:

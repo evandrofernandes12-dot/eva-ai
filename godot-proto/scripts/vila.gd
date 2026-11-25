@@ -14,7 +14,7 @@ const PREDIOS := {
 	"acougue": [Vector3(-30, 0, 30), "Açougue", "carne"],
 }
 const HORTA := Vector3(40, 0, 10)
-const CURRAL := Vector3(-41, 0, 9)
+const CURRAL := Vector3(-40, 0, 11)
 const COZINHA := Vector3(-24, 0, -37)
 const ARTESA := Vector3(24, 0, -37)
 
@@ -90,22 +90,22 @@ func _horta() -> void:
 
 func _curral() -> void:
 	var r := Node3D.new()
-	_por(r, CURRAL, 7.5)
-	r.add_child(Construcoes.cerca(13.0, 10.0))
+	_por(r, CURRAL, 9.5)
+	r.add_child(Construcoes.cerca(18.0, 12.0))   # maior: os animais não ficam apertados
 	var cocho := Construcoes.cocho()
-	cocho.position = Vector3(4.5, 0, -3.5)
+	cocho.position = Vector3(6.5, 0, -4.5)
 	r.add_child(cocho)
 	var feno := Construcoes.feno()
-	feno.position = Vector3(-4.5, 0, -3.5)
+	feno.position = Vector3(-6.5, 0, -4.5)
 	feno.scale = Vector3.ONE * 0.7
 	r.add_child(feno)
-	ponto["curral"] = r.to_global(Vector3(0, 0, 5.8))
+	ponto["curral"] = r.to_global(Vector3(0, 0, 6.8))
 	ponto["vaca"] = r.to_global(Vector3(2.0, 0, 0.0))
 	var centro := r.global_position
 	for t: String in ["vaca", "vaca", "porco", "porco", "ovelha", "ovelha", "ovelha", "cavalo"]:
-		_animal(t, centro + Vector3(_rng.randf_range(-3, 3), 0, _rng.randf_range(-3, 3)), centro, 4.2, false)
+		_animal(t, centro + Vector3(_rng.randf_range(-4, 4), 0, _rng.randf_range(-3, 3)), centro, 4.6, false)
 	# galinheiro com cerquinha, ao lado do curral (mais perto do centro)
-	var gpos := CURRAL + (-CURRAL).normalized() * 9.0 + Vector3(0, 0, 9.0)
+	var gpos := Vector3(-43, 0, -8)   # galinheiro do outro lado do caminho oeste
 	var g := Node3D.new()
 	_por(g, gpos, 4.0)
 	g.add_child(Construcoes.cerca(6.0, 5.0))
@@ -286,14 +286,14 @@ func planejar(w: Trabalhador) -> void:
 			if alvo == null:
 				w.fazer("Idle", 3.0)
 				return
-			w.depois(func(): w.segurar("picareta" if tipo == "pedra" else "machado"); w.carrinho("", true))
+			w.depois(func(): w.carrinho("", true))   # vai empurrando o carrinho vazio
 			var no: Node3D = alvo.node
 			w.ir(no.global_position + (w.global_position - no.global_position).normalized() * 1.6)
-			w.depois(func(): w.olhar_para(no.global_position))
+			w.depois(func(): w.olhar_para(no.global_position); w.empurrar(false); w.segurar("picareta" if tipo == "pedra" else "machado"))
 			for k in 3:
 				w.fazer("TreeChopping", 2.0)
 				w.depois(func(): jogo.golpear(alvo, false))
-			w.depois(func(): w.carrinho(tipo, true))   # põe no carrinho e amarra com a corda
+			w.depois(func(): w.carrinho(tipo, true))   # põe no carrinho, amarra com a corda e volta empurrando
 			w.ir(ponto["pedreira" if tipo == "pedra" else "madeireira"] + lado)
 			w.fazer("PickUp_Table", 1.5)
 			w.depois(func(): jogo.res[tipo] += 5; w.carrinho("", false); w.segurar(""))
