@@ -1,11 +1,12 @@
 # Histórico e controle de rotação (não repetir)
 
 ## Controle de rotação
-- proximo_tema_psicanalise: 11  (ver temas-psicanalise.md; os nº 4 a 10 já foram feitos)
+- proximo_tema_psicanalise: 12  (ver temas-psicanalise.md; os nº 4 a 11 já foram feitos)
 - pular_na_rotacao: (nenhum; 4, 5, 6 e 7 já foram feitos)
 - proximo_tema_fe: 6            (ver temas-fe.md)
 
 ## Já publicados
+- 2026-11-26 (quinta, comum, com reel): "Transferência" (temas-psicanalise.md nº 11). Pacote (ZIP) entregue na noite de 25/11 para postagem manual.
 - 2026-11-25 (quarta, fé, sem reel): "Solidão e presença" (temas-fe.md nº 5). Pacote (ZIP) entregue na noite de 24/11 para postagem manual. SEM versículo: não foi possível confirmar a redação exata da NVI (sites bíblicos bloqueados no container; buscas não trazem o texto). Obs.: Salmos 23:4 na NVI diz 'vale de densas trevas' (não 'trevas e morte'); só usar com texto conferido.
 - 2026-11-24 (terça, comum, com reel): "Defesas do ego" (temas-psicanalise.md nº 10). Pacote (ZIP) entregue na noite de 23/11 para postagem manual.
 - 2026-11-23 (segunda, comum, sem reel): "Melancolia e autocrítica" (temas-psicanalise.md nº 9). Pacote (ZIP) entregue na noite de 22/11 para postagem manual.
