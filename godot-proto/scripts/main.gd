@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v58"
+const VERSAO := "v59"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -665,7 +665,7 @@ func _process(delta: float) -> void:
 	_mag_t = maxf(0.0, _mag_t - delta)
 	if _dentro == "":
 		_spawn_t -= delta
-		if _spawn_t <= 0.0 and enemies.filter(func(e): return not e.guarda).size() < max_enemies:
+		if _spawn_t <= 0.0 and enemies.filter(func(e): return e.get("guarda") != true).size() < max_enemies:
 			_spawn_t = 10.0
 			_spawn_enemy()
 		_chefe()
