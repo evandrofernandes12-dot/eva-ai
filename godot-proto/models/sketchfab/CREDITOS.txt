@@ -1,0 +1,3 @@
+Modelos do Sketchfab, licença CC Attribution (CC BY 4.0) — é preciso dar crédito:
+- lobisomem.glb: "Stylized Nightmarish Werewolf" por Stylized.Builder — https://sketchfab.com/3d-models/stylized-nightmarish-werewolf-53e21af08b8c495cb67a9fbd95750071
+- golem.glb: "Drugdör The Golem Animated" por Phons — https://sketchfab.com/3d-models/drugdor-the-golem-animated-19c1855bdb2c4cdc89da2cfb64da48cf

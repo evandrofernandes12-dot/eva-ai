@@ -376,76 +376,12 @@ func caveira(tipo: int) -> Node3D:
 		_arma(m, "handslot.l", KC + "Skeleton_Shield_Small_A.gltf", 1.0)
 	return m
 
-## Golem de pedra: o esqueleto das caveiras sem a malha, com rochas presas em cada osso.
+## Golem de pedra animado (Sketchfab, "Drugdör The Golem Animated" por Phons, CC BY).
 func golem() -> Node3D:
-	var m := _kaykit(KC + "Skeleton_Minion.glb")
-	for mi: MeshInstance3D in m.find_children("*", "MeshInstance3D", true, false):
-		mi.visible = false
-	var sk := m.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
-	# osso -> [tamanho do bloco, posição no espaço do osso (o eixo Y do osso aponta para o filho)]
-	var blocos := {"hips": [Vector3(0.6, 0.32, 0.42), Vector3(0, 0.1, 0)], "spine": [Vector3(0.72, 0.42, 0.5), Vector3(0, 0.2, 0)],
-		"chest": [Vector3(1.05, 0.52, 0.66), Vector3(0, 0.16, 0)], "head": [Vector3(0.4, 0.36, 0.4), Vector3(0, 0.2, 0.04)],
-		"upperarm.l": [Vector3(0.32, 0.3, 0.32), Vector3(0, 0.12, 0)], "upperarm.r": [Vector3(0.32, 0.3, 0.32), Vector3(0, 0.12, 0)],
-		"lowerarm.l": [Vector3(0.36, 0.32, 0.36), Vector3(0, 0.13, 0)], "lowerarm.r": [Vector3(0.36, 0.32, 0.36), Vector3(0, 0.13, 0)],
-		"hand.l": [Vector3(0.4, 0.34, 0.4), Vector3(0, 0.12, 0)], "hand.r": [Vector3(0.4, 0.34, 0.4), Vector3(0, 0.12, 0)],
-		"upperleg.l": [Vector3(0.34, 0.28, 0.34), Vector3(0, 0.11, 0)], "upperleg.r": [Vector3(0.34, 0.28, 0.34), Vector3(0, 0.11, 0)],
-		"lowerleg.l": [Vector3(0.32, 0.2, 0.32), Vector3(0, 0.08, 0)], "lowerleg.r": [Vector3(0.32, 0.2, 0.32), Vector3(0, 0.08, 0)],
-		"foot.l": [Vector3(0.34, 0.16, 0.36), Vector3(0, 0.06, 0)], "foot.r": [Vector3(0.34, 0.16, 0.36), Vector3(0, 0.06, 0)]}
-	var pedra := StandardMaterial3D.new()
-	pedra.albedo_texture = load(T + "Rock030/Rock030_Color.jpg")
-	pedra.normal_enabled = true
-	pedra.normal_texture = load(T + "Rock030/Rock030_NormalGL.jpg")
-	pedra.albedo_color = Color(1.15, 1.12, 1.08)
-	pedra.uv1_triplanar = true
-	pedra.uv1_scale = Vector3.ONE * 2.0
-	pedra.roughness = 1.0
-	for osso: String in blocos:
-		if sk.find_bone(osso) < 0:
-			continue
-		var ba := BoneAttachment3D.new()
-		ba.bone_name = osso
-		sk.add_child(ba)
-		var b := MeshInstance3D.new()
-		var bm := BoxMesh.new()
-		bm.size = blocos[osso][0]
-		b.mesh = bm
-		b.material_override = pedra
-		b.position = blocos[osso][1]
-		b.rotation = Vector3(_rng.randf_range(-0.15, 0.15), _rng.randf_range(-0.3, 0.3), _rng.randf_range(-0.15, 0.15))
-		ba.add_child(b)
-		if osso in ["chest", "hips", "head"]:   # lascas por cima, para não ficar um bloco liso
-			var l := MeshInstance3D.new()
-			var lm := BoxMesh.new()
-			lm.size = bm.size * Vector3(0.6, 0.5, 0.7)
-			l.mesh = lm
-			l.material_override = pedra
-			l.position = b.position + Vector3(_rng.randf_range(-0.1, 0.1), bm.size.y * 0.4, _rng.randf_range(-0.08, 0.08))
-			l.rotation = Vector3(0.2, _rng.randf() * TAU, 0.15)
-			ba.add_child(l)
-	# olhos acesos
-	var ba2 := BoneAttachment3D.new()
-	ba2.bone_name = "head"
-	sk.add_child(ba2)
-	var olho := StandardMaterial3D.new()
-	olho.emission_enabled = true
-	olho.emission = Color(0.3, 0.85, 1.0)
-	olho.emission_energy_multiplier = 3.0
-	olho.albedo_color = Color(0.3, 0.85, 1.0)
-	for s2: float in [-1.0, 1.0]:
-		var e := MeshInstance3D.new()
-		var sm := SphereMesh.new()
-		sm.radius = 0.045
-		sm.height = 0.09
-		e.mesh = sm
-		e.material_override = olho
-		e.position = Vector3(s2 * 0.09, 0.22, 0.24)
-		ba2.add_child(e)
-	return m
+	return _cena("res://models/sketchfab/golem.glb")
 
 func lobisomem() -> Node3D:
-	var m := _cena("res://models/animais/ua/Wolf.glb")   # lobo da Quaternius, grande e escuro
-	Fit.tint(m, Color(0.42, 0.36, 0.36))
-	return m
+	return _cena("res://models/sketchfab/lobisomem.glb")   # "Stylized Nightmarish Werewolf" por Stylized.Builder (CC BY)
 
 ## Monstro que guarda a vila: fica perto de casa e só ataca quem chega perto.
 func _monstro(pai: Node3D, m: Node3D, pos: Vector3, altura: float, hp: int, dano: int, vel: float) -> void:
@@ -491,7 +427,7 @@ func _escuridao(r: Node3D) -> void:
 		_por(r, HW + ["bone_A.gltf", "ribcage.gltf", "skull.gltf"][k % 3], _ponto(c, 15.0, 4.0), 0.4, false)
 	for k in 7:
 		var a3 := TAU * k / 7.0
-		_monstro(r, lobisomem(), c + Vector3(cos(a3), 0, sin(a3)) * _rng.randf_range(8.0, 30.0), 2.1, 80, 12, 4.6)
+		_monstro(r, lobisomem(), c + Vector3(cos(a3), 0, sin(a3)) * _rng.randf_range(8.0, 30.0), 2.8, 80, 12, 4.6)
 
 func _cemiterio(r: Node3D) -> void:
 	var info: Dictionary = REGIOES.cemiterio
