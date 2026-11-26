@@ -50,9 +50,9 @@ func _ready() -> void:
 	model.position.y += 0.05   # pés um pouco acima do chão (sumiam na praça e nos caminhos de terra)
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	_idle = Fit.find_anim(_ap, ["Idle"])
-	_run = Fit.find_anim(_ap, ["Run", "Walk"])
-	_atk = Fit.find_anim(_ap, ["Punch", "Attack", "Weapon", "Throw", "creep"])
-	_hit = Fit.find_anim(_ap, ["HitReact", "Hit_A"])
+	_run = Fit.find_anim(_ap, ["Run", "Gallop", "Fast_Flying", "Walk"])
+	_atk = Fit.find_anim(_ap, ["Punch", "Attack", "Weapon", "Throw", "Headbutt", "creep"])
+	_hit = Fit.find_anim(_ap, ["HitReact", "RecieveHit", "Hit_A"])
 	_death = Fit.find_anim(_ap, ["Death"])
 	Fit.play(_ap, _idle)
 

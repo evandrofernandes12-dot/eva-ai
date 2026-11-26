@@ -443,8 +443,8 @@ func golem() -> Node3D:
 	return m
 
 func lobisomem() -> Node3D:
-	var m := _cena("res://models/pets/lobo.glb")
-	Fit.tint(m, Color(0.38, 0.32, 0.32))
+	var m := _cena("res://models/animais/ua/Wolf.glb")   # lobo da Quaternius, grande e escuro
+	Fit.tint(m, Color(0.42, 0.36, 0.36))
 	return m
 
 ## Monstro que guarda a vila: fica perto de casa e só ataca quem chega perto.
@@ -491,7 +491,7 @@ func _escuridao(r: Node3D) -> void:
 		_por(r, HW + ["bone_A.gltf", "ribcage.gltf", "skull.gltf"][k % 3], _ponto(c, 15.0, 4.0), 0.4, false)
 	for k in 7:
 		var a3 := TAU * k / 7.0
-		_monstro(r, lobisomem(), c + Vector3(cos(a3), 0, sin(a3)) * _rng.randf_range(8.0, 30.0), 1.6, 80, 12, 4.6)
+		_monstro(r, lobisomem(), c + Vector3(cos(a3), 0, sin(a3)) * _rng.randf_range(8.0, 30.0), 2.1, 80, 12, 4.6)
 
 func _cemiterio(r: Node3D) -> void:
 	var info: Dictionary = REGIOES.cemiterio
@@ -529,6 +529,13 @@ func _cemiterio(r: Node3D) -> void:
 	for k in 8:
 		var a3 := TAU * k / 8.0
 		_monstro(r, caveira(k), c + Vector3(cos(a3), 0, sin(a3)) * _rng.randf_range(8.0, 26.0), 1.85, 50, 9, 3.2)
+	# fantasmas e zumbis pelo cemitério da floresta
+	for k in 4:
+		var p := _ponto(c, raio * 0.6, 30.0)
+		_monstro(r, _cena("res://models/monstros/" + ("Ghost.gltf" if k % 2 == 0 else "Ghost_Skull.gltf")), p, 1.8, 40, 8, 3.0)
+	for k in 5:
+		var p2 := _ponto(c, raio * 0.7, 32.0)
+		_monstro(r, _cena("res://models/personagens/" + ("Zombie_Male.gltf" if k % 2 == 0 else "Zombie_Female.gltf")), p2, 1.75, 45, 9, 1.8)
 
 func _golems(r: Node3D) -> void:
 	var info: Dictionary = REGIOES.golems
@@ -603,6 +610,9 @@ func _golems(r: Node3D) -> void:
 	for k in 5:
 		var a4 := TAU * k / 5.0
 		_monstro(r, golem(), c + Vector3(cos(a4), 0, sin(a4)) * _rng.randf_range(12.0, 30.0), 3.3, 200, 20, 2.3)
+	# yetis nas montanhas de neve
+	for k in 4:
+		_monstro(r, _cena("res://models/monstros/Yeti.gltf"), _ponto(c, raio * 0.7, 40.0), 2.6, 120, 15, 3.4)
 
 func _ilha_orcs(r: Node3D) -> void:
 	var c: Vector3 = ILHA

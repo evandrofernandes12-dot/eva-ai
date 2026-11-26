@@ -6,21 +6,26 @@ class_name Animal
 ## tipo -> [arquivo, altura (m), anim parado, anim andando, anim correndo, anim morrendo, cor (opcional)]
 const TIPOS := {
 	"coelho": ["res://models/animais/Coelho.glb", 0.45, "Sitting.000", "Jump", "Running", "Dying.000"],
-	"cervo": ["res://models/animais/Cervo.glb", 1.7, "Idle", "Run", "Run", "Die.000"],
-	"corca": ["res://models/animais/Corca.glb", 1.35, "Idle", "Run", "Run", "Die.000", Color(0.55, 0.36, 0.2)],
+	"cervo": ["res://models/animais/ua/Stag.glb", 1.9, "Idle", "Walk", "Gallop", "Death"],
+	"corca": ["res://models/animais/ua/Deer.glb", 1.35, "Idle", "Walk", "Gallop", "Death"],
+	"raposa": ["res://models/animais/ua/Fox.glb", 0.6, "Idle", "Walk", "Gallop", "Death"],
+	"lobo": ["res://models/animais/ua/Wolf.glb", 0.9, "Idle", "Walk", "Gallop", "Death"],
+	"burro": ["res://models/animais/ua/Donkey.glb", 1.35, "Idle", "Walk", "Gallop", "Death"],
+	"touro": ["res://models/animais/ua/Bull.glb", 1.6, "Idle", "Walk", "Gallop", "Death"],
 	"crocodilo": ["res://models/animais/Crocodilo.glb", 0.45, "", "", "", "", Color(0.25, 0.33, 0.16)],
 	"galinha": ["res://models/animais/Galinha.glb", 0.45, "Idle", "Pecking1", "Pecking1", "Dying"],
-	"vaca": ["res://models/animais/Vaca.gltf", 1.5, "Idle", "WalkSlow", "Walk", "Death"],
+	"vaca": ["res://models/animais/ua/Cow.glb", 1.5, "Idle", "Walk", "Gallop", "Death"],
 	"porco": ["res://models/animais/Porco.gltf", 0.9, "Idle", "WalkSlow", "Walk", "Death"],
 	"ovelha": ["res://models/animais/Ovelha.gltf", 1.0, "Idle", "WalkSlow", "Walk", "Death"],
-	"cavalo": ["res://models/animais/Cavalo.gltf", 1.75, "Idle", "WalkSlow", "Walk", "Death"],   # (o do pet só tinha galope: ficava parado no ar)
+	"cavalo": ["res://models/animais/ua/Horse.glb", 1.75, "Idle", "Walk", "Gallop", "Death"],
+	"cavalo_branco": ["res://models/animais/ua/Horse_White.glb", 1.75, "Idle", "Walk", "Gallop", "Death"],
 }
-const VEL := {"coelho": 3.5, "cervo": 4.5, "corca": 4.5, "crocodilo": 0.8, "galinha": 0.7, "vaca": 0.8, "porco": 0.9, "ovelha": 0.8, "cavalo": 1.6}
-const CARNE := {"coelho": 3, "cervo": 10, "corca": 8, "crocodilo": 8, "galinha": 2, "vaca": 12, "porco": 8, "ovelha": 8, "cavalo": 10}
+const VEL := {"raposa": 3.8, "lobo": 4.2, "burro": 0.8, "touro": 0.9, "cavalo_branco": 1.6, "coelho": 3.5, "cervo": 4.5, "corca": 4.5, "crocodilo": 0.8, "galinha": 0.7, "vaca": 0.8, "porco": 0.9, "ovelha": 0.8, "cavalo": 1.6}
+const CARNE := {"raposa": 3, "lobo": 5, "burro": 10, "touro": 12, "cavalo_branco": 10, "coelho": 3, "cervo": 10, "corca": 8, "crocodilo": 8, "galinha": 2, "vaca": 12, "porco": 8, "ovelha": 8, "cavalo": 10}
 
 const CORES_MAT := {"galinha": {"Comb": Color(0.8, 0.1, 0.08), "Material.001": Color(0.72, 0.52, 0.32)}}
-const LISOS := ["vaca", "porco", "ovelha", "cavalo"]
-const RAIO := {"coelho": 0.25, "cervo": 0.7, "corca": 0.6, "crocodilo": 0.8, "galinha": 0.25, "vaca": 1.0, "porco": 0.6, "ovelha": 0.55, "cavalo": 1.0}   # espaço que ocupa (um não entra no outro)
+const LISOS := ["porco", "ovelha"]   # (os animais novos da Quaternius já vêm bem modelados)
+const RAIO := {"raposa": 0.3, "lobo": 0.45, "burro": 0.8, "touro": 1.0, "cavalo_branco": 1.0, "coelho": 0.25, "cervo": 0.7, "corca": 0.6, "crocodilo": 0.8, "galinha": 0.25, "vaca": 1.0, "porco": 0.6, "ovelha": 0.55, "cavalo": 1.0}   # espaço que ocupa (um não entra no outro)
 
 ## Normais suavizadas (média das faces que tocam cada ponto), mantendo ossos e pesos da animação.
 static var _lisos := {}

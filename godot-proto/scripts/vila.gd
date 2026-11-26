@@ -102,7 +102,7 @@ func _curral() -> void:
 	ponto["curral"] = r.to_global(Vector3(0, 0, 6.8))
 	ponto["vaca"] = r.to_global(Vector3(2.0, 0, 0.0))
 	var centro := r.global_position
-	for t: String in ["vaca", "vaca", "porco", "porco", "ovelha", "ovelha", "ovelha", "cavalo"]:
+	for t: String in ["vaca", "touro", "porco", "porco", "ovelha", "ovelha", "cavalo", "cavalo_branco", "burro"]:
 		_animal(t, centro + Vector3(_rng.randf_range(-4, 4), 0, _rng.randf_range(-3, 3)), centro, 4.6, false)
 	# galinheiro com cerquinha, ao lado do curral (mais perto do centro)
 	var gpos := Vector3(-43, 0, -8)   # galinheiro do outro lado do caminho oeste
@@ -173,7 +173,7 @@ func _animal(tipo: String, pos: Vector3, centro: Vector3, raio: float, selvagem:
 
 ## Animais selvagens espalhados pela floresta (e crocodilos na beira do lago).
 func _animais_floresta() -> void:
-	var lista := {"coelho": 9, "cervo": 4, "corca": 4}
+	var lista := {"coelho": 9, "cervo": 4, "corca": 4, "raposa": 3, "lobo": 2}
 	for t: String in lista:
 		for i in int(lista[t]):
 			_animal_selvagem(t)
@@ -488,4 +488,4 @@ func _process(delta: float) -> void:
 			if a.selvagem:
 				conta += 1
 		if conta < 15:
-			_animal_selvagem(["coelho", "coelho", "cervo", "corca"][_rng.randi() % 4])
+			_animal_selvagem(["coelho", "coelho", "cervo", "corca", "raposa", "lobo"][_rng.randi() % 6])
