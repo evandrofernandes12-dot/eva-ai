@@ -15,8 +15,8 @@ const TIPOS := {
 	"crocodilo": ["res://models/animais/Crocodilo.glb", 0.45, "", "", "", "", Color(0.25, 0.33, 0.16)],
 	"galinha": ["res://models/animais/Galinha.glb", 0.45, "Idle", "Pecking1", "Pecking1", "Dying"],
 	"vaca": ["res://models/animais/ua/Cow.glb", 1.5, "Idle", "Walk", "Gallop", "Death"],
-	"porco": ["res://models/animais/Porco.gltf", 0.9, "Idle", "WalkSlow", "Walk", "Death"],
-	"ovelha": ["res://models/animais/Ovelha.gltf", 1.0, "Idle", "WalkSlow", "Walk", "Death"],
+	"porco": ["res://models/sketchfab/porco.glb", 0.9, "", "ArmatureAction", "ArmatureAction", ""],   # Sketchfab: só tem o andar (parado = pose congelada)
+	"ovelha": ["res://models/sketchfab/ovelha.glb", 0.85, "", "Take 001", "Take 001", ""],
 	"cavalo": ["res://models/animais/ua/Horse.glb", 1.75, "Idle", "Walk", "Gallop", "Death"],
 	"cavalo_branco": ["res://models/animais/ua/Horse_White.glb", 1.75, "Idle", "Walk", "Gallop", "Death"],
 }
@@ -24,7 +24,8 @@ const VEL := {"raposa": 3.8, "lobo": 4.2, "burro": 0.8, "touro": 0.9, "cavalo_br
 const CARNE := {"raposa": 3, "lobo": 5, "burro": 10, "touro": 12, "cavalo_branco": 10, "coelho": 3, "cervo": 10, "corca": 8, "crocodilo": 8, "galinha": 2, "vaca": 12, "porco": 8, "ovelha": 8, "cavalo": 10}
 
 const CORES_MAT := {"galinha": {"Comb": Color(0.8, 0.1, 0.08), "Material.001": Color(0.72, 0.52, 0.32)}}
-const LISOS := ["porco", "ovelha"]   # (os animais novos da Quaternius já vêm bem modelados)
+const LISOS := []
+const SUBIR := {"porco": 0.3}   # modelo cujos ossos baixam a malha na animação (a caixa da malha parada engana): sobe tantos metros
 const RAIO := {"raposa": 0.3, "lobo": 0.45, "burro": 0.8, "touro": 1.0, "cavalo_branco": 1.0, "coelho": 0.25, "cervo": 0.7, "corca": 0.6, "crocodilo": 0.8, "galinha": 0.25, "vaca": 1.0, "porco": 0.6, "ovelha": 0.55, "cavalo": 1.0}   # espaço que ocupa (um não entra no outro)
 
 ## Normais suavizadas (média das faces que tocam cada ponto), mantendo ossos e pesos da animação.
@@ -101,7 +102,7 @@ func _ready() -> void:
 	var bb := Heroi._caixa(model)
 	var esc: float = float(info[1]) / maxf(bb.size.y, 0.001)
 	model.scale = Vector3.ONE * esc
-	model.position.y = -bb.position.y * esc
+	model.position.y = -bb.position.y * esc + float(SUBIR.get(tipo, 0.0))
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	hp = 2 if info[1] < 0.6 else 4
 	_alvo = position
@@ -110,7 +111,13 @@ func _ready() -> void:
 func _tocar(nome: String, laco := true, vel := 1.0) -> void:
 	if _ap == null:
 		return
-	if nome == "":   # sem animação de parado: congela a pose
+	if nome == "":   # sem animação de parado: congela a pose do andar (sem tocar nada o modelo fica na pose de montagem, deitado)
+		if _ap.current_animation == "":
+			var w: String = TIPOS[tipo][3]
+			var aw := Fit.find_anim(_ap, [w]) if w != "" else &""
+			if aw != &"":
+				_ap.play(aw)
+				_ap.seek(0.0, true)
 		if _ap.is_playing():
 			_ap.pause()
 		return

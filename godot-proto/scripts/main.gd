@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v61"
+const VERSAO := "v62"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -1118,6 +1118,7 @@ func _familia(sala: Node3D, id: String) -> void:
 		var lugares := [["A2", 1.75, Vector3(1.8, 0, 0.85), 0.0], ["A3", 1.66, Vector3(3.4, 0, 0.85), 0.0], ["A2", 1.2, Vector3(1.8, 0, 2.35), PI]]
 		for l: Array in lugares:
 			var m := Heroi.montar(String(l[0]), false, true)
+			Heroi.vestir(m, "Male_Peasant" if String(l[0]) == "A2" else "Female_Peasant", float(l[1]) < 1.5)   # roupa de camponês
 			for nm in ["Capa", "Capuz"] + (["Hair_Beard"] if float(l[1]) < 1.5 else []):   # dentro de casa, sem capa; o filho sem barba
 				var c := m.find_child(nm, true, false) as Node3D
 				if c != null:

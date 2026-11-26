@@ -17,6 +17,8 @@ const OFICIOS := {
 	"mago": {"nome": "Mago", "m": "M2", "f": "M4", "cor": {}, "aces": ""},
 }
 const VEL := 3.0
+const CABELOS := [Color(0.07, 0.05, 0.04), Color(0.16, 0.09, 0.06), Color(0.32, 0.18, 0.09), Color(0.55, 0.28, 0.12), Color(0.78, 0.62, 0.36), Color(0.55, 0.53, 0.5)]
+const PELES := [Color(0.66, 0.48, 0.38), Color(0.8, 0.62, 0.52), Color(0.52, 0.36, 0.27), Color(0.36, 0.24, 0.17)]
 
 var oficio := "construtor"
 var sexo := "m"
@@ -48,6 +50,10 @@ func _ready() -> void:
 	_sk = Fit.find_node_of(model, "Skeleton3D") as Skeleton3D
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
 	_roupa(info.cor)
+	# cada aldeão com seu cabelo e tom de pele; quem trabalha na roça e nas obras às vezes usa roupa de camponês
+	Heroi.variar(model, CABELOS[_rng.randi() % CABELOS.size()], PELES[_rng.randi() % PELES.size()])
+	if oficio in ["fazendeiro", "construtor", "serralheiro", "artesao"] and (sexo == "m") != (oficio in ["construtor", "artesao"]):
+		Heroi.vestir(model, "Male_Peasant" if sexo == "m" else "Female_Peasant", _rng.randf() < 0.5)
 	if oficio != "cacador" and oficio != "mago":
 		for n in ["Capa", "Capuz"]:
 			var c := model.find_child(n, true, false) as Node3D

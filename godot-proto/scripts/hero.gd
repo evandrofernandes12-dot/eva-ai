@@ -114,6 +114,36 @@ static func montar(id: String, armado := true, sem_nada := false, extras := {}) 
 			_coroa_galhos(sk, capuz)
 	return m
 
+## Veste uma roupa do pacote "Modular Character Outfits - Fantasy" (Quaternius) no corpo UBC: esconde a roupa
+## original e prende as malhas da roupa nova no mesmo esqueleto (os ossos têm os mesmos nomes).
+## `roupa` = "Male_Peasant" ou "Female_Peasant"; `tecido2` usa a segunda cor do tecido.
+static func vestir(m: Node3D, roupa: String, tecido2 := false) -> void:
+	var sk := Fit.find_node_of(m, "Skeleton3D") as Skeleton3D
+	if sk == null:
+		return
+	for nm: String in ["Tunica", "Calca", "Saiote", "Botas", "Braceletes", "Cinto", "Capa", "Capuz"]:
+		var c := m.find_child(nm, true, false) as Node3D
+		if c != null:
+			c.visible = false
+	var r: Node3D = (load("res://models/roupas/%s.gltf" % roupa) as PackedScene).instantiate()
+	var tex2: Texture2D = load("res://models/roupas/T_Peasant_2_BaseColor.png") if tecido2 else null
+	for mi: MeshInstance3D in r.find_children("*", "MeshInstance3D", true, false):
+		var pele := mi.skin
+		mi.get_parent().remove_child(mi)
+		sk.add_child(mi)
+		mi.owner = null
+		mi.transform = Transform3D.IDENTITY
+		mi.skeleton = NodePath("..")
+		mi.skin = pele
+		if tex2 != null:
+			for i in mi.mesh.get_surface_count():
+				var mt := mi.mesh.surface_get_material(i) as StandardMaterial3D
+				if mt != null and mt.albedo_texture != null and mt.albedo_texture.resource_path.contains("Peasant_BaseColor"):
+					var m2 := mt.duplicate() as StandardMaterial3D
+					m2.albedo_texture = tex2
+					mi.set_surface_override_material(i, m2)
+	r.free()
+
 const CABELO := Color(0.16, 0.09, 0.06)   # castanho escuro (sobrancelha e cabelo)
 const PELE := Color(0.66, 0.48, 0.38)   # multiplica a textura da pele (1,1,1 = original, que saía clara demais no tablet)
 
@@ -146,6 +176,23 @@ static func _pele(raiz: Node) -> void:
 			mat.roughness_texture = null
 			mat.metallic_specular = 0.2
 			mi.set_surface_override_material(i, mat)
+
+## Muda a cor do cabelo/sobrancelha e o tom da pele (aldeões diferentes uns dos outros).
+static func variar(raiz: Node, cabelo: Color, pele: Color) -> void:
+	for mi: MeshInstance3D in raiz.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null:
+			continue
+		for i in mi.mesh.get_surface_count():
+			var orig := mi.mesh.surface_get_material(i) as StandardMaterial3D
+			if orig == null:
+				continue
+			var cab := orig.resource_name.begins_with("MI_Hair") or String(mi.name).begins_with("Hair") or String(mi.name) == "Eyebrows"
+			if not cab and not orig.resource_name.begins_with("MI_Superhero"):
+				continue
+			var m := mi.get_active_material(i).duplicate() as StandardMaterial3D
+			m.vertex_color_use_as_albedo = false
+			m.albedo_color = cabelo if cab else pele
+			mi.set_surface_override_material(i, m)
 
 static func _esconder_material(raiz: Node, nome: String) -> void:
 	var some := StandardMaterial3D.new()

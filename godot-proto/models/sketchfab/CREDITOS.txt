@@ -1,3 +1,5 @@
 Modelos do Sketchfab, licença CC Attribution (CC BY 4.0) — é preciso dar crédito:
 - lobisomem.glb: "Stylized Nightmarish Werewolf" por Stylized.Builder — https://sketchfab.com/3d-models/stylized-nightmarish-werewolf-53e21af08b8c495cb67a9fbd95750071
 - golem.glb: "Drugdör The Golem Animated" por Phons — https://sketchfab.com/3d-models/drugdor-the-golem-animated-19c1855bdb2c4cdc89da2cfb64da48cf
+- porco.glb: "PS1 Pig" por jo_5632 — https://sketchfab.com/3d-models/ps1-pig-cb937687727d44319a04d10afdcb0863 (CC Attribution)
+- ovelha.glb: "animated low poly sheep game ready model" por creosine — https://sketchfab.com/3d-models/animated-low-poly-sheep-game-ready-model-66f3851d8827411c91d208d172305666 (CC Attribution)
