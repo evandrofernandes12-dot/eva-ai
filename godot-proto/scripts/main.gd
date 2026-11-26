@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v62"
+const VERSAO := "v63"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -50,6 +50,33 @@ const CLASSES := {
 	"lanceiro": {"nome": "Lanceiro", "desc": "Estocada longa que atravessa vários inimigos em linha", "hp": 120, "dano": [12, 18, 25], "alcance": 4.2, "avanco": 9.0, "longe": false, "area": 0.0, "cor": Color(1, 1, 1), "tiro": Color(1, 1, 1)},
 	"mago": {"nome": "Mago", "desc": "Magia pelo cajado: explosão em área ou raio forte num alvo", "hp": 90, "dano": [9, 13, 18], "alcance": 13.0, "longe": true, "area": 3.2, "cor": Color(0.8, 0.65, 1.0), "tiro": Color(0.7, 0.4, 1.0)},
 }
+## Mercado: cada classe vê só os itens dela. item = [id, nome, bônus, custo]. Bônus: dano, vida, energia.
+const LOJA_CATS := ["Armas", "Armaduras", "Roupas", "Artefatos"]
+const LOJA := {
+	"guerreiro": {
+		"Armas": [["g_esp_aco", "Espada de aço temperado", {"dano": 5}, {"pedra": 60, "madeira": 30}], ["g_esp_runa", "Espada rúnica", {"dano": 12}, {"pedra": 160, "madeira": 80, "comida": 40}]],
+		"Armaduras": [["g_cota", "Cota de malha", {"vida": 30}, {"pedra": 80}], ["g_placas", "Armadura de placas", {"vida": 70}, {"pedra": 200, "madeira": 40}]],
+		"Roupas": [["g_capa", "Capa vermelha do reino", {}, {"comida": 30}], ["g_tabardo", "Tabardo real", {}, {"comida": 60, "madeira": 20}]],
+		"Artefatos": [["g_amuleto", "Amuleto do guardião", {"vida": 20}, {"comida": 120}], ["g_anel", "Anel da força", {"dano": 4}, {"pedra": 100, "comida": 60}]]},
+	"lanceiro": {
+		"Armas": [["l_lanca_ferro", "Lança de ferro", {"dano": 5}, {"pedra": 60, "madeira": 40}], ["l_lanca_drag", "Lança do dragão", {"dano": 12}, {"pedra": 150, "madeira": 100, "comida": 40}]],
+		"Armaduras": [["l_couro", "Couraça de couro", {"vida": 25}, {"comida": 60, "pedra": 30}], ["l_escamas", "Armadura de escamas", {"vida": 60}, {"pedra": 180, "comida": 40}]],
+		"Roupas": [["l_manto", "Manto de caçador", {}, {"comida": 30}], ["l_pele", "Pele de urso", {}, {"comida": 70}]],
+		"Artefatos": [["l_totem", "Totem do urso", {"vida": 25}, {"comida": 110}], ["l_presa", "Presa de javali", {"energia": 30}, {"comida": 90, "pedra": 30}]]},
+	"arqueiro": {
+		"Armas": [["a_arco_longo", "Arco longo", {"dano": 5}, {"madeira": 90}], ["a_arco_elfo", "Arco élfico", {"dano": 12}, {"madeira": 200, "comida": 50}]],
+		"Armaduras": [["a_couro", "Couro batido", {"vida": 20}, {"comida": 60}], ["a_brig", "Brigantina", {"vida": 50}, {"pedra": 120, "comida": 40}]],
+		"Roupas": [["a_capuz", "Capuz verde", {}, {"comida": 25}], ["a_folhas", "Capa de folhas", {}, {"comida": 60, "madeira": 20}]],
+		"Artefatos": [["a_aljava", "Aljava encantada", {"dano": 4}, {"madeira": 80, "comida": 60}], ["a_pena", "Pena de falcão", {"energia": 35}, {"comida": 100}]]},
+	"mago": {
+		"Armas": [["m_cajado_carv", "Cajado de carvalho antigo", {"dano": 5}, {"madeira": 80, "comida": 20}], ["m_cajado_crist", "Cajado de cristal", {"dano": 12}, {"pedra": 140, "madeira": 80, "comida": 40}]],
+		"Armaduras": [["m_seda", "Manto de seda", {"vida": 20}, {"comida": 70}], ["m_arcano", "Manto arcano", {"vida": 45}, {"comida": 150, "pedra": 40}]],
+		"Roupas": [["m_chapeu", "Chapéu pontudo", {}, {"comida": 30}], ["m_estrelas", "Túnica estrelada", {}, {"comida": 70}]],
+		"Artefatos": [["m_orbe", "Orbe de mana", {"energia": 40}, {"pedra": 60, "comida": 80}], ["m_grimorio", "Grimório antigo", {"dano": 5}, {"comida": 140}]]},
+}
+var compras: Array = []          # ids dos itens comprados no mercado
+var equipado := {}               # categoria -> id do item em uso (da classe atual)
+
 const ARMA_CUSTO := [{}, {"madeira": 40, "pedra": 30}, {"madeira": 90, "pedra": 70, "comida": 30}]
 const OFICIOS := ["madeira", "pedra", "comida"]
 
@@ -119,6 +146,7 @@ var _ent_b: Button
 var _rei_b: Button
 var _fade_r: ColorRect
 var _rei_l: Label
+var _status: PainelStatus         # retrato, vida e energia (scripts/painel_status.gd)
 var _menu_b: Array = []        # botões que o MENU mostra/esconde
 var _hud_info := false          # INFO: recursos e missões visíveis
 var _dentro := ""                # nome do prédio em que o jogador está ("" = fora)
@@ -246,6 +274,7 @@ func _ready() -> void:
 	_menu_b.append(_hud_button("CLASSE", 124.0, _menu_classe))
 	_menu_b.append(_hud_button("ALDEÕES", 178.0, _menu_aldeoes))
 	_menu_b.append(_hud_button("CÂMERA", 232.0, _trocar_camera))
+	_menu_b.append(_hud_button("MERCADO", 286.0, _menu_mercado))
 	for b: Control in _menu_b:
 		b.visible = false
 	var mb := _hud_button("MENU", 16.0, func():
@@ -267,9 +296,17 @@ func _ready() -> void:
 	_rei_b = _botao_acao("FALAR COM O REI", -260.0, -520.0, false, 70.0)
 	_rei_b.pressed.connect(_menu_rei)
 	_rei_b.visible = false
+	_status = PainelStatus.new()
+	_status.jogo = self
+	$HUD.add_child(_status)
+	$HUD.move_child(_status, 0)
+	_status.retrato(heroi)
+	info.offset_top = 132.0     # recursos e missões ficam embaixo do painel
+	quest_l.offset_top = 166.0
+	quest_l.offset_bottom = 204.0
 	_rei_l = Label.new()
 	_rei_l.offset_left = 24.0
-	_rei_l.offset_top = 96.0
+	_rei_l.offset_top = 204.0
 	_rei_l.add_theme_font_size_override("font_size", 20)
 	_rei_l.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
 	_rei_l.add_theme_color_override("font_outline_color", Color.BLACK)
@@ -688,9 +725,9 @@ func _process(delta: float) -> void:
 		_use()
 	_check_quest()
 	if _hud_info:
-		info.text = "Vida %d/%d   Madeira %d   Pedra %d   Comida %d   Orcs %d" % [player.hp, player.max_hp, res.madeira, res.pedra, res.comida, kills]
+		info.text = "Madeira %d   Pedra %d   Comida %d   Inimigos %d" % [res.madeira, res.pedra, res.comida, kills]
 	else:
-		info.text = "Vida %d/%d" % [player.hp, player.max_hp]
+		info.text = ""
 	_save_t -= delta
 	if _save_t <= 0.0:
 		_save_t = 10.0
@@ -783,7 +820,11 @@ func _recalc() -> void:
 			player.damage = int(player.damage * 1.35)
 		player.attack_range = 2.6 if CLASSES[classe].longe else CLASSES[classe].alcance
 		player.avanco = CLASSES[classe].get("avanco", 0.0)
-	player.max_hp = base + 25 * _lvl("vida")
+	var b := _bonus_loja()
+	player.damage += int(b.get("dano", 0))
+	player.max_energia = 100.0 + float(b.get("energia", 0))
+	player.energia = minf(player.energia, player.max_energia)
+	player.max_hp = base + 25 * _lvl("vida") + int(b.get("vida", 0))
 	if player.hp > 0:
 		player.hp = clampi(player.hp + maxi(0, player.max_hp - antes), 1, player.max_hp)
 
@@ -1809,6 +1850,8 @@ func vestir(id: String, salvar := true) -> void:
 	player.trocar_modelo(m, Heroi.ANIMS[classe])
 	player.model.visible = cam_modo != 1
 	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6), 0.1)   # luz de borda no herói
+	if _status != null:
+		_status.retrato(id)
 	_recalc()
 	_pet_ajustar()
 	if salvar:
@@ -1884,10 +1927,10 @@ func _abrir(titulo: String, texto: String, rows: Array) -> void:
 	pc.grow_vertical = Control.GROW_DIRECTION_BOTH
 	pc.custom_minimum_size = Vector2(560, 0)
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.13, 0.09, 0.05, 0.96)
-	sb.border_color = Color(0.89, 0.75, 0.41)
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(12)
+	sb.bg_color = Color(0.05, 0.06, 0.1, 0.8)   # vidro escuro translúcido (mesmo estilo do painel de vida)
+	sb.border_color = Color(0.95, 0.8, 0.45, 0.8)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(18)
 	pc.add_theme_stylebox_override("panel", sb)
 	var mg := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
@@ -1956,6 +1999,60 @@ func _personalizar(chave: String, valor: String) -> void:
 	_save()
 	_menu_classe()
 
+## Soma os bônus dos itens equipados da classe atual.
+func _bonus_loja() -> Dictionary:
+	var b := {}
+	if not LOJA.has(classe):
+		return b
+	for cat: String in LOJA_CATS:
+		for it: Array in LOJA[classe][cat]:
+			if equipado.get(cat, "") == it[0]:
+				for k: String in it[2]:
+					b[k] = int(b.get(k, 0)) + int(it[2][k])
+	return b
+
+## MERCADO: roupas, armas, artefatos e armaduras — só os do personagem em uso.
+func _menu_mercado() -> void:
+	if classe == "" or heroi == "":
+		say("Escolha primeiro a classe e o personagem (botão CLASSE).", 3.0)
+		return
+	var rows: Array = []
+	for cat: String in LOJA_CATS:
+		var em_uso := ""
+		for it: Array in LOJA[classe][cat]:
+			if equipado.get(cat, "") == it[0]:
+				em_uso = "  (em uso: %s)" % it[1]
+		rows.append({"t": cat + em_uso, "cb": func(): _menu_mercado_cat(cat)})
+	_abrir("Mercado — " + CLASSES[classe].nome, "Madeira %d · Pedra %d · Comida %d\nItens para %s." % [res.madeira, res.pedra, res.comida, Heroi.lista()[heroi].nome], rows)
+
+func _menu_mercado_cat(cat: String) -> void:
+	var rows: Array = []
+	for it: Array in LOJA[classe][cat]:
+		var id: String = it[0]
+		var bon: Dictionary = it[2]
+		var txt_b := ""
+		for k: String in bon:
+			txt_b += "  +%d %s" % [bon[k], k]
+		if txt_b == "":
+			txt_b = "  (visual)"
+		if id in compras:
+			if equipado.get(cat, "") == id:
+				rows.append({"t": "✔ %s%s — em uso (tirar)" % [it[1], txt_b], "cb": func(): equipado.erase(cat); _recalc(); _save(); _menu_mercado_cat(cat)})
+			else:
+				rows.append({"t": "%s%s — usar" % [it[1], txt_b], "cb": func(): equipado[cat] = id; _recalc(); _save(); _menu_mercado_cat(cat)})
+		else:
+			var custo: Dictionary = it[3]
+			rows.append({"t": "Comprar %s%s — %s" % [it[1], txt_b, plots[0].texto(custo)], "off": not _can_pay(custo), "cb": func():
+				_pay(custo)
+				compras.append(id)
+				equipado[cat] = id
+				_recalc()
+				_save()
+				say("Você comprou: %s!" % it[1], 3.0)
+				_menu_mercado_cat(cat)})
+	rows.append({"t": "← Voltar ao mercado", "cb": func(): _menu_mercado()})
+	_abrir(cat, "Madeira %d · Pedra %d · Comida %d" % [res.madeira, res.pedra, res.comida], rows)
+
 ## 1) escolhe a classe; 2) escolhe entre os 4 personagens dela (2 masculinos e 2 femininos).
 func _menu_escolha(cl := "") -> void:
 	var rows: Array = []
@@ -1965,14 +2062,13 @@ func _menu_escolha(cl := "") -> void:
 			rows.append({"t": "%s — %s (vida %d, dano %d)" % [c.nome, c.desc, c.hp, c.dano[0]], "cb": func(): _menu_escolha(k)})
 		_abrir("Escolha sua classe", "A classe define sua vida, seu dano e se você luta de perto ou de longe.", rows)
 		return
-	var lista := Heroi.lista()
-	for sexo in ["m", "f"]:
-		for id in lista:
-			var h: Dictionary = lista[id]
-			if h.classe == cl and h.sexo == sexo:
-				rows.append({"t": "%s — %s" % ["Masculino" if sexo == "m" else "Feminino", h.nome], "cb": func(): vestir(id); _fechar(); say("Personagem escolhido!", 2.5)})
-	rows.append({"t": "← Voltar para as classes", "cb": func(): _menu_escolha()})
-	_abrir(CLASSES[cl].nome, "Escolha o seu personagem.", rows)
+	# os 4 personagens da classe de corpo inteiro, com arma e armadura (scripts/escolha.gd)
+	_fechar()
+	var tela := EscolhaPersonagem.new()
+	tela.jogo = self
+	tela.classe = cl
+	$HUD.add_child(tela)
+	_painel = tela
 
 func _menu_aldeoes() -> void:
 	_viu_aldeoes = true
@@ -2010,7 +2106,7 @@ func _save() -> void:
 		papeis.append(v.papel)
 	var f := FileAccess.open(SAVE, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual, "hora": ceu.hora, "dia": ceu.dia}))
+		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual, "compras": compras, "equipado": equipado, "hora": ceu.hora, "dia": ceu.dia}))
 
 func _load() -> bool:
 	if not FileAccess.file_exists(SAVE):
@@ -2026,6 +2122,10 @@ func _load() -> bool:
 	classe = c if CLASSES.has(c) else ""
 	magia = String(d.get("magia", "orbe"))
 	ceu.definir(float(d.get("hora", 9.0)), int(d.get("dia", 0)))
+	var cp = d.get("compras", [])
+	compras = cp if cp is Array else []
+	var eq = d.get("equipado", {})
+	equipado = eq if eq is Dictionary else {}
 	var vis = d.get("visual", {})
 	visual = vis if vis is Dictionary else {}
 	var hid := String(d.get("heroi", ""))

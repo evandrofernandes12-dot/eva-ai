@@ -15,6 +15,8 @@ const T := "res://assets/textures/ground/"
 const REGIAO := preload("res://shaders/regiao.gdshader")
 const MAR := preload("res://shaders/mar.gdshader")
 const MONTANHA := preload("res://shaders/montanha.gdshader")
+const PRAIA := preload("res://shaders/praia.gdshader")
+const SF := "res://models/sketchfab/"
 const ENEMY := preload("res://scripts/enemy.gd")
 
 const TAMANHO := 1800.0          # lado do mapa (m); a aldeia fica no centro
@@ -47,6 +49,12 @@ var _orc_estado := "indo"        # ilha -> indo -> atracado -> voltando -> ilha
 var _orc_t := 0.0
 var _ok := Vector3.ZERO          # última posição do jogador em terra firme
 var _libs := {}
+const NIVEL_BARCO := -0.55        # altura do barco em relação ao chão (a quilha fica dentro da água)
+var _kraken: Node3D               # polvo gigante do mar
+var _kraken_ap: AnimationPlayer
+var _kraken_t := 20.0             # tempo até ele aparecer de novo
+var _kraken_ocupado := false
+var _chefes: Array = []           # [inimigo, rótulo, nome] dos chefões das vilas
 
 func montar(j: Node) -> void:
 	jogo = j
@@ -65,12 +73,20 @@ func montar(j: Node) -> void:
 	_ilha_orcs(regioes.orcs)
 	_neve = _flocos()
 	add_child(_neve)
-	_barco = barco(Color(0.92, 0.88, 0.75))
-	add_child(_barco)
-	_barco.position = CAIS_CASA + Vector3(9, 0, -3.5)
+	_barco = _modelo_barco(SF + "escuna.glb", 11.0, ["Object_30", "Object_38"])
+	_barco.position = _doca(CAIS_CASA, 1.0) + Vector3(0, NIVEL_BARCO, 0)
 	_barco.rotation.y = PI * 0.5
-	_barco_orc = barco(Color(0.45, 0.1, 0.08))
-	add_child(_barco_orc)
+	_barco_orc = _modelo_barco(SF + "pirata.glb", 13.0, ["Plane_water_0"])
+	_kraken = _cena(SF + "kraken.glb")
+	add_child(_kraken)
+	for mi: MeshInstance3D in _kraken.find_children("*", "MeshInstance3D", true, false):
+		if String(mi.name) == "Water_Mat_0":   # o modelo vem com uma poça de água em volta
+			mi.free()
+	var kb := Fit.bounds(_kraken)
+	_kraken.scale *= 18.0 / maxf(kb.size.y, 0.01)   # sem apoiar no chão: o y = 0 do modelo é a linha da água dele
+	_kraken.position = Vector3(420, -30, -30)
+	_kraken_ap = Fit.find_node_of(_kraken, "AnimationPlayer") as AnimationPlayer
+	_kraken.visible = false
 	_orc_t = VIAGEM * 0.4
 	_botao = jogo._botao_acao("BARCO", -260.0, -540.0, false, 70.0)
 	_botao.pressed.connect(_embarcar)
@@ -143,9 +159,16 @@ func _mar_e_ilha() -> void:
 	var mar := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(2400, 2400)
+	pm.subdivide_width = 220   # vértices para as ondas grandes subirem e descerem
+	pm.subdivide_depth = 220
 	mar.mesh = pm
 	var mm := ShaderMaterial.new()
 	mm.shader = MAR
+	mm.set_shader_parameter("ondinhas", _textura_ruido(0.035, true))
+	mm.set_shader_parameter("ruido", _textura_ruido(0.05, false))
+	mm.set_shader_parameter("costa_x", COSTA_X + 5.0)
+	mm.set_shader_parameter("ilha_c", Vector2(ILHA.x, ILHA.z))
+	mm.set_shader_parameter("ilha_r", ILHA_R + 4.5)
 	mar.material_override = mm
 	mar.position = Vector3(COSTA_X + 1200.0, -0.45, 0)
 	add_child(mar)
@@ -164,9 +187,54 @@ func _mar_e_ilha() -> void:
 	grama.set_shader_parameter("tex", load("res://assets/textures/ground/Grass001/Grass001_1K-JPG_Color.jpg"))
 	grama.set_shader_parameter("tex_n", load("res://assets/textures/ground/Grass001/Grass001_1K-JPG_NormalGL.jpg"))
 	_disco(self, ILHA, ILHA_R - 14.0, grama)
+	# rebentação: espuma subindo e descendo a areia da praia e da ilha
+	var pr := ShaderMaterial.new()
+	pr.shader = PRAIA
+	pr.set_shader_parameter("ruido", _textura_ruido(0.05, false))
+	pr.set_shader_parameter("linha", COSTA_X + 5.0)
+	pr.render_priority = 1
+	var faixa := MeshInstance3D.new()
+	var fp := PlaneMesh.new()
+	fp.size = Vector2(14, TAMANHO)
+	faixa.mesh = fp
+	faixa.material_override = pr
+	faixa.rotation.z = -atan2(3.0, 40.0)
+	faixa.position = Vector3(COSTA_X + 5.0, -(6.0 * 3.0 / 40.0) + 0.03, 0)
+	add_child(faixa)
+	var pi2 := pr.duplicate() as ShaderMaterial
+	pi2.set_shader_parameter("modo", 1)
+	pi2.set_shader_parameter("linha", ILHA_R + 4.5)
+	pi2.set_shader_parameter("centro", Vector2(ILHA.x, ILHA.z))
+	var anel := MeshInstance3D.new()
+	var ca := CylinderMesh.new()
+	ca.top_radius = ILHA_R + 0.05
+	ca.bottom_radius = ILHA_R + 30.05
+	ca.height = 3.0
+	ca.radial_segments = 96
+	ca.cap_top = false
+	ca.cap_bottom = false
+	anel.mesh = ca
+	anel.material_override = pi2
+	anel.position = ILHA + Vector3(0, -1.5 + 0.03, 0)
+	add_child(anel)
 	# cais da aldeia e da ilha
 	add_child(_cais(CAIS_CASA, 1.0))
 	add_child(_cais(CAIS_ILHA, -1.0))
+
+## Textura de ruído sem emendas (ondinhas do mar como mapa de relevo, ou ruído simples para a espuma).
+func _textura_ruido(freq: float, relevo: bool) -> NoiseTexture2D:
+	var fn := FastNoiseLite.new()
+	fn.frequency = freq
+	fn.fractal_octaves = 4
+	var nt := NoiseTexture2D.new()
+	nt.width = 512
+	nt.height = 512
+	nt.seamless = true
+	nt.noise = fn
+	if relevo:
+		nt.as_normal_map = true
+		nt.bump_strength = 5.0
+	return nt
 
 ## Cais de madeira saindo da terra em direção ao mar (sentido +x ou -x).
 func _cais(raiz: Vector3, sentido: float) -> Node3D:
@@ -384,7 +452,7 @@ func lobisomem() -> Node3D:
 	return _cena("res://models/sketchfab/lobisomem.glb")   # "Stylized Nightmarish Werewolf" por Stylized.Builder (CC BY)
 
 ## Monstro que guarda a vila: fica perto de casa e só ataca quem chega perto.
-func _monstro(pai: Node3D, m: Node3D, pos: Vector3, altura: float, hp: int, dano: int, vel: float) -> void:
+func _monstro(pai: Node3D, m: Node3D, pos: Vector3, altura: float, hp: int, dano: int, vel: float) -> CharacterBody3D:
 	var e := CharacterBody3D.new()
 	e.set_script(ENEMY)
 	e.collision_mask = 3
@@ -399,6 +467,33 @@ func _monstro(pai: Node3D, m: Node3D, pos: Vector3, altura: float, hp: int, dano
 	pai.add_child(e)
 	e.killed.connect(func(): jogo.kills += 1)
 	jogo.enemies.append(e)
+	return e
+
+## Chefão da vila (do tamanho do Minotauro): mais vida e dano, nome e vida flutuando em cima da cabeça.
+func _chefe(pai: Node3D, m: Node3D, pos: Vector3, altura: float, hp: int, dano: int, vel: float, nome: String) -> void:
+	var e := _monstro(pai, m, pos, altura, hp, dano, vel)
+	e.raio_guarda = 30.0
+	var l := Label3D.new()
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.font_size = 48
+	l.outline_size = 14
+	l.pixel_size = 0.012
+	l.modulate = Color(1.0, 0.85, 0.4)
+	l.position.y = altura + 0.8
+	l.no_depth_test = true
+	e.add_child(l)
+	_chefes.append([e, l, nome])
+	e.killed.connect(func():
+		jogo.res.comida += 60
+		jogo.res.madeira += 60
+		jogo.res.pedra += 60
+		jogo.say("Você derrotou %s!  +60 de comida, madeira e pedra" % nome, 6.0))
+
+func _rotulos_chefes() -> void:
+	for c: Array in _chefes:
+		var e = c[0]
+		if is_instance_valid(e) and (c[1] as Label3D).is_visible_in_tree():
+			(c[1] as Label3D).text = "%s\n%d / %d" % [c[2], maxi(0, e.hp), e.max_hp]
 
 # ---------- regiões ----------
 func _escuridao(r: Node3D) -> void:
@@ -428,6 +523,9 @@ func _escuridao(r: Node3D) -> void:
 	for k in 7:
 		var a3 := TAU * k / 7.0
 		_monstro(r, lobisomem(), c + Vector3(cos(a3), 0, sin(a3)) * _rng.randf_range(8.0, 30.0), 2.8, 80, 12, 4.6)
+	var rei := lobisomem()
+	Fit.tint(rei, Color(0.75, 0.45, 0.45))
+	_chefe(r, rei, c + Vector3(0, 0, 5), 5.5, 700, 28, 4.0, "Rei Lobisomem")
 
 func _cemiterio(r: Node3D) -> void:
 	var info: Dictionary = REGIOES.cemiterio
@@ -465,6 +563,7 @@ func _cemiterio(r: Node3D) -> void:
 	for k in 8:
 		var a3 := TAU * k / 8.0
 		_monstro(r, caveira(k), c + Vector3(cos(a3), 0, sin(a3)) * _rng.randf_range(8.0, 26.0), 1.85, 50, 9, 3.2)
+	_chefe(r, caveira(0), c + Vector3(5, 0, 0), 5.0, 650, 26, 2.8, "Rei Caveira")
 	# fantasmas e zumbis pelo cemitério da floresta
 	for k in 4:
 		var p := _ponto(c, raio * 0.6, 30.0)
@@ -546,6 +645,9 @@ func _golems(r: Node3D) -> void:
 	for k in 5:
 		var a4 := TAU * k / 5.0
 		_monstro(r, golem(), c + Vector3(cos(a4), 0, sin(a4)) * _rng.randf_range(12.0, 30.0), 3.3, 200, 20, 2.3)
+	var anciao := golem()
+	Fit.tint(anciao, Color(0.7, 0.62, 0.95))
+	_chefe(r, anciao, c, 6.5, 1000, 32, 2.0, "Golem Ancião")
 	# yetis nas montanhas de neve
 	for k in 4:
 		_monstro(r, _cena("res://models/monstros/Yeti.gltf"), _ponto(c, raio * 0.7, 40.0), 2.6, 120, 15, 3.4)
@@ -616,6 +718,9 @@ func _ilha_orcs(r: Node3D) -> void:
 	for k in 8:
 		var a5 := TAU * k / 8.0
 		_monstro(r, (jogo.ORC as PackedScene).instantiate(), c + Vector3(cos(a5), 0, sin(a5)) * _rng.randf_range(6.0, 22.0), 1.95, 60, 10, 3.3)
+	var chefe_orc: Node3D = (jogo.ORC as PackedScene).instantiate()
+	Fit.tint(chefe_orc, Color(0.75, 0.55, 0.45))
+	_chefe(r, chefe_orc, c + Vector3(4, 0, 0), 5.0, 800, 30, 3.0, "Chefe Orc")
 
 # ---------- neve ----------
 func _flocos() -> GPUParticles3D:
@@ -648,84 +753,176 @@ func _flocos() -> GPUParticles3D:
 	return p
 
 # ---------- barcos ----------
-static func barco(vela: Color) -> Node3D:
-	var b := Node3D.new()
-	var casco := Construcoes.mat(Color(0.42, 0.27, 0.15))
-	var escuro := Construcoes.mat(Color(0.3, 0.19, 0.1))
-	Construcoes.caixa(b, Vector3(0, 0.15, 0), Vector3(2.4, 0.3, 6.0), escuro)          # fundo
-	for s2: float in [-1.0, 1.0]:
-		var lado := Construcoes.caixa(b, Vector3(s2 * 1.25, 0.6, 0), Vector3(0.12, 0.9, 6.0), casco)
-		lado.rotation.z = s2 * 0.25
-	Construcoes.caixa(b, Vector3(0, 0.6, -3.0), Vector3(2.5, 0.9, 0.12), casco)        # popa
-	var proa := MeshInstance3D.new()
-	var pr := PrismMesh.new()
-	pr.size = Vector3(2.5, 1.5, 0.9)   # triângulo deitado: a ponta aponta para a frente (+z)
-	proa.mesh = pr
-	proa.material_override = casco
-	proa.position = Vector3(0, 0.6, 3.74)
-	proa.rotation = Vector3(PI * 0.5, 0, 0)
-	b.add_child(proa)
-	Construcoes.caixa(b, Vector3(0, 0.45, 0), Vector3(2.3, 0.06, 5.6), Construcoes.mat(Color(0.55, 0.4, 0.25)))   # convés
-	Construcoes.tora(b, Vector3(0, 0.4, 0.6), Vector3(0, 6.0, 0.6), 0.1, escuro)                                   # mastro
-	Construcoes.tora(b, Vector3(-1.6, 5.4, 0.7), Vector3(1.6, 5.4, 0.7), 0.06, escuro)
-	var mv := StandardMaterial3D.new()
-	mv.albedo_color = vela
-	mv.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mv.roughness = 1.0
-	var v := MeshInstance3D.new()
-	var q := QuadMesh.new()
-	q.size = Vector2(3.0, 3.8)
-	v.mesh = q
-	v.material_override = mv
-	v.position = Vector3(0, 3.45, 0.75)
-	b.add_child(v)
-	return b
+## Barco de verdade (modelo do Sketchfab), virado para +z e com o comprimento pedido.
+## O convés fica guardado no metadado "conves" (altura local onde o jogador fica em pé).
+func _modelo_barco(caminho: String, comprimento: float, esconder: Array) -> Node3D:
+	var c := Node3D.new()
+	add_child(c)
+	var m := _cena(caminho)
+	c.add_child(m)
+	for mi: MeshInstance3D in m.find_children("*", "MeshInstance3D", true, false):
+		if String(mi.name) in esconder:
+			mi.free()
+	var bb := Fit.bounds(c)   # (a caixa é medida no espaço do pai, então inclui o giro e a escala do modelo)
+	if bb.size.x > bb.size.z:
+		m.rotation.y = PI * 0.5
+		bb = Fit.bounds(c)
+	var esc := comprimento / maxf(bb.size.z, 0.01)
+	m.scale *= esc
+	bb = Fit.bounds(c)
+	m.position -= Vector3(bb.get_center().x, bb.position.y, bb.get_center().z)
+	c.set_meta("conves", bb.size.y * 0.16)
+	return c
 
-## Ponto sobre o mar, à frente de um cais, onde o barco encosta.
+## Ponto sobre o mar, ao lado do cais, onde o barco encosta.
 func _doca(cais: Vector3, sentido: float) -> Vector3:
-	return cais + Vector3(sentido * 13.0, 0, -3.5)
+	return cais + Vector3(sentido * 8.0, 0, -4.2)
 
 func _rota(de: Vector3, ate: Vector3, t: float) -> Vector3:
 	var p := de.lerp(ate, t)
 	p.z += sin(t * PI) * -40.0   # faz uma curva pelo mar
 	return p
 
+## Viagem em etapas: anda pelo cais, pula para o convés, o barco sai devagar e acelera, chega desacelerando,
+## o jogador desce no outro cais e anda até a terra.
 func _embarcar() -> void:
 	if not _viagem.is_empty():
 		return
 	var na_ilha: bool = jogo.player.global_position.distance_to(ILHA) < ILHA_R + 20.0
-	var de := _doca(CAIS_ILHA, -1.0) if na_ilha else _doca(CAIS_CASA, 1.0)
-	var ate := _doca(CAIS_CASA, 1.0) if na_ilha else _doca(CAIS_ILHA, -1.0)
-	var chegada := CAIS_CASA + Vector3(-2, 0, 0) if na_ilha else CAIS_ILHA + Vector3(2, 0, 0)
-	_viagem = {"t": 0.0, "de": de, "ate": ate, "chegada": chegada}
+	var sai := CAIS_ILHA if na_ilha else CAIS_CASA
+	var chega := CAIS_CASA if na_ilha else CAIS_ILHA
+	var s1 := -1.0 if na_ilha else 1.0
+	_viagem = {"fase": "andando", "t": 0.0, "de": _doca(sai, s1), "ate": _doca(chega, -s1),
+		"ponta": sai + Vector3(s1 * 8.0, 0.42, -1.2), "desce": chega + Vector3(-s1 * 8.0, 0.42, -1.2),
+		"terra": chega + Vector3(s1 * 2.0, 0, 0), "dir": s1}
 	_botao.visible = false
 	jogo.player.set_physics_process(false)
-	jogo.say("Navegando para " + ("a aldeia" if na_ilha else "a Ilha dos Orcs") + "...", 4.0)
+	jogo.say("Embarcando para " + ("a aldeia" if na_ilha else "a Ilha dos Orcs") + "...", 3.0)
+
+func _conves() -> Vector3:
+	return _barco.global_transform * Vector3(0, float(_barco.get_meta("conves", 1.0)), -1.0)
+
+func _anim_jogador(correndo: bool) -> void:
+	var pl = jogo.player
+	Fit.play(pl._ap, pl._run if correndo else pl._idle)
+
+func _andar_ate(alvo: Vector3, delta: float) -> bool:
+	var pl: Node3D = jogo.player
+	var to := alvo - pl.global_position
+	to.y = 0
+	if to.length() < 0.25:
+		return true
+	pl.global_position += to.normalized() * minf(4.0 * delta, to.length())
+	pl.global_position.y = alvo.y
+	pl.rotation.y = lerp_angle(pl.rotation.y, atan2(to.x, to.z), 10.0 * delta)
+	_anim_jogador(true)
+	return false
 
 func _navegar(delta: float) -> void:
-	_viagem.t = float(_viagem.t) + delta / VIAGEM
-	var t: float = minf(1.0, _viagem.t)
-	var p := _rota(_viagem.de, _viagem.ate, t)
-	var p2 := _rota(_viagem.de, _viagem.ate, minf(1.0, t + 0.01))
-	if p2.distance_to(p) > 0.001:
-		_barco.rotation.y = atan2(p2.x - p.x, p2.z - p.z)
-	_barco.position = p + Vector3(0, -0.25 + sin(Time.get_ticks_msec() * 0.002) * 0.06, 0)
-	jogo.player.global_position = _barco.global_position + Vector3(0, 0.5, 0)
-	jogo.player.rotation.y = _barco.rotation.y
-	if t >= 1.0:
-		jogo.player.global_position = _viagem.chegada
-		_ok = _viagem.chegada
-		jogo.player.set_physics_process(true)
-		_viagem = {}
+	var pl: Node3D = jogo.player
+	var balanco := Time.get_ticks_msec() * 0.001
+	_barco.rotation.z = sin(balanco * 1.3) * 0.035
+	_barco.rotation.x = sin(balanco * 0.9) * 0.025
+	match String(_viagem.fase):
+		"andando":
+			if _andar_ate(_viagem.ponta, delta):
+				_viagem.fase = "subindo"
+				_viagem.t = 0.0
+				_viagem.pulo = pl.global_position
+		"subindo", "descendo":
+			_viagem.t = float(_viagem.t) + delta / 0.7
+			var k: float = minf(1.0, _viagem.t)
+			var de: Vector3 = _viagem.pulo
+			var ate: Vector3 = _conves() if _viagem.fase == "subindo" else Vector3(_viagem.desce)
+			pl.global_position = de.lerp(ate, k) + Vector3(0, sin(k * PI) * 0.7, 0)
+			_anim_jogador(false)
+			if k >= 1.0:
+				if _viagem.fase == "subindo":
+					_viagem.fase = "navegando"
+					_viagem.t = 0.0
+					jogo.say("Içar velas!", 2.0)
+				else:
+					_viagem.fase = "saindo"
+		"navegando":
+			_viagem.t = float(_viagem.t) + delta / VIAGEM
+			var t: float = minf(1.0, _viagem.t)
+			var tt := smoothstep(0.0, 1.0, t)   # sai devagar, acelera e chega freando
+			var p := _rota(_viagem.de, _viagem.ate, tt)
+			var p2 := _rota(_viagem.de, _viagem.ate, minf(1.0, tt + 0.01))
+			if p2.distance_to(p) > 0.0005:
+				_barco.rotation.y = lerp_angle(_barco.rotation.y, atan2(p2.x - p.x, p2.z - p.z), 1.5 * delta)
+			_barco.position = p + Vector3(0, NIVEL_BARCO + sin(balanco * 1.6) * 0.08, 0)
+			if t > 0.92:   # encostando: endireita junto ao cais
+				_barco.rotation.y = lerp_angle(_barco.rotation.y, PI * 0.5, 2.0 * delta)
+			pl.global_position = _conves()
+			pl.rotation.y = _barco.rotation.y
+			_anim_jogador(false)
+			if t > 0.38 and t < 0.4 and not _kraken_ocupado:
+				_kraken_ataca()
+			if t >= 1.0:
+				_viagem.fase = "descendo"
+				_viagem.t = 0.0
+				_viagem.pulo = pl.global_position
+		"saindo":
+			if _andar_ate(_viagem.terra, delta):
+				_ok = pl.global_position
+				pl.set_physics_process(true)
+				_viagem = {}
+
+## O polvo gigante sobe do lado do barco, bate com os tentáculos e volta para o fundo.
+func _kraken_ataca() -> void:
+	_kraken_ocupado = true
+	var lado := _barco.global_transform.basis.x.normalized()
+	if (_barco.global_position + lado * 17.0).x < COSTA_X + 25.0:   # sempre do lado do mar
+		lado = -lado
+	_kraken.position = _barco.global_position + lado * 17.0 + Vector3(0, -22, 0)
+	_kraken.look_at(_barco.global_position + Vector3(0, _kraken.position.y, 0), Vector3.UP, true)
+	_kraken.visible = true
+	_tocar_kraken("Splash")
+	jogo.say("O KRAKEN ataca o barco!", 3.0)
+	var tw := create_tween()
+	tw.tween_property(_kraken, "position:y", -0.5, 1.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func(): _tocar_kraken("Spin"))
+	tw.tween_interval(1.2)
+	tw.tween_callback(func(): jogo.player.hurt(12))
+	tw.tween_interval(1.4)
+	tw.tween_callback(func(): jogo.player.hurt(12); _tocar_kraken("Submerge"))
+	tw.tween_interval(0.8)
+	tw.tween_property(_kraken, "position:y", -30.0, 2.5).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func(): _kraken.visible = false; _kraken_ocupado = false; _kraken_t = 30.0)
+
+## De vez em quando ele aparece no meio do mar (dá para ver da praia) e some de novo.
+func _kraken_passeio(delta: float) -> void:
+	if _kraken_ocupado:
+		return
+	_kraken_t -= delta
+	if _kraken_t > 0.0:
+		return
+	_kraken_ocupado = true
+	_kraken.position = Vector3(_rng.randf_range(340, 470), -30, _rng.randf_range(-70, 40))
+	_kraken.rotation.y = _rng.randf() * TAU
+	_kraken.visible = true
+	_tocar_kraken("Movement")
+	var tw := create_tween()
+	tw.tween_property(_kraken, "position:y", -0.8, 3.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func(): _tocar_kraken("Idle"))
+	tw.tween_interval(8.0)
+	tw.tween_callback(func(): _tocar_kraken("Submerge"))
+	tw.tween_property(_kraken, "position:y", -30.0, 3.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func(): _kraken.visible = false; _kraken_ocupado = false; _kraken_t = _rng.randf_range(25.0, 45.0))
+
+func _tocar_kraken(nome: String) -> void:
+	if _kraken_ap != null:
+		Fit.play(_kraken_ap, Fit.find_anim(_kraken_ap, [nome]), nome in ["Idle", "Movement", "Spin"])
 
 ## Barco dos orcs: sai da ilha, atraca no cais da aldeia (os orcs desembarcam) e volta.
 func _barco_dos_orcs(delta: float) -> void:
 	_orc_t += delta
-	var ida := _doca(CAIS_ILHA, -1.0) + Vector3(0, 0, 7)
-	var volta := _doca(CAIS_CASA, 1.0) + Vector3(0, 0, 7)
+	var ida := _doca(CAIS_ILHA, -1.0) + Vector3(0, 0, 9.0)   # do outro lado do cais (o do jogador fica em z negativo)
+	var volta := _doca(CAIS_CASA, 1.0) + Vector3(0, 0, 9.0)
 	match _orc_estado:
 		"ilha":
-			_barco_orc.position = ida
+			_barco_orc.position = ida + Vector3(0, NIVEL_BARCO, 0)
 			if _orc_t > 50.0:
 				_orc_estado = "indo"
 				_orc_t = 0.0
@@ -738,14 +935,14 @@ func _barco_dos_orcs(delta: float) -> void:
 			var p2 := de.lerp(ate, minf(1.0, t + 0.01))
 			p2.z += sin(minf(1.0, t + 0.01) * PI) * 30.0
 			_barco_orc.rotation.y = atan2(p2.x - p.x, p2.z - p.z)
-			_barco_orc.position = p + Vector3(0, -0.25, 0)
+			_barco_orc.position = p + Vector3(0, NIVEL_BARCO, 0)
 			if t >= 1.0:
 				_orc_estado = "atracado" if _orc_estado == "indo" else "ilha"
 				_orc_t = 0.0
 				if _orc_estado == "atracado" and jogo.player.global_position.length() < 200.0:
 					jogo.say("Um barco de orcs chegou ao cais!", 4.0)
 		"atracado":
-			_barco_orc.position = volta + Vector3(0, -0.25, 0)
+			_barco_orc.position = volta + Vector3(0, NIVEL_BARCO, 0)
 			if _orc_t > 45.0:
 				_orc_estado = "voltando"
 				_orc_t = 0.0
@@ -817,17 +1014,19 @@ func _process(delta: float) -> void:
 		_neve.global_position = pj + Vector3(0, 14, 0)
 	# barcos
 	_barco_dos_orcs(delta)
+	_kraken_passeio(delta)
+	_rotulos_chefes()
 	if not _viagem.is_empty():
 		_navegar(delta)
 		return
 	var perto_cais := pj.distance_to(CAIS_CASA + Vector3(10, 0, 0)) < 5.0 or pj.distance_to(CAIS_ILHA + Vector3(-10, 0, 0)) < 5.0
 	_botao.visible = fora and perto_cais
 	if pj.distance_to(CAIS_CASA + Vector3(10, 0, 0)) < 15.0:
-		_barco.position = _doca(CAIS_CASA, 1.0) + Vector3(0, -0.25, 0)
+		_barco.position = _doca(CAIS_CASA, 1.0) + Vector3(0, NIVEL_BARCO, 0)
 		_barco.rotation.y = PI * 0.5
 	elif pj.distance_to(CAIS_ILHA + Vector3(-10, 0, 0)) < 15.0:
-		_barco.position = _doca(CAIS_ILHA, -1.0) + Vector3(0, -0.25, 0)
-		_barco.rotation.y = -PI * 0.5
+		_barco.position = _doca(CAIS_ILHA, -1.0) + Vector3(0, NIVEL_BARCO, 0)
+		_barco.rotation.y = PI * 0.5
 	# não entra no mar andando
 	if fora:
 		if terra(pj):

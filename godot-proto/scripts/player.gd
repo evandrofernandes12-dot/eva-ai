@@ -23,6 +23,11 @@ var _arco: Node   # arco_ik.gd do arqueiro (levanta o arco e puxa a corda)
 var _dead := false
 var _morte: StringName = &""
 var correndo := false            # botão CORRER (ou Shift)
+var energia := 100.0             # gasta correndo e atacando; volta sozinha parado ou andando
+var max_energia := 100.0
+const GASTO_CORRER := 16.0       # por segundo
+const GASTO_GOLPE := 6.0
+const RECUPERA := 14.0           # por segundo
 var defendendo := false          # botão DEFESA (ou Q): recebe 1/4 do dano e anda devagar
 var em_guarda := false
 var avanco := 0.0                # velocidade do avanço ao golpear (lanceiro: estocada)
@@ -94,7 +99,11 @@ func _physics_process(delta: float) -> void:
 		rotation.y -= v.x * 2.4 * delta
 		dir = global_basis.z * (-v.y)
 	em_guarda = defendendo or Input.is_action_pressed("block")
-	var corre := correndo or Input.is_action_pressed("run")
+	var corre := (correndo or Input.is_action_pressed("run")) and energia > 0.5
+	if corre and v.length() > 0.1:
+		energia = maxf(0.0, energia - GASTO_CORRER * delta)
+	elif _busy <= 0.0:
+		energia = minf(max_energia, energia + RECUPERA * delta)
 	var mult := 0.35 if em_guarda else (1.7 if corre else 1.0)
 	_bolha.visible = em_guarda
 	velocity.x = dir.x * speed * mult
@@ -125,7 +134,8 @@ func attack() -> void:
 	if _lanca != null and _lanca_t <= 0.0:
 		_lanca_t = 0.5
 		_lanca_tr = (_lanca.get_child(0) as Node3D).transform
-	_cd = 0.55
+	_cd = 0.55 if energia >= GASTO_GOLPE else 1.1   # sem energia o golpe sai mais devagar
+	energia = maxf(0.0, energia - GASTO_GOLPE)
 	_busy = 0.45
 	if _arco != null:
 		_arco.disparar()
@@ -148,6 +158,7 @@ func hurt(amount: int) -> void:
 func revive(at: Vector3) -> void:
 	_dead = false
 	hp = max_hp
+	energia = max_energia
 	global_position = at
 	Fit.play(_ap, _idle)
 

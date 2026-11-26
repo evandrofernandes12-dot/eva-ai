@@ -3,3 +3,6 @@ Modelos do Sketchfab, licença CC Attribution (CC BY 4.0) — é preciso dar cr�
 - golem.glb: "Drugdör The Golem Animated" por Phons — https://sketchfab.com/3d-models/drugdor-the-golem-animated-19c1855bdb2c4cdc89da2cfb64da48cf
 - porco.glb: "PS1 Pig" por jo_5632 — https://sketchfab.com/3d-models/ps1-pig-cb937687727d44319a04d10afdcb0863 (CC Attribution)
 - ovelha.glb: "animated low poly sheep game ready model" por creosine — https://sketchfab.com/3d-models/animated-low-poly-sheep-game-ready-model-66f3851d8827411c91d208d172305666 (CC Attribution)
+- kraken.glb: "The Kraken" por FabianvanDorst — https://sketchfab.com/3d-models/the-kraken-55d900af1bfa460fb0f9304ab9fc594b (CC Attribution)
+- escuna.glb: "Mini Schooner Pirateship Sailboat" por SavyTheCreator — https://sketchfab.com/3d-models/mini-schooner-pirateship-sailboat-9dc7cc2b94584ed8bfa89af668887c18 (CC Attribution)
+- pirata.glb: "Low Poly Pirate Ship" por symetrik_games — https://sketchfab.com/3d-models/low-poly-pirate-ship-5fb21f13faee403791ddb9ecf1fd8790 (CC Attribution)
