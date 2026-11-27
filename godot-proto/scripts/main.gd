@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v63"
+const VERSAO := "v64"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -2016,14 +2016,12 @@ func _menu_mercado() -> void:
 	if classe == "" or heroi == "":
 		say("Escolha primeiro a classe e o personagem (botão CLASSE).", 3.0)
 		return
-	var rows: Array = []
-	for cat: String in LOJA_CATS:
-		var em_uso := ""
-		for it: Array in LOJA[classe][cat]:
-			if equipado.get(cat, "") == it[0]:
-				em_uso = "  (em uso: %s)" % it[1]
-		rows.append({"t": cat + em_uso, "cb": func(): _menu_mercado_cat(cat)})
-	_abrir("Mercado — " + CLASSES[classe].nome, "Madeira %d · Pedra %d · Comida %d\nItens para %s." % [res.madeira, res.pedra, res.comida, Heroi.lista()[heroi].nome], rows)
+	# cartões com a imagem 3D do item, nome, bônus e preço (scripts/mercado.gd)
+	_fechar()
+	var m := Mercado.new()
+	m.jogo = self
+	$HUD.add_child(m)
+	_painel = m
 
 func _menu_mercado_cat(cat: String) -> void:
 	var rows: Array = []
