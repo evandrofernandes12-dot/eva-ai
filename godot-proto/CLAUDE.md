@@ -34,7 +34,7 @@ Godot 4.3, renderizador Compatibilidade, testado em tablet Android. Idioma do c�
 
 ## Atualização automática (patch)
 - Primeira cena: `atualizador.tscn` (`scripts/atualizador.gd`, `BASE` = versão do APK). Ele lê `atualizacoes/versao.json` pela URL raw do GitHub (branch de trabalho) e baixa `patch` (pacote cumulativo em relação à base).
-- Publicar atualização: gerar o pck da base a partir da tag `base-vNN` (`git worktree add /tmp/base base-vNN`, depois `--export-pack "Android" base.pck` lá), e no projeto atual `--export-patch "Android" atualizacoes/patch_vXX.pck --patches base.pck`; apagar patches antigos, atualizar `versao.json` (`versao` = XX, `patch` = nome do arquivo), commit e push. Mudou a BASE (APK novo)? Atualize `BASE`, crie a tag `base-vNN` e zere `versao.json`.
+- Publicar atualização: gerar o pck da base a partir do commit `base_commit` de `versao.json` (`git worktree add /tmp/base <commit>`, depois `--export-pack "Android" base.pck` lá), e no projeto atual `--export-patch "Android" atualizacoes/patch_vXX.pck --patches base.pck`; apagar patches antigos, atualizar `versao.json` (`versao` = XX, `patch` = nome do arquivo), commit e push. Mudou a BASE (APK novo)? Atualize `BASE` e zere `versao.json` com o `base_commit` novo (tags não sobem: o proxy só aceita push no branch).
 
 ## Fluxo
 - Branch de trabalho: `claude/godot-character-creator-fixes-hf5ksp`. Não criar PR sem pedido.
