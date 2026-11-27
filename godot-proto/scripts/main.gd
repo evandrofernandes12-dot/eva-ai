@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v72"
+const VERSAO := "v73"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -2217,13 +2217,19 @@ func _torres_flecheiros(nivel: int) -> void:
 	_flecheiros_torre.clear()
 	var qtd := 2 if nivel >= Niveis.MAX else (1 if nivel >= NIVEL_ABERTURA else 0)
 	var y0 := ALTURA_CASTELO * 1.05 * 0.62
+	var meio := Vector3.ZERO
 	for t: Node3D in _torres_castelo:
+		meio += t.global_position / maxf(1.0, _torres_castelo.size())
+	for t: Node3D in _torres_castelo:
+		# a abertura gira para o lado de fora da torre (do lado de dentro o prédio do castelo tapava o flecheiro)
+		var giro := 0.75 * signf(t.global_position.x - meio.x)
 		var velha := t.get_node_or_null("Abertura")
 		if velha != null:
 			velha.free()
 		if qtd > 0:
 			var a := Node3D.new()
 			a.name = "Abertura"
+			a.rotation.y = giro
 			t.add_child(a)
 			var larg := 1.5 if qtd == 1 else 2.8
 			var buraco := StandardMaterial3D.new()
@@ -2239,7 +2245,7 @@ func _torres_flecheiros(nivel: int) -> void:
 				g.sexo = "m" if i == 0 else "f"
 				g.fixo = true
 				g.jogo = self
-				g.position = t.global_position + Vector3((i - (qtd - 1) * 0.5) * 1.2, y0, TORRE_RAIO + 0.5)
+				g.position = t.global_position + Basis(Vector3.UP, giro) * Vector3((i - (qtd - 1) * 0.5) * 1.2, y0, TORRE_RAIO + 0.5)
 				add_child(g)
 				_flecheiros_torre.append(g)
 	for t: Node3D in _torres_castelo:
