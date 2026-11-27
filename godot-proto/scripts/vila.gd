@@ -31,6 +31,7 @@ var _fila_n := 0             # próxima vaga da fila do prato
 var _lod_t := 0.0
 var _renasce_t := 0.0
 var _rng := RandomNumberGenerator.new()
+var predios: Array = []      # construções da vila que evoluem: {id, nome, cat, node, custo}
 
 func montar(o_jogo: Node) -> void:
 	jogo = o_jogo
@@ -39,10 +40,12 @@ func montar(o_jogo: Node) -> void:
 		var d: Array = PREDIOS[k]
 		var g := Construcoes.galpao(d[1], d[2])
 		_por(g, d[0], 7.0, String(d[1]))   # o nome deixa entrar (interior em interior.gd)
+		predios.append({"id": "vila_" + k, "nome": String(d[1]), "node": g, "custo": {"madeira": 50, "pedra": 30}})
 		_pilhas[d[2]] = g.get_node("Pilha")
 		ponto[k] = g.to_global(Vector3(0, 0, 3.2))
 	var coz := Construcoes.cozinha()
 	_por(coz, COZINHA, 6.0)
+	predios.append({"id": "vila_cozinha", "nome": "Cozinha", "node": coz, "custo": {"madeira": 40, "pedra": 25}})
 	ponto["cozinha_porta"] = coz.to_global(Vector3(0, 0, 1.2))
 	ponto["caldeirao"] = coz.to_global(Vector3(-2.4, 0, 2.6))
 	ponto["balcao"] = coz.to_global(Vector3(1.2, 0, 1.5))
@@ -51,6 +54,7 @@ func montar(o_jogo: Node) -> void:
 	ponto["mesa"] = coz
 	var art := Construcoes.artesa()
 	_por(art, ARTESA, 5.5)
+	predios.append({"id": "vila_artesa", "nome": "Casa da Artesã", "node": art, "custo": {"madeira": 40, "pedra": 25}})
 	ponto["tear"] = art.to_global(Vector3(-2.0, 0, 2.7))
 	ponto["varal"] = art.to_global(Vector3(2.0, 0, 3.3))
 	ponto["manequim"] = art.to_global(Vector3(3.2, 0, 1.6))
@@ -71,6 +75,7 @@ func _por(n: Node3D, pos: Vector3, raio: float, nome := "") -> void:
 func _horta() -> void:
 	var r := Node3D.new()
 	_por(r, HORTA, 7.5)
+	predios.append({"id": "vila_horta", "nome": "Horta", "node": r, "custo": {"madeira": 30, "pedra": 10}})
 	var tipos := ["cenoura", "tomate", "milho", "abobora", "cebola", "trigo"]
 	for i in tipos.size():
 		var c := Construcoes.canteiro_novo(tipos[i])
@@ -91,6 +96,7 @@ func _horta() -> void:
 func _curral() -> void:
 	var r := Node3D.new()
 	_por(r, CURRAL, 9.5)
+	predios.append({"id": "vila_curral", "nome": "Curral", "node": r, "custo": {"madeira": 40, "pedra": 10}})
 	r.add_child(Construcoes.cerca(18.0, 12.0))   # maior: os animais não ficam apertados
 	var cocho := Construcoes.cocho()
 	cocho.position = Vector3(6.5, 0, -4.5)

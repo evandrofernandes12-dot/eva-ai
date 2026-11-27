@@ -506,13 +506,15 @@ func _chefe(pai: Node3D, m: Node3D, pos: Vector3, altura: float, hp: int, dano: 
 		jogo.res.comida += 60
 		jogo.res.madeira += 60
 		jogo.res.pedra += 60
-		jogo.say("Você derrotou %s!  +60 de comida, madeira e pedra" % nome, 6.0))
+		jogo.diamantes += 25
+		jogo.ganhar_xp(250)
+		jogo.say("Você derrotou %s!  +60 de comida, madeira e pedra e +25 diamantes" % nome, 6.0))
 
 func _rotulos_chefes() -> void:
 	for c: Array in _chefes:
 		var e = c[0]
 		if is_instance_valid(e) and (c[1] as Label3D).is_visible_in_tree():
-			(c[1] as Label3D).text = "%s\n%d / %d" % [c[2], maxi(0, e.hp), e.max_hp]
+			(c[1] as Label3D).text = "%s · Nv %d\n%d / %d" % [c[2], e.nivel, maxi(0, e.hp), e.max_hp]
 
 # ---------- regiões ----------
 func _escuridao(r: Node3D) -> void:

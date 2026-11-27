@@ -11,7 +11,12 @@ var guarda := false              # monstro de vila: fica perto de `casa` e só a
 var casa := Vector3.ZERO
 var raio_guarda := 22.0
 var rumo: Variant = null
-var voz := "grunhido"            # som de dor/ataque: grunhido (orc), rugido (lobisomem, yeti), osso (caveira), pedra (golem)         # com o jogador longe, anda até aqui (orcs do barco vão para a aldeia)
+var nivel := 1                   # acompanha o nível do personagem (mais vida e mais dano)
+var _base_hp := 0
+var _base_dano := 0
+var voz := "grunhido"
+var _outro: Node3D = null        # alvo que não é o jogador: guarda, aldeão ou construção da aldeia
+var _busca_t := 0.0            # som de dor/ataque: grunhido (orc), rugido (lobisomem, yeti), osso (caveira), pedra (golem)         # com o jogador longe, anda até aqui (orcs do barco vão para a aldeia)
 
 var hp := 30
 var target: Node3D
@@ -47,6 +52,11 @@ func setup_no(m: Node3D, player: Node3D) -> void:
 	add_child(shape)
 
 func _ready() -> void:
+	_base_hp = max_hp
+	_base_dano = damage
+	var j := get_tree().get_first_node_in_group("jogo")
+	if j != null and j.get("nivel_jog") != null:
+		ajustar_nivel(int(j.nivel_jog))
 	Fit.to_height(model, altura)
 	model.position.y += 0.05   # pés um pouco acima do chão (sumiam na praça e nos caminhos de terra)
 	_ap = Fit.find_node_of(model, "AnimationPlayer") as AnimationPlayer
@@ -64,6 +74,18 @@ func _physics_process(delta: float) -> void:
 	_busy = maxf(0.0, _busy - delta)
 	if guarda and _vigiar(delta):
 		return
+	# invasores escolhem o alvo mais perto: o jogador, um guarda, um aldeão ou uma construção
+	if not guarda:
+		_busca_t -= delta
+		if _busca_t <= 0.0:
+			_busca_t = 0.8
+			var jg := get_tree().get_first_node_in_group("jogo")
+			_outro = jg.alvo_na_aldeia(global_position, 14.0) if jg != null and jg.has_method("alvo_na_aldeia") else null
+			if _outro != null and global_position.distance_to(target.global_position) < global_position.distance_to(_outro.global_position) + 3.0:
+				_outro = null
+		if _outro != null and is_instance_valid(_outro):
+			_atacar_outro(delta)
+			return
 	if rumo != null and global_position.distance_to(target.global_position) >= 90.0:
 		_andar_ate(rumo, 20.0, delta)
 		return
@@ -138,6 +160,35 @@ func _physics_process(delta: float) -> void:
 	elif _busy <= 0.0:
 		Fit.play(_ap, _run if moving else _idle)
 
+func _atacar_outro(delta: float) -> void:
+	var to := _outro.global_position - global_position
+	to.y = 0
+	var alcance := 2.0 + float(_outro.get_meta("raio", 0.0))
+	if to.length() > alcance:
+		_andar_ate(_outro.global_position, alcance - 0.3, delta)
+		return
+	velocity.x = 0
+	velocity.z = 0
+	move_and_slide()
+	rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), 8.0 * delta)
+	if _cd <= 0.0:
+		_cd = 1.4
+		_busy = 0.6
+		_ap.stop()
+		Fit.play(_ap, _atk, false, 1.4)
+		Som.efeito(voz if voz != "osso" else "ataque_monstro", global_position)
+		if _outro.has_method("hurt"):
+			_outro.hurt(damage)
+		else:
+			var jg := get_tree().get_first_node_in_group("jogo")
+			if jg != null:
+				jg.danificar_construcao(_outro, damage)
+				Som.efeito("pancada_madeira", _outro.global_position)
+		if _outro.get("caido") == true or _outro.get_meta("destruida", false):
+			_outro = null
+	elif _busy <= 0.0:
+		Fit.play(_ap, _idle)
+
 ## Guarda de vila: longe do jogador fica em casa. Devolve true quando não está perseguindo.
 func _vigiar(delta: float) -> bool:
 	var jc := target.global_position.distance_to(casa)
@@ -165,6 +216,16 @@ func _andar_ate(p: Vector3, perto: float, delta: float) -> void:
 	velocity.y = velocity.y - 20.0 * delta if not is_on_floor() else 0.0
 	move_and_slide()
 
+## Sobe ou desce o nível: vida e dano crescem com o nível do personagem (a vida atual cresce junto).
+func ajustar_nivel(n: int) -> void:
+	nivel = n
+	var f := Niveis.forca_inimigo(n)
+	var novo := int(_base_hp * f.x)
+	if max_hp > 0:
+		hp = int(float(hp) * novo / max_hp)
+	max_hp = novo
+	damage = int(_base_dano * f.y)
+
 func hurt(amount: int) -> void:
 	if _dead:
 		return
@@ -181,6 +242,9 @@ func hurt(amount: int) -> void:
 		else:   # sem animação de morte (lobisomem): tomba de lado
 			create_tween().tween_property(model, "rotation:z", PI * 0.5, 0.5)
 		killed.emit()
+		var j := get_tree().get_first_node_in_group("jogo")
+		if j != null and j.has_method("ganhar_xp"):
+			j.ganhar_xp(int(10 + _base_hp / 6))   # experiência pela força do inimigo
 		await get_tree().create_timer(2.5).timeout
 		queue_free()
 	else:

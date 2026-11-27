@@ -12,6 +12,7 @@ var _vida: ProgressBar
 var _vida_l: Label
 var _energia: ProgressBar
 var _energia_l: Label
+var _xp: ProgressBar
 
 func _ready() -> void:
 	position = Vector2(14, 12)
@@ -52,6 +53,18 @@ func _ready() -> void:
 	_energia = e[0]
 	_energia_l = e[1]
 	vb.add_child(e[2])
+	_xp = ProgressBar.new()   # experiência: barrinha fina azul
+	_xp.show_percentage = false
+	_xp.custom_minimum_size = Vector2(0, 6)
+	var f1 := StyleBoxFlat.new()
+	f1.bg_color = Color(0, 0, 0, 0.4)
+	f1.set_corner_radius_all(3)
+	var f2 := StyleBoxFlat.new()
+	f2.bg_color = Color(0.4, 0.75, 1.0)
+	f2.set_corner_radius_all(3)
+	_xp.add_theme_stylebox_override("background", f1)
+	_xp.add_theme_stylebox_override("fill", f2)
+	vb.add_child(_xp)
 
 ## Barra com fundo escuro translúcido, preenchimento com brilho de vidro e o número por cima.
 func _barra(c1: Color, c2: Color) -> Array:
@@ -171,4 +184,6 @@ func _process(_d: float) -> void:
 	var nome := "Aldeã" if jogo.sexo_inicial == "f" else "Aldeão"
 	if jogo.heroi != "" and Heroi.lista().has(jogo.heroi):
 		nome = jogo.CLASSES[cl].nome if jogo.CLASSES.has(cl) else nome
-	_nome.text = nome
+	_nome.text = "%s · Nv %d   ◆ %d" % [nome, jogo.nivel_jog, jogo.diamantes]
+	_xp.max_value = Niveis.xp_para(jogo.nivel_jog)
+	_xp.value = jogo.xp

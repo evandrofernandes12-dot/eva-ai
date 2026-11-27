@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v68"
+const VERSAO := "v69"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -76,6 +76,14 @@ const LOJA := {
 }
 var sexo_inicial := ""           # "m"/"f": aldeão ou aldeã escolhido na abertura (antes de ter classe)
 const MACHADO_ALDEAO := ["Machado_Lenhador.glb", "hand_r", Heroi.MAO_D, Vector3(90, 0, 0), 0.75, 0.3]
+var nivel_jog := 1               # nível do personagem (sobe com experiência: inimigos e missões do Rei)
+var xp := 0
+var diamantes := 0               # dinheiro do jogo (missões do Rei, chefões, venda de recursos)
+var predios: Array = []          # construções que evoluem (0 a 100): {id, nome, cat, node, custo, base, nivel}
+var _niveis_salvos := {}
+const PREDIOS_ALDEIA := {"SalaoDoChefe": ["Castelo do Rei", "castelo", {"madeira": 80, "pedra": 120}], "Casa1": ["Casa", "", {"madeira": 40, "pedra": 25}],
+	"Casa2": ["Casa", "", {"madeira": 40, "pedra": 25}], "Casa3": ["Casa do Mago", "", {"madeira": 50, "pedra": 40}],
+	"Forja": ["Forja", "", {"madeira": 50, "pedra": 60}], "Moinho": ["Moinho", "", {"madeira": 50, "pedra": 20}]}
 var compras: Array = []          # ids dos itens comprados no mercado
 var equipado := {}               # categoria -> id do item em uso (da classe atual)
 
@@ -205,6 +213,7 @@ var QUESTS := [
 @onready var use_b: Button = $HUD/Usar
 
 func _enter_tree() -> void:
+	add_to_group("jogo")   # inimigos e outros acham o jogo por aqui
 	_action("move_left", [KEY_A, KEY_LEFT])
 	_action("move_right", [KEY_D, KEY_RIGHT])
 	_action("move_up", [KEY_W, KEY_UP])
@@ -257,6 +266,7 @@ func _ready() -> void:
 	mundo.name = "Mundo"
 	add_child(mundo)
 	mundo.montar(self)
+	_registrar_predios()
 	_scatter_forest()
 	_ceu()
 	lago.montar(ceu)
@@ -279,6 +289,7 @@ func _ready() -> void:
 	_menu_b.append(_hud_button("ALDEÕES", 178.0, _menu_aldeoes))
 	_menu_b.append(_hud_button("CÂMERA", 232.0, _trocar_camera))
 	_menu_b.append(_hud_button("MERCADO", 286.0, _menu_mercado))
+	_menu_b.append(_hud_button("ALDEIA", 340.0, _menu_aldeia))
 	for b: Control in _menu_b:
 		b.visible = false
 	var mb := _hud_button("MENU", 16.0, abrir_menu)
@@ -815,7 +826,7 @@ func _process(delta: float) -> void:
 		_use()
 	_check_quest()
 	if _hud_info:
-		info.text = "Madeira %d   Pedra %d   Comida %d   Inimigos %d" % [res.madeira, res.pedra, res.comida, kills]
+		info.text = "Diamantes %d   Madeira %d   Pedra %d   Comida %d   Inimigos %d" % [diamantes, res.madeira, res.pedra, res.comida, kills]
 	else:
 		info.text = ""
 	_save_t -= delta
@@ -829,7 +840,7 @@ func _buildings(delta: float) -> void:
 		_prod_t += delta
 		if _prod_t >= 6.0:
 			_prod_t = 0.0
-			res.madeira += 2 * _lvl("madeira")
+			res.madeira += int(2 + 0.3 * _lvl("madeira"))
 	_tower_t -= delta
 	if _tower_t <= 0.0:
 		_tower_t = 1.5
@@ -845,7 +856,7 @@ func _buildings(delta: float) -> void:
 		if is_instance_valid(e) and e.global_position.distance_to(player.global_position) < 12.0:
 			safe = false
 	if safe and player.hp > 0 and player.hp < player.max_hp:
-		_regen += delta * (2.0 + 2.0 * _lvl("descanso"))
+		_regen += delta * (2.0 + 0.2 * _lvl("descanso"))
 		if _regen >= 1.0:
 			player.hp = mini(player.max_hp, player.hp + int(_regen))
 			_regen = 0.0
@@ -914,7 +925,7 @@ func _recalc() -> void:
 	player.damage += int(b.get("dano", 0))
 	player.max_energia = 100.0 + float(b.get("energia", 0))
 	player.energia = minf(player.energia, player.max_energia)
-	player.max_hp = base + 25 * _lvl("vida") + int(b.get("vida", 0))
+	player.max_hp = base + 5 * _lvl("vida") + 4 * (nivel_jog - 1) + int(b.get("vida", 0))
 	if _botoes != null:
 		_botoes.atualizar_arma()
 	if player.hp > 0:
@@ -1410,7 +1421,9 @@ func _entregar_rei() -> void:
 	rei_q += 1
 	rei_ativa = false
 	_fechar()
-	say("O Rei agradece! +" + plots[0].texto(q.r), 5.0)
+	diamantes += 10
+	ganhar_xp(120)
+	say("O Rei agradece! +" + plots[0].texto(q.r) + ", +10 diamantes", 5.0)
 	_save()
 
 # ---------- muralha ----------
@@ -1559,7 +1572,8 @@ func _erguer_muralha(nivel: int) -> void:
 	_muro = StaticBody3D.new()
 	_muro.name = "Muralha"
 	add_child(_muro)
-	var altura := 3.0 + 0.9 * (nivel - 1)
+	var faixa := Niveis.faixa(nivel)
+	var altura := 3.0 + 0.035 * nivel
 	var tora := CylinderMesh.new()
 	tora.top_radius = 0.2
 	tora.bottom_radius = 0.3
@@ -1586,18 +1600,20 @@ func _erguer_muralha(nivel: int) -> void:
 		var perto := absf(fposmod(a + PI * 0.25, PI * 0.5) - PI * 0.25)
 		if perto > 0.15:
 			angs.append(a)
-	var pedra := nivel >= 3   # nível 3: muralha de pedra com ameias (antes: paliçada de troncos)
+	var pedra := nivel >= 40   # faixa 4 em diante: muro de pedra com ameias (antes: paliçada de troncos)
+	tora.material = Niveis.material(tora.material, faixa)
+	ponta.material = Niveis.material(ponta.material, faixa)
 	var malha_muro: Mesh = tora
 	var malha_topo: Mesh = ponta
 	if pedra:
 		altura += 0.6
 		var bloco := BoxMesh.new()
 		bloco.size = Vector3(0.6, altura, 1.4)
-		bloco.material = Construcoes.mat_pedra()
+		bloco.material = Niveis.material(Construcoes.mat_pedra(), faixa)
 		malha_muro = bloco
 		var ameia := BoxMesh.new()
 		ameia.size = Vector3(0.62, 0.7, 1.45)
-		ameia.material = Construcoes.mat_pedra()
+		ameia.material = Niveis.material(Construcoes.mat_pedra(), faixa)
 		malha_topo = ameia
 		corda.material = Construcoes.mat_pedra()
 		corda.top_radius = 0.01   # sem amarração de corda na pedra
@@ -1723,7 +1739,9 @@ func _chefe_morreu(b: Node) -> void:
 	var premio: int = 80 * b.nivel
 	for k in res:
 		res[k] += premio
-	say("Minotauro Dark derrotado! +%d de cada recurso. Ele voltará mais forte..." % premio, 7.0)
+	diamantes += 50
+	ganhar_xp(400)
+	say("Minotauro Dark derrotado! +%d de cada recurso e +50 diamantes. Ele voltará mais forte..." % premio, 7.0)
 	_save()
 
 # ---------- projéteis e golpes ----------
@@ -1917,7 +1935,7 @@ func _estocada(p: Vector3) -> bool:
 
 # ---------- aldeões ----------
 func max_aldeoes() -> int:
-	return 2 + 2 * _lvl("vida")
+	return 2 + mini(10, _lvl("vida") / 5)
 
 func custo_aldeao() -> Dictionary:
 	return {"comida": 15 + 10 * aldeoes.size(), "madeira": 10 * aldeoes.size()}
@@ -2123,6 +2141,16 @@ func _abrir(titulo: String, texto: String, rows: Array) -> void:
 		dl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		dl.add_theme_font_size_override("font_size", 20)
 		vb.add_child(dl)
+	var lista: VBoxContainer = vb
+	if rows.size() > 6:   # muitas linhas: rolam dentro da janela
+		var rolar := ScrollContainer.new()
+		rolar.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		rolar.custom_minimum_size = Vector2(620, minf(480.0, get_viewport().get_visible_rect().size.y - 280.0))
+		vb.add_child(rolar)
+		lista = VBoxContainer.new()
+		lista.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lista.add_theme_constant_override("separation", 8)
+		rolar.add_child(lista)
 	for r in rows:
 		var b := Button.new()
 		b.text = r.t
@@ -2131,7 +2159,7 @@ func _abrir(titulo: String, texto: String, rows: Array) -> void:
 		b.custom_minimum_size = Vector2(0, 58)
 		b.add_theme_font_size_override("font_size", 22)
 		b.pressed.connect(r.cb)
-		vb.add_child(b)
+		lista.add_child(b)
 	var x := Button.new()
 	x.text = "Fechar"
 	x.focus_mode = Control.FOCUS_NONE
@@ -2171,6 +2199,176 @@ func _personalizar(chave: String, valor: String) -> void:
 	vestir(heroi, false)
 	_save()
 	_menu_classe()
+
+# ---------- níveis das construções (0 a 100) ----------
+func _registrar_predios() -> void:
+	for nome_no: String in PREDIOS_ALDEIA:
+		var n := $Aldeia.get_node_or_null(nome_no) as Node3D
+		if n != null:
+			var d: Array = PREDIOS_ALDEIA[nome_no]
+			predios.append({"id": nome_no, "nome": d[0], "cat": d[1], "node": n, "custo": d[2], "base": n.scale, "nivel": 0})
+	for v: Dictionary in vila.predios:
+		var pr := v.duplicate()
+		pr["cat"] = ""
+		pr["base"] = (v.node as Node3D).scale
+		pr["nivel"] = 0
+		predios.append(pr)
+	for pr: Dictionary in predios:
+		Niveis.visual(pr.node, 0, pr.base)
+
+func _definir_predio(pr: Dictionary, n: int) -> void:
+	pr.nivel = clampi(n, 0, Niveis.MAX)
+	Niveis.visual(pr.node, pr.nivel, pr.base)
+
+func _niveis_predios() -> Dictionary:
+	var d := {}
+	for pr: Dictionary in predios:
+		d[pr.id] = pr.nivel
+	return d
+
+## Menu ALDEIA: todas as construções com o nome da faixa, o nível e o botão de evoluir (madeira e pedra).
+func _menu_aldeia() -> void:
+	var rows: Array = []
+	for n: Node3D in _construcoes_alvo():   # consertos primeiro
+		if n.get_meta("destruida", false):
+			var cc := {"madeira": 30 + 5 * _nivel_de(n), "pedra": 20 + 4 * _nivel_de(n)}
+			rows.append({"t": "CONSERTAR construção destruída (%s)" % plots[0].texto(cc), "off": not _can_pay(cc), "cb": func():
+				_pay(cc)
+				consertar(n)
+				_save()
+				_menu_aldeia()})
+	for pr: Dictionary in predios:
+		var nome_f := Niveis.nome(pr.nome, pr.cat, pr.nivel)
+		if pr.nivel >= Niveis.MAX:
+			rows.append({"t": "%s · Nv %d (máximo)" % [nome_f, pr.nivel], "off": true, "cb": func(): pass})
+			continue
+		var c := Niveis.custo(pr.custo, pr.nivel)
+		rows.append({"t": "%s · Nv %d → %d  (%s)" % [nome_f, pr.nivel, pr.nivel + 1, plots[0].texto(c)], "off": not _can_pay(c), "cb": func():
+			_pay(c)
+			_definir_predio(pr, pr.nivel + 1)
+			Som.efeito("madeira", (pr.node as Node3D).global_position)
+			_save()
+			_menu_aldeia()})
+	for p in plots:
+		if p.construido:
+			var nome_p: String = Niveis.nome(p.nome, p.categoria(), p.nivel)
+			if p.nivel >= p.NIVEL_MAX:
+				rows.append({"t": "%s · Nv %d (máximo)" % [nome_p, p.nivel], "off": true, "cb": func(): pass})
+			else:
+				var c2: Dictionary = p.custo()
+				rows.append({"t": "%s · Nv %d → %d  (%s)" % [nome_p, p.nivel, p.nivel + 1, plots[0].texto(c2)], "off": not _can_pay(c2), "cb": func():
+					_pay(c2)
+					p.melhorar()
+					_save()
+					_menu_aldeia()})
+	_abrir("Aldeia", "Evolua as construções com madeira e pedra (até o nível 100, lendário).\nMadeira %d · Pedra %d" % [res.madeira, res.pedra], rows)
+
+# ---------- ataques à aldeia ----------
+## Alvo mais perto para um invasor: guarda ou aldeão de pé, ou construção inteira (dentro do raio).
+func alvo_na_aldeia(de: Vector3, raio: float) -> Node3D:
+	var melhor: Node3D = null
+	var bd := raio
+	if vila != null:
+		for g in vila.guardas + vila.trabalhadores:
+			if is_instance_valid(g) and g.visible and not g.caido:
+				var d: float = g.global_position.distance_to(de)
+				if d < bd:
+					bd = d
+					melhor = g
+	for n: Node3D in _construcoes_alvo():
+		if not n.get_meta("destruida", false):
+			var d2 := n.global_position.distance_to(de) - float(n.get_meta("raio", 0.0))
+			if d2 < bd:
+				bd = d2
+				melhor = n
+	return melhor
+
+func _construcoes_alvo() -> Array:
+	var lista: Array = []
+	for pr: Dictionary in predios:
+		var n: Node3D = pr.node
+		if not n.has_meta("raio"):
+			var bb := Niveis._caixa(n)
+			n.set_meta("raio", maxf(bb.size.x, bb.size.z) * 0.5 * n.scale.x)
+		lista.append(n)
+	for p in plots:
+		if p.construido and p._b != null:
+			if not p.has_meta("raio"):
+				p.set_meta("raio", 2.5)
+			lista.append(p)
+	return lista
+
+## Vida da construção: 150 + 25 por nível. Sem vida, fica destruída até ser consertada no menu ALDEIA.
+func _nivel_de(n: Node3D) -> int:
+	for pr: Dictionary in predios:
+		if pr.node == n:
+			return pr.nivel
+	return int(n.get("nivel")) if n.get("nivel") != null else 0
+
+func danificar_construcao(n: Node3D, dano: int) -> void:
+	var maxv := 150 + 25 * _nivel_de(n)
+	var hpv: int = int(n.get_meta("hp", maxv)) - dano
+	n.set_meta("hp", hpv)
+	var l := n.get_node_or_null("Vida") as Label3D
+	if l == null:
+		l = Label3D.new()
+		l.name = "Vida"
+		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		l.font_size = 40
+		l.outline_size = 10
+		l.modulate = Color(1.0, 0.45, 0.35)
+		l.pixel_size = 0.012
+		l.no_depth_test = true
+		l.position.y = 7.0
+		l.top_level = true
+		n.add_child(l)
+	var alvo_v: Node3D = n.get("_b") if n.get("_b") != null else n
+	var bbv := Niveis._caixa(alvo_v)
+	l.global_position = alvo_v.global_transform * Vector3(bbv.get_center().x, bbv.end.y, bbv.get_center().z) + Vector3(0, 1.5, 0)
+	l.text = "%d / %d" % [maxi(hpv, 0), maxv]
+	if hpv <= 0 and not n.get_meta("destruida", false):
+		n.set_meta("destruida", true)
+		l.text = "DESTRUÍDA"
+		var alvo: Node3D = alvo_v
+		var tw := create_tween()
+		tw.tween_property(alvo, "scale:y", alvo.scale.y * 0.35, 0.8)
+		tw.parallel().tween_property(alvo, "rotation:z", 0.08, 0.8)
+		say("Uma construção da aldeia foi destruída! Conserte no menu ALDEIA.", 5.0)
+
+func consertar(n: Node3D) -> void:
+	n.set_meta("destruida", false)
+	n.remove_meta("hp")
+	var l := n.get_node_or_null("Vida")
+	if l != null:
+		l.queue_free()
+	for pr: Dictionary in predios:
+		if pr.node == n:
+			n.rotation.z = 0.0
+			_definir_predio(pr, pr.nivel)
+			return
+	if n.get("_b") != null:
+		(n.get("_b") as Node3D).rotation.z = 0.0
+		n.definir_nivel(n.nivel)
+
+# ---------- experiência e nível do personagem ----------
+func ganhar_xp(n: int) -> void:
+	if nivel_jog >= Niveis.MAX:
+		return
+	xp += n
+	var subiu := false
+	while nivel_jog < Niveis.MAX and xp >= Niveis.xp_para(nivel_jog):
+		xp -= Niveis.xp_para(nivel_jog)
+		nivel_jog += 1
+		subiu = true
+	if subiu:
+		_recalc()
+		player.hp = player.max_hp
+		Som.efeito("magia", null, 2.0)
+		flash(player.global_position + Vector3(0, 1, 0), Color(1.0, 0.85, 0.3), 2.5, 0.6)
+		say("Você subiu para o nível %d!" % nivel_jog, 4.0)
+		for e in enemies:   # os inimigos acompanham o seu nível
+			if is_instance_valid(e) and e.has_method("ajustar_nivel"):
+				e.ajustar_nivel(nivel_jog)
 
 ## Botão MENU: mostra/esconde a lista de botões (Novo jogo, CLASSE, ALDEÕES, CÂMERA, MERCADO).
 func abrir_menu(mostrar = null) -> void:
@@ -2282,7 +2480,7 @@ func _save() -> void:
 		papeis.append(v.papel)
 	var f := FileAccess.open(SAVE, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual, "compras": compras, "equipado": equipado, "sexo_inicial": sexo_inicial, "hora": ceu.hora, "dia": ceu.dia}))
+		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual, "compras": compras, "equipado": equipado, "sexo_inicial": sexo_inicial, "nivel_jog": nivel_jog, "xp": xp, "diamantes": diamantes, "predios": _niveis_predios(), "hora": ceu.hora, "dia": ceu.dia}))
 
 func _load() -> bool:
 	if not FileAccess.file_exists(SAVE):
@@ -2299,6 +2497,13 @@ func _load() -> bool:
 	magia = String(d.get("magia", "orbe"))
 	ceu.definir(float(d.get("hora", 9.0)), int(d.get("dia", 0)))
 	sexo_inicial = String(d.get("sexo_inicial", ""))
+	nivel_jog = clampi(int(d.get("nivel_jog", 1)), 1, Niveis.MAX)
+	xp = int(d.get("xp", 0))
+	diamantes = int(d.get("diamantes", 0))
+	var pn = d.get("predios", {})
+	_niveis_salvos = pn if pn is Dictionary else {}
+	for pr: Dictionary in predios:
+		_definir_predio(pr, int(_niveis_salvos.get(pr.id, 0)))
 	var cp = d.get("compras", [])
 	compras = cp if cp is Array else []
 	var eq = d.get("equipado", {})

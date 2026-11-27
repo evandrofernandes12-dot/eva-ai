@@ -242,7 +242,30 @@ func limpar() -> void:
 	nos_ombros("")
 	carrinho("", false)
 
+## Leva um golpe de inimigo. Sem vida, cai desmaiado e volta ao posto/trabalho depois de um tempo.
+var hp := 70
+var max_hp := 70
+var caido := false
+func hurt(dano: int) -> void:
+	if caido:
+		return
+	hp -= dano
+	Som.efeito("dor_jogador", global_position, -4.0)
+	if hp > 0:
+		return
+	caido = true
+	var tw := create_tween()
+	tw.tween_property(model, "rotation:x", -PI * 0.5, 0.5)
+	tw.tween_property(model, "position:y", 0.25, 0.2)
+	get_tree().create_timer(40.0).timeout.connect(func():
+		caido = false
+		hp = max_hp
+		model.rotation.x = 0.0
+		model.position.y = 0.05)
+
 func _process(delta: float) -> void:
+	if caido:
+		return
 	if vila == null:
 		return
 	var per: String = vila.periodo(self)
