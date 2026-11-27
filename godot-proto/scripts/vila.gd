@@ -71,9 +71,9 @@ func _por(n: Node3D, pos: Vector3, raio: float, nome := "") -> void:
 func _horta() -> void:
 	var r := Node3D.new()
 	_por(r, HORTA, 7.5)
-	var tipos := ["alface", "tomate", "abobora", "melancia", "cenoura", "tomate"]
+	var tipos := ["cenoura", "tomate", "milho", "abobora", "cebola", "trigo"]
 	for i in tipos.size():
-		var c := Construcoes.canteiro(tipos[i])
+		var c := Construcoes.canteiro_novo(tipos[i])
 		c.position = Vector3(-6.0 + i * 2.4, 0, 0)
 		r.add_child(c)
 		canteiros.append(r.to_global(Vector3(-6.0 + i * 2.4, 0, 3.4)))

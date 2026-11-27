@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v64"
+const VERSAO := "v65"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -277,9 +277,7 @@ func _ready() -> void:
 	_menu_b.append(_hud_button("MERCADO", 286.0, _menu_mercado))
 	for b: Control in _menu_b:
 		b.visible = false
-	var mb := _hud_button("MENU", 16.0, func():
-		for b: Control in _menu_b:
-			b.visible = not b.visible)
+	var mb := _hud_button("MENU", 16.0, abrir_menu)
 	var ib := _hud_button("INFO", 16.0, func():
 		_hud_info = not _hud_info
 		quest_l.visible = _hud_info
@@ -697,6 +695,8 @@ func _place(holder: Node3D, scene: PackedScene, h: float, tipo: String, hp: int)
 
 func _process(delta: float) -> void:
 	player.joy = joy.value
+	if ceu != null:
+		ceu.abrigado = _dentro != ""   # dentro de casa não chove
 	_camera(delta)
 	enemies = enemies.filter(func(e): return is_instance_valid(e))
 	_mag_t = maxf(0.0, _mag_t - delta)
@@ -1998,6 +1998,11 @@ func _personalizar(chave: String, valor: String) -> void:
 	vestir(heroi, false)
 	_save()
 	_menu_classe()
+
+## Botão MENU: mostra/esconde a lista de botões (Novo jogo, CLASSE, ALDEÕES, CÂMERA, MERCADO).
+func abrir_menu(mostrar = null) -> void:
+	for b: Control in _menu_b:
+		b.visible = (not b.visible) if mostrar == null else bool(mostrar)
 
 ## Soma os bônus dos itens equipados da classe atual.
 func _bonus_loja() -> Dictionary:

@@ -985,6 +985,66 @@ static func artesa() -> Node3D:
 	return r
 
 ## Canteiro da horta (2 x 6 m) com uma cultura. tipo: alface, tomate, abobora, melancia, cenoura.
+## Plantas do pacote "Farm plants models" (Sketchfab, CC BY): nome da malha no arquivo e altura (m).
+const PLANTAS := {"cenoura": ["Carrot_Plants_0", 0.4], "tomate": ["Tomato_Plants_0", 0.95], "milho": ["Corn_Plants_0", 1.7],
+	"abobora": ["Pumpkin_Plants_0", 0.55], "cebola": ["Onion_Plants_0", 0.45], "trigo": ["Wheat_Plants_0", 1.0], "batata": ["Potato_Plants_0", 0.5]}
+static var _plantas := {}
+
+## Malha da planta já virada para cima, com a base no chão e a altura certa: [Mesh, Transform3D].
+static func planta(tipo: String) -> Array:
+	if _plantas.has(tipo):
+		return _plantas[tipo]
+	var cena: Node3D = (load("res://models/sketchfab/plantas.glb") as PackedScene).instantiate()
+	var mi := cena.find_child(String(PLANTAS[tipo][0]), true, false) as MeshInstance3D
+	var t := Transform3D.IDENTITY
+	var no: Node = mi
+	while no != null and no is Node3D:
+		t = (no as Node3D).transform * t
+		no = no.get_parent()
+	var bb := t * mi.mesh.get_aabb()
+	var s: float = float(PLANTAS[tipo][1]) / maxf(bb.size.y, 0.0001)
+	var final := Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * s), Vector3.ZERO) * t
+	bb = final * mi.mesh.get_aabb()
+	final.origin -= Vector3(bb.get_center().x, bb.position.y, bb.get_center().z)
+	_plantas[tipo] = [mi.mesh, final]
+	cena.free()
+	return _plantas[tipo]
+
+## Canteiro com plantas de verdade (várias linhas, cada planta girada e de tamanho um pouco diferente).
+static func canteiro_novo(tipo: String) -> Node3D:
+	var r := Node3D.new()
+	var terra := mat(Color(0.3, 0.2, 0.12), true, 1.0)
+	caixa(r, Vector3(0, 0.07, 0), Vector3(2.0, 0.14, 6.0), terra)
+	for s: float in [-1.0, 1.0]:   # bordas de madeira
+		caixa(r, Vector3(s * 1.02, 0.11, 0), Vector3(0.07, 0.22, 6.1), mat(MADEIRA_ESCURA))
+	for i in 9:   # sulcos de terra entre as linhas
+		caixa(r, Vector3(0, 0.15, -2.6 + i * 0.65), Vector3(1.8, 0.04, 0.12), mat(Color(0.24, 0.16, 0.1), true, 1.0))
+	var info := planta(tipo)
+	var linhas := 3 if float(PLANTAS[tipo][1]) < 1.2 else 2
+	var por := 9 if linhas == 3 else 7
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = info[0]
+	mm.instance_count = linhas * por
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(tipo)
+	var k := 0
+	for j in linhas:
+		for i in por:
+			var x := -0.6 + j * (1.2 / maxf(1.0, linhas - 1))
+			var z := -2.6 + i * (5.2 / (por - 1))
+			var b := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.85, 1.15))
+			mm.set_instance_transform(k, Transform3D(b, Vector3(x, 0.15, z)) * (info[1] as Transform3D))
+			k += 1
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	r.add_child(mmi)
+	if tipo == "tomate":   # tutores de bambu
+		for j in linhas:
+			for i in range(0, por, 2):
+				tora(r, Vector3(-0.6 + j * 0.6 + 0.1, 0.1, -2.6 + i * 0.65), Vector3(-0.6 + j * 0.6 + 0.1, 1.15, -2.6 + i * 0.65), 0.015, mat(MADEIRA))
+	return r
+
 static func canteiro(tipo: String) -> Node3D:
 	var r := Node3D.new()
 	var terra := mat(Color(0.32, 0.22, 0.14), true, 1.0)

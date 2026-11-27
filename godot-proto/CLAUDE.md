@@ -28,6 +28,10 @@ Godot 4.3, renderizador Compatibilidade, testado em tablet Android. Idioma do c�
 - `pip install -r requirements-dev.txt` instala o `gdtoolkit`. O hook `.claude/hooks/gdparse.sh` roda `gdparse` a cada edição de `.gd` e devolve erros de sintaxe na hora (não pega erros de tipo/API do Godot).
 - `/zip vXX` gera e envia o zip de teste.
 
+## Exportar (APK e Web)
+- `export_presets.cfg` tem os presets "Android" (APK arm64, sem gradle) e "Web" (sem threads, texturas de celular). Moldes: `~/.local/share/godot/export_templates/4.7.2.stable/` (baixar o .tpz do GitHub e extrair só android_*.apk e web_*). Android SDK falso em `/root/Android/Sdk` com `apksigner`, `zipalign` e `adb` do apt (o dl.google.com é bloqueado) e keystore de debug em `~/.local/share/godot/keystores/debug.keystore`.
+- `ANDROID_HOME=/root/Android/Sdk xvfb-run -a godot --path . --headless --export-debug "Android" dist/VidaNaFloresta.apk` e `--export-release "Web" dist/web/index.html`.
+
 ## Fluxo
 - Branch de trabalho: `claude/godot-character-creator-fixes-hf5ksp`. Não criar PR sem pedido.
 - Zip para teste: `cd godot-proto && zip -qr dist/godot-proto-vXX.zip . -x "dist/*" ".godot/*"` (a pasta `dist/` não é versionada).

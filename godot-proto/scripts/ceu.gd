@@ -24,6 +24,7 @@ var lua: DirectionalLight3D
 var env: Environment
 var mat_ceu: ShaderMaterial
 var _gotas: CPUParticles3D
+var abrigado := false               # jogador dentro de uma casa: sem chuva (main.gd liga e desliga)
 var _camera: Camera3D
 var lampioes: Array = []           # [material do vidro, OmniLight3D ou null]
 var _grupo_t := 0.0
@@ -137,7 +138,8 @@ func _atualizar(delta: float) -> void:
 			elif n is CPUParticles3D:
 				(n as CPUParticles3D).emitting = acesa > 0.3 and chuva < 0.6
 	if _gotas != null:
-		_gotas.emitting = chuva > 0.15
+		_gotas.emitting = chuva > 0.15 and not abrigado
+		_gotas.visible = not abrigado
 		if _camera != null:
 			_gotas.global_position = _camera.global_position + Vector3(0, 6, 0)
 

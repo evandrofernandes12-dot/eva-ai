@@ -67,13 +67,24 @@ func _ready() -> void:
 		b.custom_minimum_size = Vector2(150, 46)
 		b.set_meta("cat", c)
 		abas.add_child(b)
+	var rolar := ScrollContainer.new()   # em tela baixa os cartões rolam em vez de sair da tela
+	rolar.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	rolar.custom_minimum_size = Vector2(560, minf(470.0, get_viewport_rect().size.y - 300.0))
+	vb.add_child(rolar)
 	_corpo = VBoxContainer.new()
 	_corpo.add_theme_constant_override("separation", 10)
-	vb.add_child(_corpo)
+	_corpo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rolar.add_child(_corpo)
+	var rod := HBoxContainer.new()
+	rod.alignment = BoxContainer.ALIGNMENT_CENTER
+	rod.add_theme_constant_override("separation", 16)
+	vb.add_child(rod)
+	var v := _botao("← Voltar ao menu", func(): jogo._fechar(); jogo.abrir_menu(true))
+	v.custom_minimum_size = Vector2(240, 50)
+	rod.add_child(v)
 	var f := _botao("Fechar", func(): jogo._fechar())
-	f.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	f.custom_minimum_size = Vector2(220, 48)
-	vb.add_child(f)
+	f.custom_minimum_size = Vector2(200, 50)
+	rod.add_child(f)
 	_mostrar()
 
 func _botao(texto: String, cb: Callable) -> Button:

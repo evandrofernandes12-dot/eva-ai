@@ -266,25 +266,32 @@ func _estradas() -> void:
 		_placa(r, p, String(info.nome), atan2(c.x, c.z) + PI)
 	_placa(r, CAIS_CASA + Vector3(-6, 0, 3.5), "Cais  →  Ilha dos Orcs", -PI * 0.5)
 
+## Placa de madeira com dois postes e o nome escrito dos dois lados (cada lado só aparece de frente).
 func _placa(pai: Node3D, pos: Vector3, texto: String, giro: float) -> void:
 	var p := Node3D.new()
 	p.position = pos
 	p.rotation.y = giro
 	pai.add_child(p)
 	var mad := Construcoes.mat(Color(0.42, 0.29, 0.17))
-	Construcoes.tora(p, Vector3.ZERO, Vector3(0, 2.6, 0), 0.09, mad)
-	Construcoes.caixa(p, Vector3(0, 2.2, 0.08), Vector3(2.6, 0.6, 0.08), mad)
-	var l := Label3D.new()
-	l.text = texto
-	l.font_size = 40
-	l.pixel_size = 0.006
-	l.outline_size = 8
-	l.position = Vector3(0, 2.2, 0.14)
-	p.add_child(l)
-	var l2 := l.duplicate() as Label3D
-	l2.position.z = 0.02
-	l2.rotation.y = PI
-	p.add_child(l2)
+	var escuro := Construcoes.mat(Color(0.28, 0.18, 0.1))
+	var larg := clampf(texto.length() * 0.2, 2.6, 5.6)
+	for s2: float in [-1.0, 1.0]:
+		Construcoes.tora(p, Vector3(s2 * larg * 0.45, 0, 0), Vector3(s2 * larg * 0.45, 3.2, 0), 0.1, escuro)
+	Construcoes.caixa(p, Vector3(0, 2.55, 0), Vector3(larg, 0.85, 0.12), mad)
+	Construcoes.caixa(p, Vector3(0, 3.0, 0), Vector3(larg + 0.25, 0.1, 0.18), escuro)   # beiral
+	for lado: float in [1.0, -1.0]:
+		var l := Label3D.new()
+		l.text = texto
+		l.font_size = 64
+		l.pixel_size = minf(0.009, (larg - 0.3) / maxf(1.0, texto.length() * 64.0 * 0.6))
+		l.outline_size = 10
+		l.modulate = Color(1.0, 0.9, 0.6)
+		l.outline_modulate = Color(0.15, 0.08, 0.03)
+		l.alpha_cut = Label3D.ALPHA_CUT_OPAQUE_PREPASS   # escreve profundidade: não aparece através da tábua
+		l.double_sided = false
+		l.position = Vector3(0, 2.55, lado * 0.07)
+		l.rotation.y = 0.0 if lado > 0.0 else PI
+		p.add_child(l)
 
 # ---------- peças ----------
 func _cena(caminho: String) -> Node3D:
@@ -624,7 +631,7 @@ func _golems(r: Node3D) -> void:
 		_cabana(r, c + Vector3(cos(a2), 0, sin(a2)) * 20.0, _rng.randf_range(3.0, 3.8), Color(0.5, 0.52, 0.55), Color(0.92, 0.95, 1.0), -a2 - PI * 0.5)
 	for k in 9:
 		var a3 := TAU * k / 9.0
-		var pedra := _por(r, QN + "Rock_Medium_%d.gltf" % (k % 3 + 1), c + Vector3(cos(a3), 0, sin(a3)) * 9.0, 4.0, true, 1000.0, Color(0.6, 0.62, 0.66))
+		var pedra := _por(r, QN + "Rock_Medium_%d.gltf" % (k % 3 + 1), c + Vector3(cos(a3), 0, sin(a3)) * 9.0, 4.0, false, 1000.0, Color(0.6, 0.62, 0.66))   # sem colisão: os golems ficavam presos
 		pedra.scale.y *= 1.8
 	var cristal := StandardMaterial3D.new()
 	cristal.albedo_color = Color(0.55, 0.85, 1.0, 0.8)
@@ -647,7 +654,7 @@ func _golems(r: Node3D) -> void:
 		_monstro(r, golem(), c + Vector3(cos(a4), 0, sin(a4)) * _rng.randf_range(12.0, 30.0), 3.3, 200, 20, 2.3)
 	var anciao := golem()
 	Fit.tint(anciao, Color(0.7, 0.62, 0.95))
-	_chefe(r, anciao, c, 6.5, 1000, 32, 2.0, "Golem Ancião")
+	_chefe(r, anciao, c - c.normalized() * 16.0 + Vector3(6, 0, 0), 6.5, 1000, 32, 2.0, "Golem Ancião")   # fora do círculo de pedras (lá dentro ele ficava preso)
 	# yetis nas montanhas de neve
 	for k in 4:
 		_monstro(r, _cena("res://models/monstros/Yeti.gltf"), _ponto(c, raio * 0.7, 40.0), 2.6, 120, 15, 3.4)
