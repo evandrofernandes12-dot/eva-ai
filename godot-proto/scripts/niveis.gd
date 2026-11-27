@@ -1,7 +1,7 @@
 class_name Niveis
 ## Níveis de 0 a 100: nome por faixa de 10 níveis, custo para subir, visual da construção em cada faixa
 ## (tamanho, cor do material e enfeites) e experiência do personagem. No nível 100 (lendário) tudo fica
-## turquesa e ouro.
+## azul-real escuro e ouro velho.
 
 const MAX := 100
 
@@ -22,8 +22,8 @@ const FEMININO := ["Casa", "Torre", "Forja", "Cozinha", "Horta", "Estalagem", "S
 const TINTAS := [Color(0.8, 0.74, 0.66), Color(0.92, 0.85, 0.75), Color(1.0, 0.93, 0.8), Color(0.84, 0.7, 0.56),
 	Color(0.9, 0.9, 0.92), Color(1.0, 1.0, 1.0), Color(1.0, 0.86, 0.8), Color(0.82, 0.84, 0.9), Color(1.08, 1.07, 1.04),
 	Color(1.06, 0.98, 0.86), Color(1, 1, 1)]
-const TURQUESA := Color(0.1, 0.78, 0.74)
-const OURO := Color(1.0, 0.8, 0.3)
+const TURQUESA := Color(0.015, 0.035, 0.14)   # azul-real escuro e imponente (o nome ficou do começo)
+const OURO := Color(0.56, 0.39, 0.12)       # ouro velho, metálico (não dourado claro)
 
 static func faixa(nivel: int) -> int:
 	return clampi(nivel / 10, 0, 10)
@@ -92,7 +92,7 @@ static func visual(raiz: Node3D, nivel: int, escala_base: Vector3) -> void:
 			chama.mesh = cm
 			var mc := StandardMaterial3D.new()
 			mc.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-			mc.albedo_color = Color(1.0, 0.6, 0.15) if f < 10 else Color(0.4, 1.0, 0.95)
+			mc.albedo_color = Color(1.0, 0.6, 0.15) if f < 10 else Color(0.25, 0.45, 1.0)
 			chama.material_override = mc
 			chama.position = p + Vector3(0, 1.3, 0)
 			e.add_child(chama)
@@ -150,8 +150,8 @@ static func tingir(raiz: Node, f: int) -> void:
 				var alvo := OURO if lum > 0.55 else TURQUESA
 				m.albedo_color = Color(alvo.r, alvo.g, alvo.b, c.a)
 				m.albedo_texture = null if lum > 0.55 else m.albedo_texture
-				m.metallic = 0.75 if lum > 0.55 else 0.25
-				m.roughness = 0.35
+				m.metallic = 0.9 if lum > 0.55 else 0.3
+				m.roughness = 0.28 if lum > 0.55 else 0.45
 			else:
 				var t: Color = TINTAS[f]
 				m.albedo_color = Color(c.r * t.r, c.g * t.g, c.b * t.b, c.a)
@@ -164,8 +164,8 @@ static func material(orig: BaseMaterial3D, f: int) -> BaseMaterial3D:
 	if f >= 10:
 		var ouro := c.get_luminance() > 0.5
 		m.albedo_color = OURO if ouro else TURQUESA
-		m.metallic = 0.75 if ouro else 0.25
-		m.roughness = 0.35
+		m.metallic = 0.9 if ouro else 0.3
+		m.roughness = 0.28 if ouro else 0.45
 	else:
 		var t: Color = TINTAS[f]
 		m.albedo_color = Color(c.r * t.r, c.g * t.g, c.b * t.b, c.a)
