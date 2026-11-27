@@ -1,5 +1,7 @@
 # Próximos passos (combinado com o usuário para a próxima sessão)
 
+> Feito na v67: itens 1, 2 e 3 (atualização dentro do jogo, opção a).
+
 1. **Personagem inicial**: começar como aldeão ou aldeã com roupa comum de camponês (corpo UBC + `Heroi.vestir(m, "Male_Peasant"/"Female_Peasant")`), sem classe nem armadura. A classe e o herói armado ficam para depois (botão CLASSE).
 2. **Abertura**:
    - A logo (`logo.png`) ocupando a tela inteira do aparelho (boot splash em tela cheia: `boot_splash/fullsize=true` ou modo de esticar que cubra a tela sem deformar; fundo combinando).

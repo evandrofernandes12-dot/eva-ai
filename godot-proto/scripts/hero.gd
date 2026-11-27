@@ -50,6 +50,7 @@ const ANIMS := {
 	"guerreiro": {"idle": "Sword_Idle", "run": "Jog_Fwd", "atk": "Sword_Regular_A", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
 	"lanceiro": {"idle": "Sword_Idle", "run": "Jog_Fwd", "atk": "Punch_Jab", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
 	"arqueiro": {"idle": "Idle", "run": "Jog_Fwd", "atk": "", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
+	"aldeao": {"idle": "Idle", "run": "Jog_Fwd", "atk": "Sword_Regular_A", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},   # personagem inicial (machado de lenhador)
 	"mago": {"idle": "Idle", "run": "Jog_Fwd", "atk": "Sword_Attack", "hit": "Hit_Chest", "morte": "Death01", "def": "Idle_Shield", "corre": "Sprint"},
 }
 

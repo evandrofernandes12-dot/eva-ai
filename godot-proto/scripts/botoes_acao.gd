@@ -165,8 +165,8 @@ func atualizar_arma() -> void:
 			if not (f.begins_with("Shield") or f.begins_with("Aljava") or f.begins_with("Orbe")):
 				caminho = "res://models/armas/" + f
 				break
-	if caminho == "":
-		caminho = "res://models/armas/Sword.glb"
+	if caminho == "":   # aldeão do começo: machado de lenhador
+		caminho = "res://models/armas/Machado_Lenhador.glb"
 	if caminho == _id_arma:
 		return
 	_id_arma = caminho

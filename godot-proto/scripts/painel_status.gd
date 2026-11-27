@@ -146,9 +146,12 @@ func retrato(id: String) -> void:
 	if _modelo != null:
 		_modelo.queue_free()
 		_modelo = null
-	if id == "" or not Heroi.lista().has(id):
+	if id.begins_with("aldeao_"):
+		_modelo = jogo.modelo_aldeao(id.substr(7))
+	elif id == "" or not Heroi.lista().has(id):
 		return
-	_modelo = Heroi.montar(id, false, true)
+	else:
+		_modelo = Heroi.montar(id, false, true)
 	_vp.add_child(_modelo)
 	Fit.to_height(_modelo, 1.75)
 	var ap := Fit.find_node_of(_modelo, "AnimationPlayer") as AnimationPlayer
@@ -165,7 +168,7 @@ func _process(_d: float) -> void:
 	_energia.value = pl.energia
 	_energia_l.text = "Energia %d" % int(pl.energia)
 	var cl: String = jogo.classe
-	var nome := "Aventureiro"
+	var nome := "Aldeã" if jogo.sexo_inicial == "f" else "Aldeão"
 	if jogo.heroi != "" and Heroi.lista().has(jogo.heroi):
 		nome = jogo.CLASSES[cl].nome if jogo.CLASSES.has(cl) else nome
 	_nome.text = nome

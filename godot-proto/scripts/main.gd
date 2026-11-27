@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v66"
+const VERSAO := "v67"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -74,6 +74,8 @@ const LOJA := {
 		"Roupas": [["m_chapeu", "Chapéu pontudo", {}, {"comida": 30}], ["m_estrelas", "Túnica estrelada", {}, {"comida": 70}]],
 		"Artefatos": [["m_orbe", "Orbe de mana", {"energia": 40}, {"pedra": 60, "comida": 80}], ["m_grimorio", "Grimório antigo", {"dano": 5}, {"comida": 140}]]},
 }
+var sexo_inicial := ""           # "m"/"f": aldeão ou aldeã escolhido na abertura (antes de ter classe)
+const MACHADO_ALDEAO := ["Machado_Lenhador.glb", "hand_r", Heroi.MAO_D, Vector3(90, 0, 0), 0.75, 0.3]
 var compras: Array = []          # ids dos itens comprados no mercado
 var equipado := {}               # categoria -> id do item em uso (da classe atual)
 
@@ -325,6 +327,13 @@ func _ready() -> void:
 	_boss_hud()
 	if not _load():
 		say("Ande com o direcional. Bata em árvores, rochas e arbustos para coletar.", 7.0)
+	# abertura: logo em tela cheia; no jogo novo, depois vem a escolha aldeão/aldeã (scripts/abertura.gd)
+	var ab := Abertura.new()
+	ab.jogo = self
+	ab.escolher = heroi == "" and sexo_inicial == ""
+	add_child(ab)
+	if heroi == "" and sexo_inicial != "":
+		_vestir_aldeao()
 
 ## Castelo: duas torres redondas de pedra nas laterais da frente e dois guardas na porta.
 func _castelo_extra(b: Node3D) -> void:
@@ -1866,6 +1875,29 @@ func vestir(id: String, salvar := true) -> void:
 		player.hp = player.max_hp
 		_save()
 
+## Aldeão/aldeã do começo: corpo de herói com roupa de camponês e machado de lenhador, sem armadura.
+func modelo_aldeao(sexo: String) -> Node3D:
+	var m := Heroi.montar("A2" if sexo == "m" else "A3", false, true)
+	Heroi.vestir(m, "Male_Peasant" if sexo == "m" else "Female_Peasant", sexo == "f")
+	Heroi._prender(Fit.find_node_of(m, "Skeleton3D") as Skeleton3D, MACHADO_ALDEAO)
+	return m
+
+## Escolha feita na abertura.
+func comecar_como(sexo: String) -> void:
+	sexo_inicial = sexo
+	_vestir_aldeao()
+	_save()
+	say("Bem-vind%s à aldeia! Use o botão CLASSE quando quiser virar guerreiro, lanceiro, arqueiro ou mago." % ("o" if sexo == "m" else "a"), 7.0)
+
+func _vestir_aldeao() -> void:
+	player.trocar_modelo(modelo_aldeao(sexo_inicial), Heroi.ANIMS["aldeao"])
+	player.model.visible = cam_modo != 1
+	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6), 0.1)
+	if _status != null:
+		_status.retrato("aldeao_" + sexo_inicial)
+	if _botoes != null:
+		_botoes.atualizar_arma()
+
 ## Cada classe tem um pet: guerreiro = cavalo alado, lanceiro = urso, arqueiro = lobo, mago = fênix de fogo.
 func _pet_ajustar() -> void:
 	var tipo: String = PET_DA_CLASSE.get(classe, "")
@@ -2117,7 +2149,7 @@ func _save() -> void:
 		papeis.append(v.papel)
 	var f := FileAccess.open(SAVE, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual, "compras": compras, "equipado": equipado, "hora": ceu.hora, "dia": ceu.dia}))
+		f.store_string(JSON.stringify({"res": res, "kills": kills, "quest": quest, "lotes": niveis, "classe": classe, "heroi": heroi, "magia": magia, "arma": arma, "aldeoes": papeis, "boss_derrotas": boss_derrotas, "boss_em": boss_em, "rei_q": rei_q, "rei_ativa": rei_ativa, "rei_base": rei_base, "visual": visual, "compras": compras, "equipado": equipado, "sexo_inicial": sexo_inicial, "hora": ceu.hora, "dia": ceu.dia}))
 
 func _load() -> bool:
 	if not FileAccess.file_exists(SAVE):
@@ -2133,6 +2165,7 @@ func _load() -> bool:
 	classe = c if CLASSES.has(c) else ""
 	magia = String(d.get("magia", "orbe"))
 	ceu.definir(float(d.get("hora", 9.0)), int(d.get("dia", 0)))
+	sexo_inicial = String(d.get("sexo_inicial", ""))
 	var cp = d.get("compras", [])
 	compras = cp if cp is Array else []
 	var eq = d.get("equipado", {})

@@ -32,6 +32,10 @@ Godot 4.3, renderizador Compatibilidade, testado em tablet Android. Idioma do c�
 - `export_presets.cfg` tem os presets "Android" (APK arm64, sem gradle) e "Web" (sem threads, texturas de celular). Moldes: `~/.local/share/godot/export_templates/4.7.2.stable/` (baixar o .tpz do GitHub e extrair só android_*.apk e web_*). Android SDK falso em `/root/Android/Sdk` com `apksigner`, `zipalign` e `adb` do apt (o dl.google.com é bloqueado) e keystore de debug em `~/.local/share/godot/keystores/debug.keystore`.
 - `ANDROID_HOME=/root/Android/Sdk xvfb-run -a godot --path . --headless --export-debug "Android" dist/VidaNaFloresta.apk` e `--export-release "Web" dist/web/index.html`.
 
+## Atualização automática (patch)
+- Primeira cena: `atualizador.tscn` (`scripts/atualizador.gd`, `BASE` = versão do APK). Ele lê `atualizacoes/versao.json` pela URL raw do GitHub (branch de trabalho) e baixa `patch` (pacote cumulativo em relação à base).
+- Publicar atualização: gerar o pck da base a partir da tag `base-vNN` (`git worktree add /tmp/base base-vNN`, depois `--export-pack "Android" base.pck` lá), e no projeto atual `--export-patch "Android" atualizacoes/patch_vXX.pck --patches base.pck`; apagar patches antigos, atualizar `versao.json` (`versao` = XX, `patch` = nome do arquivo), commit e push. Mudou a BASE (APK novo)? Atualize `BASE`, crie a tag `base-vNN` e zere `versao.json`.
+
 ## Fluxo
 - Branch de trabalho: `claude/godot-character-creator-fixes-hf5ksp`. Não criar PR sem pedido.
 - Zip para teste: `cd godot-proto && zip -qr dist/godot-proto-vXX.zip . -x "dist/*" ".godot/*"` (a pasta `dist/` não é versionada).
