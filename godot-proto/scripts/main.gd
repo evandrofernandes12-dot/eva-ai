@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v65"
+const VERSAO := "v66"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -146,6 +146,7 @@ var _ent_b: Button
 var _rei_b: Button
 var _fade_r: ColorRect
 var _rei_l: Label
+var _botoes: BotoesAcao
 var _status: PainelStatus         # retrato, vida e energia (scripts/painel_status.gd)
 var _menu_b: Array = []        # botões que o MENU mostra/esconde
 var _hud_info := false          # INFO: recursos e missões visíveis
@@ -288,6 +289,9 @@ func _ready() -> void:
 	_def_b.toggled.connect(func(v): player.defendendo = v)
 	_corre_b = _botao_acao("CORRER", -400.0, -130.0, true)
 	_corre_b.toggled.connect(func(v): player.correndo = v)
+	_botoes = BotoesAcao.new()   # botões redondos com ícone e animação (scripts/botoes_acao.gd)
+	add_child(_botoes)
+	_botoes.montar(self, $HUD/Atacar, _def_b, _corre_b)
 	_ent_b = _botao_acao("ENTRAR", -260.0, -440.0, false, 70.0)
 	_ent_b.pressed.connect(_porta)
 	_ent_b.visible = false
@@ -299,12 +303,12 @@ func _ready() -> void:
 	$HUD.add_child(_status)
 	$HUD.move_child(_status, 0)
 	_status.retrato(heroi)
-	info.offset_top = 132.0     # recursos e missões ficam embaixo do painel
-	quest_l.offset_top = 166.0
-	quest_l.offset_bottom = 204.0
+	info.offset_top = 108.0     # recursos e missões ficam embaixo do painel
+	quest_l.offset_top = 140.0
+	quest_l.offset_bottom = 178.0
 	_rei_l = Label.new()
 	_rei_l.offset_left = 24.0
-	_rei_l.offset_top = 204.0
+	_rei_l.offset_top = 178.0
 	_rei_l.add_theme_font_size_override("font_size", 20)
 	_rei_l.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
 	_rei_l.add_theme_color_override("font_outline_color", Color.BLACK)
@@ -825,6 +829,8 @@ func _recalc() -> void:
 	player.max_energia = 100.0 + float(b.get("energia", 0))
 	player.energia = minf(player.energia, player.max_energia)
 	player.max_hp = base + 25 * _lvl("vida") + int(b.get("vida", 0))
+	if _botoes != null:
+		_botoes.atualizar_arma()
 	if player.hp > 0:
 		player.hp = clampi(player.hp + maxi(0, player.max_hp - antes), 1, player.max_hp)
 
@@ -1852,6 +1858,8 @@ func vestir(id: String, salvar := true) -> void:
 	Efeitos.realce(player.model, Color(1.0, 0.85, 0.6), 0.1)   # luz de borda no herói
 	if _status != null:
 		_status.retrato(id)
+	if _botoes != null:
+		_botoes.atualizar_arma()
 	_recalc()
 	_pet_ajustar()
 	if salvar:

@@ -3,7 +3,7 @@ class_name PainelStatus
 ## Painel translúcido no canto superior esquerdo: retrato do personagem (rosto ao vivo, numa
 ## SubViewport), nome e classe, barra de vida e barra de energia.
 
-const LARG := 420.0
+const LARG := 320.0
 var jogo: Node
 var _vp: SubViewport
 var _modelo: Node3D
@@ -21,7 +21,7 @@ func _ready() -> void:
 	sb.bg_color = Color(0.04, 0.06, 0.1, 0.42)
 	sb.border_color = Color(0.95, 0.8, 0.45, 0.55)
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(20)
+	sb.set_corner_radius_all(16)
 	sb.shadow_color = Color(0, 0, 0, 0.25)
 	sb.shadow_size = 8
 	sb.content_margin_left = 10
@@ -36,10 +36,10 @@ func _ready() -> void:
 	var vb := VBoxContainer.new()
 	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	vb.add_theme_constant_override("separation", 6)
+	vb.add_theme_constant_override("separation", 4)
 	hb.add_child(vb)
 	_nome = Label.new()
-	_nome.add_theme_font_size_override("font_size", 20)
+	_nome.add_theme_font_size_override("font_size", 16)
 	_nome.add_theme_color_override("font_color", Color(1.0, 0.92, 0.7))
 	_nome.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	_nome.add_theme_constant_override("outline_size", 6)
@@ -56,7 +56,7 @@ func _ready() -> void:
 ## Barra com fundo escuro translúcido, preenchimento com brilho de vidro e o número por cima.
 func _barra(c1: Color, c2: Color) -> Array:
 	var caixa := Control.new()
-	caixa.custom_minimum_size = Vector2(0, 26)
+	caixa.custom_minimum_size = Vector2(0, 20)
 	var pb := ProgressBar.new()
 	pb.show_percentage = false
 	pb.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -86,7 +86,7 @@ func _barra(c1: Color, c2: Color) -> Array:
 	l.set_anchors_preset(Control.PRESET_FULL_RECT)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", 16)
+	l.add_theme_font_size_override("font_size", 13)
 	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	l.add_theme_constant_override("outline_size", 6)
 	caixa.add_child(l)
@@ -94,7 +94,7 @@ func _barra(c1: Color, c2: Color) -> Array:
 
 ## Retrato redondo: o rosto do herói renderizado ao vivo (respira, pisca) dentro de um círculo com aro dourado.
 func _retrato_ui() -> Control:
-	var tam := 96
+	var tam := 72
 	var moldura := Control.new()
 	moldura.custom_minimum_size = Vector2(tam, tam)
 	_vp = SubViewport.new()

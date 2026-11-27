@@ -11,7 +11,7 @@ Godot 4.3, renderizador Compatibilidade, testado em tablet Android. Idioma do c�
 - `scripts/vila.gd` (`Vila`): aldeia funcionando — armazéns, cozinha, artesã, horta, curral, animais, trabalhadores, guardas, refeições.
 - `scripts/trabalhador.gd` (`Trabalhador`, 8 ofícios m/f, fila de tarefas), `guarda.gd` (`Guarda`), `animal.gd` (`Animal`).
 - `scripts/mundo.gd` (`Mundo`): mapa aberto 1800 m — Floresta da Escuridão (lobisomens), Cemitério Maldito (caveiras KayKit), Golems de Pedra (neve), Ilha dos Orcs (barco); regiões somem de longe; árvores em MultiMesh.
-- `scripts/painel_status.gd` (retrato + vida + energia), `scripts/escolha.gd` (escolha de personagem com prévia 3D). Mercado: dados em `LOJA` (`main.gd`), tela em `scripts/mercado.gd` (cartões com o item em 3D).
+- `scripts/painel_status.gd` (retrato + vida + energia), `scripts/escolha.gd` (escolha de personagem com prévia 3D), `scripts/botoes_acao.gd` (ATACAR/DEFESA/CORRER redondos com ícone). Mercado: dados em `LOJA` (`main.gd`), tela em `scripts/mercado.gd` (cartões com o item em 3D).
 - `scripts/ceu.gd` (dia/noite/chuva; `reg_*` = neblina da região), `lago.gd`, `fogueira.gd`, `construcoes.gd` (peças por código).
 - `scripts/enemy.gd`, `villager.gd` (antigo, sem uso), `plot.gd`, `fit.gd`, `joystick.gd`: inimigos, lotes, utilidades, direcional.
 - `models/` (GLB/glTF), `models/armas/`, `models/herois/`. Scripts do Blender ficam em `../scripts/`.
