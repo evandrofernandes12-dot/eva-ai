@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v70"
+const VERSAO := "v71"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -81,6 +81,7 @@ var xp := 0
 var diamantes := 0               # dinheiro do jogo (missões do Rei, chefões, venda de recursos)
 var predios: Array = []          # construções que evoluem (0 a 100): {id, nome, cat, node, custo, base, nivel}
 var _niveis_salvos := {}
+var _torres_castelo: Array = []   # as duas torres redondas do castelo (ganham a cor do nível do castelo)
 const PREDIOS_ALDEIA := {"SalaoDoChefe": ["Castelo do Rei", "castelo", {"madeira": 80, "pedra": 120}], "Casa1": ["Casa", "", {"madeira": 40, "pedra": 25}],
 	"Casa2": ["Casa", "", {"madeira": 40, "pedra": 25}], "Casa3": ["Casa do Mago", "", {"madeira": 50, "pedra": 40}],
 	"Forja": ["Forja", "", {"madeira": 50, "pedra": 60}], "Moinho": ["Moinho", "", {"madeira": 50, "pedra": 20}]}
@@ -362,6 +363,10 @@ func _castelo_extra(b: Node3D) -> void:
 		var t := Construcoes.torre_pedra(2.2, ALTURA_CASTELO * 1.05)
 		t.position = Vector3(c.x + sx * (meia_l + 1.6), 0, frente - 2.0)
 		add_child(t)
+		_torres_castelo.append(t)
+		for pr: Dictionary in predios:
+			if pr.id == "SalaoDoChefe":
+				Niveis.tingir(t, Niveis.faixa(pr.nivel))
 		var g := Guarda.new()   # guardas do castelo: guerreiro e arqueiro, lutam se um inimigo chegar perto
 		g.tipo = "guerreiro" if sx < 0 else "arqueiro"
 		g.jogo = self
@@ -2219,6 +2224,9 @@ func _registrar_predios() -> void:
 func _definir_predio(pr: Dictionary, n: int) -> void:
 	pr.nivel = clampi(n, 0, Niveis.MAX)
 	Niveis.visual(pr.node, pr.nivel, pr.base)
+	if pr.id == "SalaoDoChefe":
+		for t in _torres_castelo:
+			Niveis.tingir(t, Niveis.faixa(pr.nivel))
 
 func _niveis_predios() -> Dictionary:
 	var d := {}

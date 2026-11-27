@@ -63,27 +63,37 @@ static func visual(raiz: Node3D, nivel: int, escala_base: Vector3) -> void:
 	var velho := raiz.get_node_or_null("Enfeites")
 	if velho != null:
 		velho.free()
-	var bb := _caixa(raiz)
-	if bb.size.length() < 0.1:
+	var bl := _caixa(raiz)
+	if bl.size.length() < 0.1:
 		return
+	# os enfeites são medidos em metros (não crescem com a escala do prédio: no castelo viravam muros)
+	var sc := raiz.scale.x
+	var bb := AABB(bl.position * sc, bl.size * sc)
 	var e := Node3D.new()
 	e.name = "Enfeites"
+	e.scale = Vector3.ONE / sc
 	raiz.add_child(e)
+	# frente = lado virado para a praça (a porta); nada é posto na frente da porta
+	var praca := raiz.to_local(Vector3.ZERO) if raiz.is_inside_tree() else Vector3(0, 0, 1)
+	var fz := 1.0 if praca.z >= 0.0 else -1.0
+	var z_frente := bb.end.z if fz > 0.0 else bb.position.z
+	var z_fundo := bb.position.z if fz > 0.0 else bb.end.z
 	var topo := bb.end.y
+	var cx := bb.get_center().x
+	var cz := bb.get_center().z
 	var cor_band: Color = [Color(0.6, 0.2, 0.15), Color(0.2, 0.35, 0.7), Color(0.8, 0.6, 0.1), TURQUESA][mini(f / 3, 3)]
 	if f >= 1:   # bandeira no alto
-		var poste := Construcoes.tora(e, Vector3(bb.position.x + bb.size.x * 0.2, topo - 0.2, bb.get_center().z), Vector3(bb.position.x + bb.size.x * 0.2, topo + 1.8, bb.get_center().z), 0.04, Construcoes.mat(Color(0.3, 0.22, 0.14)))
-		poste.name = "Poste"
-		var b := Construcoes.caixa(e, Vector3(bb.position.x + bb.size.x * 0.2 + 0.45, topo + 1.45, bb.get_center().z), Vector3(0.85, 0.5, 0.03), Construcoes.mat(cor_band, false))
-		b.name = "Bandeira"
-	if f >= 3:   # base de pedra em volta
+		var px := bb.position.x + bb.size.x * 0.2
+		Construcoes.tora(e, Vector3(px, topo - 0.2, cz), Vector3(px, topo + 1.8, cz), 0.04, Construcoes.mat(Color(0.3, 0.22, 0.14)))
+		Construcoes.caixa(e, Vector3(px + 0.45, topo + 1.45, cz), Vector3(0.85, 0.5, 0.03), Construcoes.mat(cor_band, false))
+	if f >= 3:   # meio-fio de pedra baixo nas laterais e no fundo (a frente fica livre)
 		var m := Construcoes.mat_pedra() if f < 10 else _mat(TURQUESA, 0.4)
-		for s: float in [-1.0, 1.0]:
-			Construcoes.caixa(e, Vector3(bb.get_center().x, 0.12, bb.get_center().z + s * bb.size.z * 0.52), Vector3(bb.size.x * 1.05, 0.25, 0.3), m)
-			Construcoes.caixa(e, Vector3(bb.get_center().x + s * bb.size.x * 0.52, 0.12, bb.get_center().z), Vector3(0.3, 0.25, bb.size.z * 1.05), m)
-	if f >= 5:   # dois braseiros na frente
-		for s: float in [-1.0, 1.0]:
-			var p := Vector3(bb.get_center().x + s * bb.size.x * 0.45, 0, bb.end.z + 0.4)
+		Construcoes.caixa(e, Vector3(cx, 0.15, z_fundo - fz * 0.2), Vector3(bb.size.x + 0.4, 0.3, 0.35), m)
+		for s2: float in [-1.0, 1.0]:
+			Construcoes.caixa(e, Vector3(cx + s2 * (bb.size.x * 0.5 + 0.2), 0.15, cz), Vector3(0.35, 0.3, bb.size.z + 0.4), m)
+	if f >= 5:   # dois braseiros nas quinas da frente
+		for s2: float in [-1.0, 1.0]:
+			var p := Vector3(cx + s2 * (bb.size.x * 0.5 + 0.5), 0, z_frente + fz * 0.3)
 			Construcoes.tora(e, p, p + Vector3(0, 1.1, 0), 0.06, _mat(Color(0.2, 0.2, 0.22), 0.6))
 			var chama := MeshInstance3D.new()
 			var cm := SphereMesh.new()
@@ -99,10 +109,10 @@ static func visual(raiz: Node3D, nivel: int, escala_base: Vector3) -> void:
 	if f >= 7:   # faixa de metal no meio da altura
 		var mm := _mat(Color(0.55, 0.56, 0.6), 0.7) if f < 9 else _mat(OURO, 0.9)
 		var y := bb.position.y + bb.size.y * 0.45
-		for s: float in [-1.0, 1.0]:
-			Construcoes.caixa(e, Vector3(bb.get_center().x, y, bb.get_center().z + s * bb.size.z * 0.505), Vector3(bb.size.x * 1.01, 0.12, 0.05), mm)
-			Construcoes.caixa(e, Vector3(bb.get_center().x + s * bb.size.x * 0.505, y, bb.get_center().z), Vector3(0.05, 0.12, bb.size.z * 1.01), mm)
-	if f >= 9:   # pináculo dourado no telhado
+		for s2: float in [-1.0, 1.0]:
+			Construcoes.caixa(e, Vector3(cx, y, cz + s2 * bb.size.z * 0.505), Vector3(bb.size.x * 1.01, 0.15, 0.06), mm)
+			Construcoes.caixa(e, Vector3(cx + s2 * bb.size.x * 0.505, y, cz), Vector3(0.06, 0.15, bb.size.z * 1.01), mm)
+	if f >= 9:   # pináculo de ouro no telhado
 		var pin := MeshInstance3D.new()
 		var cyl := CylinderMesh.new()
 		cyl.top_radius = 0.0
@@ -110,9 +120,9 @@ static func visual(raiz: Node3D, nivel: int, escala_base: Vector3) -> void:
 		cyl.height = 1.4
 		pin.mesh = cyl
 		pin.material_override = _mat(OURO, 0.9)
-		pin.position = Vector3(bb.get_center().x, topo + 0.6, bb.get_center().z)
+		pin.position = Vector3(cx, topo + 0.6, cz)
 		e.add_child(pin)
-	if f >= 10:   # lendário: brilho turquesa e faíscas douradas
+	if f >= 10:   # lendário: faíscas de ouro
 		var p2 := CPUParticles3D.new()
 		p2.amount = 24
 		p2.lifetime = 2.5
@@ -148,8 +158,8 @@ static func tingir(raiz: Node, f: int) -> void:
 			if f >= 10:   # lendário: partes claras viram ouro, partes escuras viram turquesa
 				var lum := c.get_luminance()
 				var alvo := OURO if lum > 0.55 else TURQUESA
-				m.albedo_color = Color(alvo.r, alvo.g, alvo.b, c.a)
-				m.albedo_texture = null if lum > 0.55 else m.albedo_texture
+				var forte := 1.5 if m.albedo_texture != null else 1.0   # a textura escurece: compensa para o ouro não ficar marrom
+				m.albedo_color = Color(alvo.r * forte, alvo.g * forte, alvo.b * forte, c.a)   # mantém a textura (pedras, tábuas) por baixo
 				m.metallic = 0.9 if lum > 0.55 else 0.3
 				m.roughness = 0.28 if lum > 0.55 else 0.45
 			else:
