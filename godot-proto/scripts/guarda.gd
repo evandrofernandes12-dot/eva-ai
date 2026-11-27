@@ -7,6 +7,7 @@ class_name Guarda
 var tipo := "guerreiro"      # ou "arqueiro"
 var sexo := "m"
 var posto := Vector3.ZERO
+var fixo := false            # flecheiro numa torre: não sai andando, só gira e atira
 var jogo: Node
 var model: Node3D
 var _ap: AnimationPlayer
@@ -104,7 +105,10 @@ func _process(delta: float) -> void:
 					_cd = 1.2
 					alvo.hurt(DANO)
 		return
-	# sem inimigo: volta ao posto e passeia um pouco em volta dele
+	# sem inimigo: volta ao posto e passeia um pouco em volta dele (o flecheiro da torre fica parado)
+	if fixo:
+		_tocar("Idle")
+		return
 	var dest := _passeio
 	var d := dest - global_position
 	d.y = 0

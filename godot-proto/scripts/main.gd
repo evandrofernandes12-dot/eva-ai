@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v71"
+const VERSAO := "v72"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -82,6 +82,9 @@ var diamantes := 0               # dinheiro do jogo (missões do Rei, chefões, 
 var predios: Array = []          # construções que evoluem (0 a 100): {id, nome, cat, node, custo, base, nivel}
 var _niveis_salvos := {}
 var _torres_castelo: Array = []   # as duas torres redondas do castelo (ganham a cor do nível do castelo)
+var _flecheiros_torre: Array = []
+const TORRE_RAIO := 2.2
+const NIVEL_ABERTURA := 50        # castelo neste nível: cada torre ganha uma abertura com 1 flecheiro (no 100, 2 flecheiros)
 const PREDIOS_ALDEIA := {"SalaoDoChefe": ["Castelo do Rei", "castelo", {"madeira": 80, "pedra": 120}], "Casa1": ["Casa", "", {"madeira": 40, "pedra": 25}],
 	"Casa2": ["Casa", "", {"madeira": 40, "pedra": 25}], "Casa3": ["Casa do Mago", "", {"madeira": 50, "pedra": 40}],
 	"Forja": ["Forja", "", {"madeira": 50, "pedra": 60}], "Moinho": ["Moinho", "", {"madeira": 50, "pedra": 20}]}
@@ -279,8 +282,8 @@ func _ready() -> void:
 	player.died.connect(_on_player_died)
 	$HUD/Atacar.pressed.connect(player.attack)
 	use_b.pressed.connect(_use)
-	$HUD/Novo.pressed.connect(_new_game)
-	$HUD/Novo.text = "Novo jogo (%s)" % VERSAO
+	$HUD/Novo.pressed.connect(_confirmar_recomeco)
+	$HUD/Novo.text = "COMEÇAR DE NOVO (%s)" % VERSAO
 	use_b.visible = false
 	# HUD limpo: MENU mostra Novo jogo/Classe/Aldeões/Câmera; INFO mostra recursos e missões
 	_menu_b.append($HUD/Novo)
@@ -364,9 +367,6 @@ func _castelo_extra(b: Node3D) -> void:
 		t.position = Vector3(c.x + sx * (meia_l + 1.6), 0, frente - 2.0)
 		add_child(t)
 		_torres_castelo.append(t)
-		for pr: Dictionary in predios:
-			if pr.id == "SalaoDoChefe":
-				Niveis.tingir(t, Niveis.faixa(pr.nivel))
 		var g := Guarda.new()   # guardas do castelo: guerreiro e arqueiro, lutam se um inimigo chegar perto
 		g.tipo = "guerreiro" if sx < 0 else "arqueiro"
 		g.jogo = self
@@ -374,6 +374,9 @@ func _castelo_extra(b: Node3D) -> void:
 		add_child(g)
 		if vila != null:
 			vila.guardas.append(g)
+	for pr: Dictionary in predios:
+		if pr.id == "SalaoDoChefe":
+			_torres_flecheiros(pr.nivel)
 
 ## Detalhes da aldeia montados por código (caminhos, lampiões, placa, feno, lenha, varal, cocho, banca).
 func _aldeia_extra() -> void:
@@ -2205,6 +2208,43 @@ func _personalizar(chave: String, valor: String) -> void:
 	_save()
 	_menu_classe()
 
+## Torres do castelo: cor do nível; no nível 50 uma abertura com sacada e 1 flecheiro em cada torre,
+## no nível 100 a abertura alarga e ficam 2 flecheiros em cada.
+func _torres_flecheiros(nivel: int) -> void:
+	for f in _flecheiros_torre:
+		if is_instance_valid(f):
+			f.queue_free()
+	_flecheiros_torre.clear()
+	var qtd := 2 if nivel >= Niveis.MAX else (1 if nivel >= NIVEL_ABERTURA else 0)
+	var y0 := ALTURA_CASTELO * 1.05 * 0.62
+	for t: Node3D in _torres_castelo:
+		var velha := t.get_node_or_null("Abertura")
+		if velha != null:
+			velha.free()
+		if qtd > 0:
+			var a := Node3D.new()
+			a.name = "Abertura"
+			t.add_child(a)
+			var larg := 1.5 if qtd == 1 else 2.8
+			var buraco := StandardMaterial3D.new()
+			buraco.albedo_color = Color(0.03, 0.03, 0.04)
+			Construcoes.caixa(a, Vector3(0, y0 + 0.9, TORRE_RAIO - 0.02), Vector3(larg, 1.9, 0.12), buraco)
+			Construcoes.caixa(a, Vector3(0, y0 - 0.12, TORRE_RAIO + 0.55), Vector3(larg + 0.7, 0.22, 1.3), Construcoes.mat_pedra())   # sacada
+			Construcoes.caixa(a, Vector3(0, y0 + 0.35, TORRE_RAIO + 1.15), Vector3(larg + 0.7, 0.75, 0.16), Construcoes.mat_pedra())   # parapeito
+			for s2: float in [-1.0, 1.0]:
+				Construcoes.caixa(a, Vector3(s2 * (larg * 0.5 + 0.35), y0 + 0.35, TORRE_RAIO + 0.55), Vector3(0.16, 0.75, 1.3), Construcoes.mat_pedra())
+			for i in qtd:
+				var g := Guarda.new()
+				g.tipo = "arqueiro"
+				g.sexo = "m" if i == 0 else "f"
+				g.fixo = true
+				g.jogo = self
+				g.position = t.global_position + Vector3((i - (qtd - 1) * 0.5) * 1.2, y0, TORRE_RAIO + 0.5)
+				add_child(g)
+				_flecheiros_torre.append(g)
+	for t: Node3D in _torres_castelo:
+		Niveis.tingir(t, Niveis.faixa(nivel))
+
 # ---------- níveis das construções (0 a 100) ----------
 func _registrar_predios() -> void:
 	for nome_no: String in PREDIOS_ALDEIA:
@@ -2225,8 +2265,7 @@ func _definir_predio(pr: Dictionary, n: int) -> void:
 	pr.nivel = clampi(n, 0, Niveis.MAX)
 	Niveis.visual(pr.node, pr.nivel, pr.base)
 	if pr.id == "SalaoDoChefe":
-		for t in _torres_castelo:
-			Niveis.tingir(t, Niveis.faixa(pr.nivel))
+		_torres_flecheiros(pr.nivel)
 
 func _niveis_predios() -> Dictionary:
 	var d := {}
@@ -2480,6 +2519,8 @@ func _on_player_died() -> void:
 
 # ---------- salvar / carregar ----------
 func _save() -> void:
+	if _recomecando:
+		return
 	var niveis := {}
 	for p in plots:
 		niveis[String(p.name)] = p.nivel
@@ -2542,7 +2583,15 @@ func _load() -> bool:
 	say("Jogo carregado.", 3.0)
 	return true
 
+## Começar de novo: apaga tudo (nível, construções, itens) e volta para a abertura e a escolha aldeão/aldeã.
+func _confirmar_recomeco() -> void:
+	_abrir("Começar de novo?", "Todo o progresso será apagado: nível, construções, itens, diamantes e recursos. O jogo volta para a abertura e a escolha do aldeão ou da aldeã.", [
+		{"t": "Sim, apagar tudo e começar de novo", "cb": _new_game},
+		{"t": "Não, continuar jogando", "cb": _fechar}])
+
+var _recomecando := false
 func _new_game() -> void:
+	_recomecando = true   # nada é salvo de novo enquanto a cena recarrega
 	if FileAccess.file_exists(SAVE):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE))
 	get_tree().reload_current_scene()
