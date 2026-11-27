@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v73"
+const VERSAO := "v74"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -194,7 +194,7 @@ var QUESTS := [
 	{"t": "Corte árvores: junte 20 de madeira", "p": func(): return res.madeira, "n": 20, "r": {"comida": 10}},
 	{"t": "Quebre rochas: junte 15 de pedra", "p": func(): return res.pedra, "n": 15, "r": {"madeira": 10}},
 	{"t": "Construa a Casa (lote amarelo)", "p": func(): return _built("vida"), "n": 1, "r": {"pedra": 15}},
-	{"t": "Escolha classe e personagem (botão CLASSE)", "p": func(): return 0 if heroi == "" else 1, "n": 1, "r": {"comida": 20}},
+	{"t": "Chegue ao nível 2 (derrote inimigos e cumpra missões)", "p": func(): return 1 if nivel_jog >= 2 else 0, "n": 1, "r": {"comida": 20}},
 	{"t": "Derrote 3 orcs", "p": func(): return kills, "n": 3, "r": {"madeira": 30, "pedra": 20}},
 	{"t": "Veja os trabalhadores da aldeia (botão ALDEÕES)", "p": func(): return 1 if _viu_aldeoes else 0, "n": 1, "r": {"comida": 20}},
 	{"t": "Construa a Serraria", "p": func(): return _built("madeira"), "n": 1, "r": {"comida": 20}},
@@ -314,7 +314,7 @@ func _ready() -> void:
 	_ent_b.pressed.connect(_porta)
 	_ent_b.visible = false
 	_rei_b = _botao_acao("FALAR COM O REI", -260.0, -520.0, false, 70.0)
-	_rei_b.pressed.connect(_menu_rei)
+	_rei_b.pressed.connect(_cena_rei)
 	_rei_b.visible = false
 	_status = PainelStatus.new()
 	_status.jogo = self
@@ -1099,6 +1099,9 @@ func _tapado(de: Vector3, ate: Vector3) -> bool:
 	return false
 
 func _camera(delta: float) -> void:
+	if _cena_rei_fase != "":
+		_camera_rei(delta)
+		return
 	if _cena_lua > 0.0:
 		_camera_lua(delta)
 		return
@@ -1230,6 +1233,10 @@ func _botao_acao(texto: String, esq: float, topo: float, alterna: bool, alt := 8
 
 ## Mostra ENTRAR perto de uma construção com interior, SAIR lá dentro e FALAR COM O REI perto do trono.
 func _contexto() -> void:
+	if _cena_rei_fase != "":   # durante a cena do Rei os botões de porta e de falar somem
+		_ent_b.visible = false
+		_rei_b.visible = false
+		return
 	if _dentro == "":
 		_perto = ""
 		var best := 1e9
@@ -1394,21 +1401,165 @@ func _check_rei() -> void:
 		var p := mini(_rei_prog(), q.n)
 		_rei_l.text = "Rei %d/%d: %s (%d/%d)%s" % [rei_q + 1, REI_QUESTS.size(), q.t, p, q.n, "  ← volte ao Rei" if p >= q.n else ""]
 
+# ---------- cena do Rei ----------
+const CABECA := preload("res://scripts/cabeca_baixa.gd")
+var _cena_rei_fase := ""         # "" (nada), "ajoelhando", "rei"
+var _cena_rei_t := 0.0
+var _rei_no: Node3D
+var _cabeca: Node
+
+## FALAR COM O REI: o personagem anda até a frente do trono, se ajoelha e abaixa a cabeça devagar;
+## a cena muda para o Rei sentado falando a missão; quando a fala acaba, o jogador fica livre no castelo.
+func _cena_rei() -> void:
+	if _cena_rei_fase != "":
+		return
+	_rei_no = _interiores[_dentro].get_meta("rei", null)
+	if _rei_no == null:
+		_menu_rei()
+		return
+	_cena_rei_fase = "ajoelhando"
+	_cena_rei_t = 0.0
+	$HUD.visible = false
+	player.set_physics_process(false)
+	player.model.visible = true   # dentro do castelo a câmera pode estar em 1ª pessoa (modelo escondido)
+	var frente := (_rei_no.global_transform.basis * Vector3(0, 0, 1)).normalized()
+	frente.y = 0
+	frente = frente.normalized()
+	player.global_position = _rei_no.global_position + frente * 2.7   # em cima do altar, diante do trono
+	player.rotation.y = atan2(-frente.x, -frente.z)
+	Fit.play(player._ap, Fit.find_anim(player._ap, ["Fixing_Kneeling"]), true, 0.5)
+	var sk := Fit.find_node_of(player.model, "Skeleton3D") as Skeleton3D
+	if sk != null:
+		_cabeca = CABECA.new()
+		sk.add_child(_cabeca)
+
+func _camera_rei(delta: float) -> void:
+	_cena_rei_t += delta
+	var frente := (_rei_no.global_transform.basis * Vector3(0, 0, 1)).normalized()
+	var lado := frente.cross(Vector3.UP).normalized()
+	var pp := player.global_position
+	if _cena_rei_fase == "ajoelhando":
+		# câmera de lado: personagem ajoelhado diante do trono
+		var alvo_cam := pp + lado * 3.0 + frente * 2.2 + Vector3(0, 1.5, 0)
+		cam.global_position = cam.global_position.lerp(alvo_cam, minf(1.0, 4.0 * delta)) if _cena_rei_t > 0.05 else alvo_cam
+		cam.look_at(pp.lerp(_rei_no.global_position, 0.35) + Vector3(0, 0.9, 0))
+		if _cabeca != null:
+			_cabeca.peso = smoothstep(0.6, 2.4, _cena_rei_t)   # abaixa a cabeça devagar
+		if _cena_rei_t >= 3.0:
+			_cena_rei_fase = "rei"
+			_cena_rei_t = 0.0
+			var ap := Fit.find_node_of(_rei_no, "AnimationPlayer") as AnimationPlayer
+			Fit.play(ap, Fit.find_anim(ap, ["Sitting_Talking", "Sitting_Idle"]))
+			_menu_rei()
+	else:
+		# corta para o Rei sentado no trono, de frente, um pouco de baixo (imponente)
+		var r := _rei_no.global_position
+		cam.global_position = r + frente * 4.2 + lado * 0.8 + Vector3(0, 1.6, 0)
+		cam.look_at(r + Vector3(0, 2.0, 0))
+
+func _fim_cena_rei() -> void:
+	if _cena_rei_fase == "":
+		return
+	_cena_rei_fase = ""
+	if _cabeca != null and is_instance_valid(_cabeca):
+		_cabeca.queue_free()
+	_cabeca = null
+	if _rei_no != null and is_instance_valid(_rei_no):
+		var ap := Fit.find_node_of(_rei_no, "AnimationPlayer") as AnimationPlayer
+		Fit.play(ap, Fit.find_anim(ap, ["Sitting_Idle"]))
+	$HUD.visible = true
+	player.set_physics_process(true)
+	player.model.visible = cam_modo != 1
+	Fit.play(player._ap, player._idle)
+
+## Fala do Rei na parte de baixo da tela: o texto aparece letra por letra e as opções no fim.
+func _dialogo_rei(texto: String, rows: Array) -> void:
+	_fechar()
+	var pc := PanelContainer.new()
+	pc.anchor_left = 0.08
+	pc.anchor_right = 0.92
+	pc.anchor_top = 1.0
+	pc.anchor_bottom = 1.0
+	pc.offset_top = -250
+	pc.offset_bottom = -24
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.05, 0.1, 0.85)
+	sb.border_color = Color(0.85, 0.65, 0.25, 0.9)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(16)
+	sb.content_margin_left = 22
+	sb.content_margin_right = 22
+	sb.content_margin_top = 12
+	sb.content_margin_bottom = 12
+	pc.add_theme_stylebox_override("panel", sb)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 8)
+	pc.add_child(vb)
+	var nome := Label.new()
+	nome.text = "O Rei"
+	nome.add_theme_font_size_override("font_size", 24)
+	nome.add_theme_color_override("font_color", Color(1.0, 0.82, 0.4))
+	vb.add_child(nome)
+	var l := Label.new()
+	l.text = texto
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", 21)
+	l.visible_ratio = 0.0
+	vb.add_child(l)
+	var hb := HBoxContainer.new()
+	hb.alignment = BoxContainer.ALIGNMENT_END
+	hb.add_theme_constant_override("separation", 12)
+	hb.modulate.a = 0.0
+	vb.add_child(hb)
+	var opcoes := rows.duplicate()
+	opcoes.append({"t": "Retirar-se", "cb": _fechar})
+	for r in opcoes:
+		var b := Button.new()
+		b.text = r.t
+		b.disabled = r.get("off", false)
+		b.focus_mode = Control.FOCUS_NONE
+		b.custom_minimum_size = Vector2(0, 50)
+		b.add_theme_font_size_override("font_size", 19)
+		b.pressed.connect(r.cb)
+		hb.add_child(b)
+	$HUD.add_child(pc)
+	_painel = pc
+	pc.tree_exited.connect(_fim_cena_rei)   # a fala acabou (qualquer botão fecha o painel): o jogador fica livre
+	$HUD.visible = true
+	for c in $HUD.get_children():   # durante a fala só aparece o diálogo
+		if c != pc and c is CanvasItem and c != _status:
+			c.set_meta("antes", (c as CanvasItem).visible)
+			(c as CanvasItem).visible = false
+	pc.tree_exited.connect(func():
+		for c in $HUD.get_children():
+			if c.has_meta("antes"):
+				(c as CanvasItem).visible = bool(c.get_meta("antes"))
+				c.remove_meta("antes"))
+	var tw := create_tween()
+	tw.tween_property(l, "visible_ratio", 1.0, maxf(1.2, texto.length() * 0.035))
+	tw.tween_property(hb, "modulate:a", 1.0, 0.3)
+
 func _menu_rei() -> void:
 	var rows: Array = []
 	if rei_q >= REI_QUESTS.size():
-		_abrir("O Rei", "Você cumpriu todas as missões do reino. A aldeia é grata, herói!", rows)
+		_dialogo_rei("Você cumpriu todas as missões do reino. A aldeia é grata, herói!", rows)
 		return
 	var q: Dictionary = REI_QUESTS[rei_q]
 	var premio: String = plots[0].texto(q.r)
 	if not rei_ativa:
 		rows.append({"t": "Aceitar a missão", "cb": func(): _aceitar_rei()})
-		_abrir("O Rei", "%s\n\nRecompensa: %s" % [q.t, premio], rows)
+		_dialogo_rei("Levante-se, %s. Tenho uma missão para você: %s.\nRecompensa: %s, 10 diamantes e experiência." % [_titulo(), q.t.to_lower(), premio], rows)
 		return
 	var p := mini(_rei_prog(), q.n)
 	var pronto: bool = p >= q.n
 	rows.append({"t": "Entregar e receber a recompensa" if pronto else "Ainda não cumpriu (%d/%d)" % [p, q.n], "off": not pronto, "cb": func(): _entregar_rei()})
-	_abrir("O Rei", "%s\n\nProgresso: %d/%d · Recompensa: %s" % [q.t, p, q.n, premio], rows)
+	_dialogo_rei(("Muito bem, %s! Você cumpriu: %s. Receba a sua recompensa." % [_titulo(), q.t.to_lower()]) if pronto else ("%s, sua missão ainda não acabou: %s (%d de %d)." % [_titulo().capitalize(), q.t.to_lower(), p, q.n]), rows)
+
+func _titulo() -> String:
+	if heroi == "":
+		return "aldeã" if sexo_inicial == "f" else "aldeão"
+	var f: bool = Heroi.lista()[heroi].sexo == "f"
+	return {"guerreiro": "guerreira" if f else "guerreiro", "arqueiro": "arqueira" if f else "arqueiro", "mago": "maga" if f else "mago", "lanceiro": "lanceira" if f else "lanceiro"}.get(classe, "herói")
 
 func _aceitar_rei() -> void:
 	var q: Dictionary = REI_QUESTS[rei_q]
@@ -2046,7 +2197,7 @@ func comecar_como(sexo: String) -> void:
 	sexo_inicial = sexo
 	_vestir_aldeao()
 	_save()
-	say("Bem-vind%s à aldeia! Use o botão CLASSE quando quiser virar guerreiro, lanceiro, arqueiro ou mago." % ("o" if sexo == "m" else "a"), 7.0)
+	say("Bem-vind%s à aldeia! No nível 5 você escolhe sua classe: guerreiro, lanceiro, arqueiro ou mago." % ("o" if sexo == "m" else "a"), 7.0)
 
 func _vestir_aldeao() -> void:
 	player.trocar_modelo(modelo_aldeao(sexo_inicial), Heroi.ANIMS["aldeao"])
@@ -2178,8 +2329,13 @@ func _abrir(titulo: String, texto: String, rows: Array) -> void:
 	$HUD.add_child(pc)
 	_painel = pc
 
+const NIVEL_CLASSE := 5   # o aldeão só escolhe a classe (guerreiro, arqueiro, mago ou lanceiro) neste nível
+
 func _menu_classe() -> void:
 	if classe == "" or heroi == "":
+		if nivel_jog < NIVEL_CLASSE:
+			_abrir("Ainda é cedo", "Você é %s até o nível %d.\nNível atual: %d. Ganhe experiência derrotando inimigos e cumprindo missões do Rei; no nível %d você escolhe sua classe: guerreiro, arqueiro, mago ou lanceiro." % ["aldeã" if sexo_inicial == "f" else "aldeão", NIVEL_CLASSE, nivel_jog, NIVEL_CLASSE], [])
+			return
 		_menu_escolha()
 		return
 	var c: Dictionary = CLASSES[classe]
@@ -2196,8 +2352,7 @@ func _menu_classe() -> void:
 		rows.append({"t": ("✔ " if mao == "orbe" else "") + "Mão esquerda: orbe flutuando", "cb": func(): _personalizar("mao", "orbe")})
 		rows.append({"t": ("✔ " if mao == "chama" else "") + "Mão esquerda: chama colorida", "cb": func(): _personalizar("mao", "chama")})
 
-	rows.append({"t": "Trocar de personagem ou de classe", "cb": func(): _menu_escolha()})
-	_abrir("Classe e arma", txt, rows)
+	_abrir("Classe e arma", txt + "\n(A classe escolhida segue até o fim.)", rows)
 
 ## Personalização do personagem atual (vale só para ele): mão esquerda e acessório.
 func _personalizar(chave: String, valor: String) -> void:
@@ -2419,6 +2574,11 @@ func ganhar_xp(n: int) -> void:
 		Som.efeito("magia", null, 2.0)
 		flash(player.global_position + Vector3(0, 1, 0), Color(1.0, 0.85, 0.3), 2.5, 0.6)
 		say("Você subiu para o nível %d!" % nivel_jog, 4.0)
+		if heroi == "" and nivel_jog >= NIVEL_CLASSE:
+			say("Nível %d! Agora você pode escolher sua classe." % nivel_jog, 5.0)
+			get_tree().create_timer(1.5).timeout.connect(func():
+				if _cena_rei_fase == "" and heroi == "":
+					_menu_escolha())
 		for e in enemies:   # os inimigos acompanham o seu nível
 			if is_instance_valid(e) and e.has_method("ajustar_nivel"):
 				e.ajustar_nivel(nivel_jog)
@@ -2482,6 +2642,9 @@ func _menu_mercado_cat(cat: String) -> void:
 
 ## 1) escolhe a classe; 2) escolhe entre os 4 personagens dela (2 masculinos e 2 femininos).
 func _menu_escolha(cl := "") -> void:
+	if heroi != "" or nivel_jog < NIVEL_CLASSE:   # escolha única, só a partir do nível 5
+		_menu_classe()
+		return
 	var rows: Array = []
 	if cl == "":
 		for k in CLASSES:

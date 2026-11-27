@@ -34,13 +34,13 @@ func _ready() -> void:
 	for sexo: String in ["m", "f"]:
 		for id: String in lista:
 			var h: Dictionary = lista[id]
-			if h.classe == classe and h.sexo == sexo:
+			if h.classe == classe and h.sexo == sexo and (jogo.sexo_inicial == "" or jogo.sexo_inicial == sexo):   # só do sexo escolhido no começo
 				hb.add_child(_cartao(id, h))
 	var rodape := HBoxContainer.new()
 	rodape.alignment = BoxContainer.ALIGNMENT_CENTER
 	rodape.add_theme_constant_override("separation", 16)
 	vb.add_child(rodape)
-	rodape.add_child(_botao("← Outras classes", func(): jogo._menu_escolha()))
+	rodape.add_child(_botao("← Outras classes", func(): jogo._fechar(); jogo._menu_escolha()))
 	rodape.add_child(_botao("Fechar", func(): jogo._fechar()))
 	_centralizar.call_deferred()
 
