@@ -5,13 +5,17 @@ class_name Ceu
 ## a luz ambiente, a neblina e acende os lampiões. Chove a cada 3 dias, alternando: de dia, depois de noite.
 
 const DIA_SEG := 600.0            # duração de um dia completo em segundos reais
-const CICLO_LUA := 8              # dias para a lua ir de cheia a cheia
+const CICLO_LUA := 4              # três noites normais e a quarta é de lua cheia
 signal mudou_periodo(noite: bool)
 
 var hora := 9.0                   # 0..24 (o jogo começa de manhã)
 var dia := 0                      # dias que já passaram
 var chuva := 0.0                  # 0..1 (intensidade, com transição suave)
 var noite := false
+var noite_cheia := false            # esta noite é de lua cheia (decidido quando anoitece, vale até amanhecer)
+var dir_lua := Vector3.DOWN         # direção da lua (a câmera da cena de lua cheia olha para ela)
+var _lua_grande := 0.0
+var _trovao_t := 15.0
 var reg_cor := Color(0, 0, 0)       # neblina da região onde o jogador está (mundo.gd)
 var reg_peso := 0.0                 # 0 fora, 1 no meio da região
 var reg_dens := 0.0                 # neblina extra
@@ -64,10 +68,13 @@ func definir(h: float, d: int) -> void:
 	dia = d
 
 func fase_lua() -> float:   # 1 = cheia
-	return 0.5 + 0.5 * cos(TAU * float(dia % CICLO_LUA) / CICLO_LUA)
+	if noite_cheia:
+		return 1.0
+	return 0.35 + 0.4 * cos(TAU * float((dia + 1) % CICLO_LUA) / CICLO_LUA)
 
+## A quarta noite (depois de três noites normais) é de lua cheia: os lobisomens atacam a aldeia.
 func lua_cheia() -> bool:
-	return dia % CICLO_LUA == 0
+	return dia % CICLO_LUA == CICLO_LUA - 1
 
 func _process(delta: float) -> void:
 	hora += delta * 24.0 / DIA_SEG
@@ -88,7 +95,7 @@ func _atualizar(delta: float) -> void:
 	var ang := (hora - 6.0) / 24.0 * TAU            # 0 = nascer (6h), PI/2 = meio-dia, PI = pôr (18h)
 	var dir_sol := Vector3(cos(ang) * 0.85, sin(ang), cos(ang) * 0.35 + 0.4).normalized()
 	# lua: caminho baixo no céu (no máx. ~28°), do lado para onde a câmera olha (-Z), para aparecer na tela
-	var dir_lua := Vector3(-cos(ang) * 0.85, -sin(ang) * 0.42, -0.8).normalized()
+	dir_lua = Vector3(-cos(ang) * 0.85, -sin(ang) * 0.42, -0.8).normalized()
 	sol.look_at_from_position(Vector3.ZERO, -dir_sol, Vector3.UP if absf(dir_sol.y) < 0.99 else Vector3.FORWARD)
 	lua.look_at_from_position(Vector3.ZERO, -dir_lua, Vector3.UP if absf(dir_lua.y) < 0.99 else Vector3.FORWARD)
 	var alto := dir_sol.y
@@ -105,7 +112,15 @@ func _atualizar(delta: float) -> void:
 	var agora_noite := fator_noite > 0.6
 	if agora_noite != noite:
 		noite = agora_noite
+		noite_cheia = noite and lua_cheia()
 		mudou_periodo.emit(noite)
+	_lua_grande = move_toward(_lua_grande, 1.0 if noite_cheia else 0.0, delta * 0.2)
+	mat_ceu.set_shader_parameter("lua_grande", _lua_grande)
+	if chuva > 0.7:   # trovões de vez em quando na tempestade
+		_trovao_t -= delta
+		if _trovao_t <= 0.0:
+			_trovao_t = randf_range(12.0, 30.0)
+			Som.efeito("trovao", null, -4.0)
 	env.ambient_light_color = Color(0.12, 0.15, 0.26).lerp(Color(0.58, 0.62, 0.7), claro).lerp(Color(0.4, 0.42, 0.46), chuva * 0.5)
 	env.ambient_light_energy = lerpf(0.55, 0.7, claro)
 	env.fog_light_color = Color(0.05, 0.06, 0.1).lerp(Color(0.72, 0.82, 0.9), claro).lerp(Color(0.45, 0.48, 0.52), chuva * 0.7)

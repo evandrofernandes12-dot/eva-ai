@@ -10,7 +10,8 @@ signal killed
 var guarda := false              # monstro de vila: fica perto de `casa` e só ataca quem chega perto
 var casa := Vector3.ZERO
 var raio_guarda := 22.0
-var rumo: Variant = null         # com o jogador longe, anda até aqui (orcs do barco vão para a aldeia)
+var rumo: Variant = null
+var voz := "grunhido"            # som de dor/ataque: grunhido (orc), rugido (lobisomem, yeti), osso (caveira), pedra (golem)         # com o jogador longe, anda até aqui (orcs do barco vão para a aldeia)
 
 var hp := 30
 var target: Node3D
@@ -131,6 +132,9 @@ func _physics_process(delta: float) -> void:
 		_ap.stop()
 		Fit.play(_ap, _atk, false, 1.4)
 		target.call("hurt", damage)
+		Som.efeito(voz if voz != "osso" else "ataque_monstro", global_position)
+		if Som.eu != null:
+			Som.eu.em_batalha()
 	elif _busy <= 0.0:
 		Fit.play(_ap, _run if moving else _idle)
 
@@ -165,6 +169,9 @@ func hurt(amount: int) -> void:
 	if _dead:
 		return
 	hp -= amount
+	Som.efeito(voz if hp > 0 else ("osso" if voz == "osso" else "morte"), global_position, 2.0 if altura > 4.0 else 0.0)
+	if Som.eu != null:
+		Som.eu.em_batalha()
 	if hp <= 0:
 		_dead = true
 		collision_layer = 0

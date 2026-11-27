@@ -5,6 +5,7 @@ uniform vec3 sol_dir = vec3(0.0, 1.0, 0.0);    // aponta PARA o sol
 uniform vec3 lua_dir = vec3(0.0, -1.0, 0.0);
 uniform float chuva = 0.0;                      // 0..1: céu fechado e cinza
 uniform float fase_lua = 1.0;                   // 1 = cheia
+uniform float lua_grande = 0.0;                 // 1 = lua cheia gigante e dourada (noite dos lobisomens)
 uniform sampler2D nuvens_tex : filter_linear_mipmap, repeat_enable;
 
 float hash(vec3 p) {
@@ -39,14 +40,17 @@ void sky() {
 	c += cor_sol * (smoothstep(0.9993, 0.9996, ds) * 6.0 + pow(max(ds, 0.0), 180.0) * 0.8 + pow(max(ds, 0.0), 12.0) * 0.18 * dia) * (1.0 - chuva * 0.9);
 	// lua: disco com sombra de fase e halo azulado
 	float dl = dot(d, normalize(lua_dir));
-	if (dl > 0.9982) {
+	float borda_lua = mix(0.9982, 0.9875, lua_grande);
+	if (dl > borda_lua) {
 		vec3 lado = normalize(cross(normalize(lua_dir), vec3(0.0, 1.0, 0.0)));
-		float x = dot(d - normalize(lua_dir) * dl, lado) / 0.06;   // -1..1 no disco
+		float x = dot(d - normalize(lua_dir) * dl, lado) / mix(0.06, 0.158, lua_grande);   // -1..1 no disco
 		float luz = smoothstep(-0.1, 0.1, x + 2.0 * fase_lua - 1.0);   // 1 = cheia, 0 = nova
 		float mancha = 0.85 + 0.15 * hash(floor(d * 900.0));
-		c = mix(c, vec3(0.92, 0.93, 0.88) * mancha, smoothstep(0.9982, 0.9986, dl) * max(luz, 0.08) * (1.0 - chuva * 0.8));
+		float mancha2 = 0.82 + 0.18 * hash(floor(d * 260.0));
+		vec3 cor_lua = mix(vec3(0.92, 0.93, 0.88) * mancha, vec3(1.0, 0.86, 0.62) * mancha2, lua_grande);
+		c = mix(c, cor_lua, smoothstep(borda_lua, borda_lua + 0.0004, dl) * max(luz, 0.08) * (1.0 - chuva * 0.8));
 	}
-	c += vec3(0.5, 0.6, 0.8) * (pow(max(dl, 0.0), 300.0) * 0.6 + pow(max(dl, 0.0), 40.0) * 0.12) * noite * (1.0 - chuva);   // halo
+	c += mix(vec3(0.5, 0.6, 0.8), vec3(1.0, 0.7, 0.4), lua_grande) * (pow(max(dl, 0.0), mix(300.0, 90.0, lua_grande)) * mix(0.6, 1.0, lua_grande) + pow(max(dl, 0.0), 40.0) * mix(0.12, 0.3, lua_grande)) * noite * (1.0 - chuva);   // halo
 	// nuvens: textura de ruído projetada no céu, andando com o tempo
 	if (d.y > 0.0) {
 		vec2 uv = d.xz / (d.y + 0.15) * 0.25 + vec2(TIME * 0.004, TIME * 0.0015);

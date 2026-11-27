@@ -474,7 +474,19 @@ func _monstro(pai: Node3D, m: Node3D, pos: Vector3, altura: float, hp: int, dano
 	pai.add_child(e)
 	e.killed.connect(func(): jogo.kills += 1)
 	jogo.enemies.append(e)
+	e.voz = _voz_de(m)
 	return e
+
+## Som do monstro pelo modelo (caveira faz barulho de osso, golem de pedra, lobisomem e yeti rugem).
+func _voz_de(m: Node3D) -> String:
+	var f := m.scene_file_path.to_lower()
+	if f.contains("skeleton") or f.contains("caveira"):
+		return "osso"
+	if f.contains("golem"):
+		return "pedra"
+	if f.contains("lobisomem") or f.contains("yeti") or f.contains("ghost"):
+		return "rugido"
+	return "grunhido"
 
 ## Chefão da vila (do tamanho do Minotauro): mais vida e dano, nome e vida flutuando em cima da cabeça.
 func _chefe(pai: Node3D, m: Node3D, pos: Vector3, altura: float, hp: int, dano: int, vel: float, nome: String) -> void:
@@ -886,12 +898,14 @@ func _kraken_ataca() -> void:
 	_kraken.look_at(_barco.global_position + Vector3(0, _kraken.position.y, 0), Vector3.UP, true)
 	_kraken.visible = true
 	_tocar_kraken("Splash")
+	Som.efeito("rugido_gigante", _kraken.position + Vector3(0, 22, 0), 10.0, 250.0)
+	Som.efeito("respingo", _barco.global_position, 6.0, 120.0)
 	jogo.say("O KRAKEN ataca o barco!", 3.0)
 	var tw := create_tween()
 	tw.tween_property(_kraken, "position:y", -0.5, 1.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(func(): _tocar_kraken("Spin"))
 	tw.tween_interval(1.2)
-	tw.tween_callback(func(): jogo.player.hurt(12))
+	tw.tween_callback(func(): jogo.player.hurt(12); Som.efeito("respingo", _barco.global_position, 6.0, 120.0))
 	tw.tween_interval(1.4)
 	tw.tween_callback(func(): jogo.player.hurt(12); _tocar_kraken("Submerge"))
 	tw.tween_interval(0.8)
@@ -910,6 +924,8 @@ func _kraken_passeio(delta: float) -> void:
 	_kraken.rotation.y = _rng.randf() * TAU
 	_kraken.visible = true
 	_tocar_kraken("Movement")
+	Som.efeito("respingo", _kraken.position + Vector3(0, 30, 0), 8.0, 300.0)
+	get_tree().create_timer(2.5).timeout.connect(func(): Som.efeito("rugido_gigante", _kraken.position, 8.0, 320.0))
 	var tw := create_tween()
 	tw.tween_property(_kraken, "position:y", -0.8, 3.0).set_trans(Tween.TRANS_SINE)
 	tw.tween_callback(func(): _tocar_kraken("Idle"))
@@ -975,10 +991,20 @@ func terra(p: Vector3) -> bool:
 			return true
 	return false
 
+var _uivo_t := 10.0
+
 func _process(delta: float) -> void:
 	if jogo == null or jogo.player == null:
 		return
 	var pj: Vector3 = jogo.player.global_position
+	# uivos vindos da Floresta da Escuridão (mais frequentes e mais altos à noite)
+	_uivo_t -= delta
+	var vila_lobos: Vector3 = REGIOES.escuridao.centro
+	if _uivo_t <= 0.0:
+		var noite: bool = jogo.ceu != null and jogo.ceu.noite
+		_uivo_t = randf_range(18.0, 35.0) if noite else randf_range(40.0, 80.0)
+		if pj.distance_to(vila_lobos) < 330.0 and jogo._dentro == "":
+			Som.efeito("uivo" if noite and randf() < 0.4 else "uivo_curto", vila_lobos + Vector3(randf_range(-40, 40), 8, randf_range(-40, 40)), 8.0 if noite else 4.0, 420.0)
 	var fora: bool = jogo._dentro == ""
 	# regiões longe não são desenhadas
 	var atual := ""

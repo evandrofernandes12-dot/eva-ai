@@ -16,6 +16,11 @@ const DURACAO_LOGO := 3.2       # segundos da logo na tela
 
 func _ready() -> void:
 	layer = 50
+	if Som.eu != null:
+		Som.eu.musica_forcada = "abertura"
+	tree_exiting.connect(func():
+		if Som.eu != null and Som.eu.musica_forcada == "abertura":
+			Som.eu.musica_forcada = "")
 	_fundo = ColorRect.new()
 	_fundo.color = Color(0.03, 0.04, 0.07)
 	_fundo.set_anchors_preset(Control.PRESET_FULL_RECT)

@@ -149,6 +149,9 @@ func hurt(amount: int) -> void:
 		return
 	if em_guarda:
 		amount = maxi(1, int(amount * 0.25))
+		Som.efeito("metal", global_position)
+	else:
+		Som.efeito("dor_jogador", null, -6.0)
 	hp = maxi(0, hp - amount)
 	if hp == 0:
 		_dead = true

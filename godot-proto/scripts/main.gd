@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v67"
+const VERSAO := "v68"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -149,6 +149,7 @@ var _rei_b: Button
 var _fade_r: ColorRect
 var _rei_l: Label
 var _botoes: BotoesAcao
+var som: Som                     # música, ambientes e efeitos (scripts/som.gd)
 var _status: PainelStatus         # retrato, vida e energia (scripts/painel_status.gd)
 var _menu_b: Array = []        # botões que o MENU mostra/esconde
 var _hud_info := false          # INFO: recursos e missões visíveis
@@ -327,6 +328,10 @@ func _ready() -> void:
 	_boss_hud()
 	if not _load():
 		say("Ande com o direcional. Bata em árvores, rochas e arbustos para coletar.", 7.0)
+	som = Som.new()
+	som.name = "Som"
+	som.jogo = self
+	add_child(som)
 	# abertura: logo em tela cheia; no jogo novo, depois vem a escolha aldeão/aldeã (scripts/abertura.gd)
 	var ab := Abertura.new()
 	ab.jogo = self
@@ -464,11 +469,83 @@ func _ceu() -> void:
 ## Noite: aldeões vão para casa; de manhã voltam ao trabalho.
 func _periodo(e_noite: bool) -> void:
 	say("Anoiteceu. Os aldeões foram para casa e os guardas acenderam a fogueira." if e_noite else "Amanheceu!", 3.0)
+	if e_noite and ceu.noite_cheia:
+		if _dentro == "":
+			_comecar_lua_cheia()
+		else:
+			_lua_pendente = true
+	elif not e_noite:
+		_fim_lua_cheia()
 	for g in _guardas_noite:
 		g.visible = e_noite
 	for v in aldeoes:
 		if is_instance_valid(v):
 			v.dormir(e_noite)
+
+# ---------- noite de lua cheia ----------
+const LOBOS_LUA := 6               # lobisomens que saem da Floresta da Escuridão para atacar a aldeia
+var _cena_lua := 0.0               # segundos restantes da cena da câmera olhando a lua
+var _lobos_lua: Array = []
+
+var _lua_pendente := false        # a lua cheia começou com o jogador dentro de casa: a cena roda quando ele sair
+
+func _comecar_lua_cheia() -> void:
+	if _cena_lua > 0.0 or not _lobos_lua.is_empty():
+		return
+	_lua_pendente = false
+	_cena_lua = 8.0
+	$HUD.visible = false
+	Som.eu.musica_forcada = "lua_cheia"
+	get_tree().create_timer(1.6).timeout.connect(func(): Som.efeito("uivo", null, 4.0))
+	get_tree().create_timer(8.0).timeout.connect(func():
+		$HUD.visible = true
+		say("NOITE DE LUA CHEIA!\nOs lobisomens saíram da Floresta da Escuridão e vêm atacar a aldeia!", 7.0)
+		_soltar_lobos())
+
+func _soltar_lobos() -> void:
+	for i in LOBOS_LUA:
+		var e := CharacterBody3D.new()
+		e.set_script(preload("res://scripts/enemy.gd"))
+		e.collision_mask = 3
+		e.max_hp = 90 + 10 * boss_derrotas
+		e.damage = 14
+		e.speed = 4.8
+		e.altura = 2.8
+		e.voz = "rugido"
+		e.setup_no(mundo.lobisomem(), player)
+		e.position = Vector3(_rng.randf_range(-35.0, 35.0), 0, -165.0 - _rng.randf() * 20.0)
+		e.rumo = Vector3(0, 0, -MURO_R - 8.0)   # vêm pela estrada até o portão norte
+		add_child(e)
+		e.killed.connect(func(): kills += 1)
+		enemies.append(e)
+		_lobos_lua.append(e)
+
+func _fim_lua_cheia() -> void:
+	if Som.eu != null and Som.eu.musica_forcada == "lua_cheia":
+		Som.eu.musica_forcada = ""
+	var restavam := 0
+	for e in _lobos_lua:
+		if is_instance_valid(e) and not e._dead:
+			restavam += 1
+			e.queue_free()   # com o sol, os lobisomens fogem de volta para a floresta
+	_lobos_lua.clear()
+	if restavam > 0:
+		say("O sol nasceu e os lobisomens fugiram para a floresta.", 4.0)
+
+## Cena da lua cheia: a câmera fica atrás do personagem e sobe o olhar até a lua gigante (com zoom).
+func _camera_lua(delta: float) -> void:
+	_cena_lua -= delta
+	var pp := player.global_position
+	var dl: Vector3 = ceu.dir_lua
+	var plano := Vector3(dl.x, 0, dl.z).normalized()
+	var k := clampf((8.0 - _cena_lua) / 3.0, 0.0, 1.0)
+	var pos := pp - plano * 3.5 + Vector3(0, 1.8, 0)
+	cam.global_position = cam.global_position.lerp(pos, minf(1.0, 3.0 * delta))
+	var olho := (pp + Vector3(0, 1.6, 0)).lerp(cam.global_position + dl * 100.0, smoothstep(0.0, 1.0, k))
+	cam.look_at(olho)
+	cam.fov = lerpf(60.0, 30.0, smoothstep(0.3, 1.0, k))
+	if _cena_lua <= 0.0:
+		cam.fov = 60.0
 
 ## Porta da casa mais perta (para os aldeões dormirem).
 func casa_perto(de: Vector3) -> Vector3:
@@ -890,6 +967,7 @@ func _spawn_enemy() -> void:
 
 func _on_player_attack() -> void:
 	var p := player.global_position
+	Som.efeito("magia" if classe == "mago" else ("lamina" if classe == "arqueiro" else "corte"), null, -4.0)
 	# classes de longe: atira no inimigo mais próximo dentro do alcance
 	if classe != "" and CLASSES[classe].longe:
 		var alvo = null
@@ -919,6 +997,8 @@ func _on_player_attack() -> void:
 				e.hurt(player.damage)
 				hit = true
 		if hit:
+			Som.efeito("espada" if classe in ["guerreiro"] else ("soco_forte" if classe == "" else "metal"), p)
+			som.em_batalha()
 			return
 	if vila != null and vila.golpe_jogador(p, 2.6, player.damage):   # caça de perto
 		return
@@ -944,6 +1024,7 @@ func golpear(t: Dictionary, _do_jogador: bool) -> bool:
 	if not is_instance_valid(n) or t.hp <= 0:
 		return true
 	t.hp -= 1
+	Som.efeito({"madeira": "machado", "pedra": "pedra", "comida": "madeira"}.get(t.tipo, "madeira"), n.global_position, 0.0, 25.0)
 	var tw := create_tween()
 	tw.tween_property(n, "rotation:z", 0.08, 0.06)
 	tw.tween_property(n, "rotation:z", 0.0, 0.12)
@@ -999,6 +1080,9 @@ func _tapado(de: Vector3, ate: Vector3) -> bool:
 	return false
 
 func _camera(delta: float) -> void:
+	if _cena_lua > 0.0:
+		_camera_lua(delta)
+		return
 	var pp := player.global_position
 	if cam_modo == 1:        # primeira pessoa: olhos do personagem
 		var olhos := pp + Vector3(0, 1.65, 0)
@@ -1010,16 +1094,9 @@ func _camera(delta: float) -> void:
 	if cam_modo == 2:        # visão de águia
 		alvo = Vector3(0, 40, 8) * _zoom
 	else:
-		# se uma construção fica entre a câmera e o boneco, a câmera sobe e olha por cima do telhado
-		if _dentro == "" and _tapado(pp + (Vector3(0, 9, 10) * _zoom).rotated(Vector3.UP, _giro), pp + Vector3(0, 1.2, 0)):
-			_tapado_t = 0.7
-		_tapado_t -= delta
-		if _tapado_t > 0.0:
-			alvo = Vector3(0, 22, 2.5)
-			# se a câmera já está presa dentro de um telhado, pula para cima na hora
-			if _dentro == "" and _tapado(cam.global_position, pp + Vector3(0, 1.2, 0)) and _cam_off.y < 15.0:
-				_cam_off = alvo
-				cam.global_position = pp + _cam_off
+		# construção entre a câmera e o personagem: ela some enquanto atrapalha (a câmera não sobe mais)
+		if _dentro == "":
+			_esconder_tapando(delta)
 	alvo = alvo.rotated(Vector3.UP, _giro)
 	player.giro_cam = _giro
 	_cam_off = _cam_off.lerp(alvo, minf(1.0, 5.0 * delta))
@@ -1033,7 +1110,58 @@ func _camera(delta: float) -> void:
 		for t in nodes:
 			if t.tipo == "madeira" and is_instance_valid(t.node):
 				var s := _seg(t.node.global_position, c, pp)
-				t.node.visible = not (cam_modo == 0 and s.x < 2.6 and s.y > 0.12 and s.y < 0.97)
+				# a árvore que o personagem está cortando (perto dele) nunca some
+				t.node.visible = not (cam_modo == 0 and s.x < 2.6 and s.y > 0.12 and s.y < 0.9 and t.node.global_position.distance_to(pp) > 4.5)
+
+var _escondidos := {}   # construção escondida -> segundos até voltar
+var _esconde_t := 0.0
+
+## Raio da câmera até o peito do personagem: cada construção atingida fica invisível por um instante.
+func _esconder_tapando(delta: float) -> void:
+	for n in _escondidos.keys():
+		_escondidos[n] -= delta
+		if not is_instance_valid(n):
+			_escondidos.erase(n)
+		elif _escondidos[n] <= 0.0:
+			(n as Node3D).visible = true
+			_escondidos.erase(n)
+	_esconde_t -= delta
+	if _esconde_t > 0.0:
+		return
+	_esconde_t = 0.1
+	var de := cam.global_position
+	var ate := player.global_position + Vector3(0, 1.2, 0)
+	var esp := get_world_3d().direct_space_state
+	var excluir: Array[RID] = [player.get_rid()]
+	for i in 5:
+		var q := PhysicsRayQueryParameters3D.create(de, ate)
+		q.exclude = excluir
+		var r := esp.intersect_ray(q)
+		if r.is_empty():
+			break
+		var col: Object = r.collider
+		excluir.append(r.rid)
+		if not (col is StaticBody3D):
+			continue
+		var raiz := _raiz_construcao(col as Node)
+		if raiz != null:
+			if raiz.visible or _escondidos.has(raiz):
+				raiz.visible = false
+				_escondidos[raiz] = 0.35
+
+## Sobe da colisão até o nó "inteiro" da construção (filho da aldeia, da vila ou de uma região).
+func _raiz_construcao(n: Node) -> Node3D:
+	var atual: Node = n
+	while atual != null and atual != self:
+		var pai := atual.get_parent()
+		if pai == null:
+			return null
+		if pai == $Aldeia or pai == $Lotes or pai == vila or pai == _muro or (mundo != null and (pai == mundo or String(pai.name).begins_with("Regiao_"))) or pai == self:
+			if atual == $Chao or atual is CharacterBody3D or atual == player or atual == $Lotes:
+				return null
+			return atual as Node3D
+		atual = pai
+	return null
 
 # ---------- pinça (zoom) ----------
 func _input(e: InputEvent) -> void:
@@ -1111,6 +1239,7 @@ func _contexto() -> void:
 		_rei_b.visible = rei != null and player.global_position.distance_to(rei.global_position) < 8.5
 
 func _porta() -> void:
+	Som.efeito("porta")
 	if _trans:
 		return
 	if _dentro == "":
@@ -1207,6 +1336,9 @@ func _familia(sala: Node3D, id: String) -> void:
 	f.visible = ceu != null and ceu.noite
 
 func _sair() -> void:
+	Som.efeito("porta")
+	if _lua_pendente and ceu.noite_cheia:
+		get_tree().create_timer(1.5).timeout.connect(_comecar_lua_cheia)
 	if _dentro == "" or _trans:
 		return
 	_trans = true
@@ -1671,6 +1803,7 @@ func _tiros(delta: float) -> void:
 		var to := dest - m.global_position
 		var d := to.length()
 		if d < 0.7:
+			Som.efeito("fogo" if t.area > 0.0 or not t.flecha else "flecha", dest)
 			if t.area > 0.0:
 				flash(dest, t.cor, t.area, 0.4)
 				for e in enemies:
