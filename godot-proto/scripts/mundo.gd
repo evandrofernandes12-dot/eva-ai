@@ -90,6 +90,7 @@ func montar(j: Node) -> void:
 	_orc_t = VIAGEM * 0.4
 	_botao = jogo._botao_acao("BARCO", -260.0, -540.0, false, 70.0)
 	_botao.pressed.connect(_embarcar)
+	jogo.botao_contexto(_botao, 1)
 	_botao.visible = false
 	_ok = jogo.player.global_position
 
@@ -242,8 +243,16 @@ func _cais(raiz: Vector3, sentido: float) -> Node3D:
 	c.position = raiz
 	var tab := Construcoes.mat(Color(0.5, 0.36, 0.22))
 	var poste := Construcoes.mat(Color(0.32, 0.22, 0.13))
-	for k in 12:
-		Construcoes.caixa(c, Vector3(sentido * (k * 1.0 + 0.5), 0.35, 0), Vector3(0.9, 0.08, 3.2), tab)
+	for k in 12:   # tábuas rente ao chão da praia, com colisão: o personagem anda por cima (antes afundava nelas)
+		Construcoes.caixa(c, Vector3(sentido * (k * 1.0 + 0.5), 0.07, 0), Vector3(0.9, 0.08, 3.2), tab)
+	var corpo := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var bx := BoxShape3D.new()
+	bx.size = Vector3(12.5, 0.4, 3.2)
+	cs.shape = bx
+	cs.position = Vector3(sentido * 6.0, -0.09, 0)
+	corpo.add_child(cs)
+	c.add_child(corpo)
 	for k in 5:
 		for s2: float in [-1.0, 1.0]:
 			Construcoes.tora(c, Vector3(sentido * k * 3.0, -2.0, s2 * 1.5), Vector3(sentido * k * 3.0, 0.9, s2 * 1.5), 0.12, poste)
@@ -814,7 +823,7 @@ func _embarcar() -> void:
 	var chega := CAIS_CASA if na_ilha else CAIS_ILHA
 	var s1 := -1.0 if na_ilha else 1.0
 	_viagem = {"fase": "andando", "t": 0.0, "de": _doca(sai, s1), "ate": _doca(chega, -s1),
-		"ponta": sai + Vector3(s1 * 8.0, 0.42, -1.2), "desce": chega + Vector3(-s1 * 8.0, 0.42, -1.2),
+		"ponta": sai + Vector3(s1 * 8.0, 0.11, -1.2), "desce": chega + Vector3(-s1 * 8.0, 0.11, -1.2),
 		"terra": chega + Vector3(s1 * 2.0, 0, 0), "dir": s1}
 	_botao.visible = false
 	jogo.player.set_physics_process(false)

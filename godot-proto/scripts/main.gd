@@ -31,7 +31,7 @@ const FENIX := preload("res://scripts/fenix.gd")
 const PET := preload("res://scripts/pet.gd")
 const PET_DA_CLASSE := {"guerreiro": "cavalo", "lanceiro": "urso", "arqueiro": "lobo", "mago": "fenix"}
 const SAVE := "user://save_v4.json"
-const VERSAO := "v74"
+const VERSAO := "v75"
 const ZOOM_MIN := 0.2            # pinça: 0.2 = bem perto do personagem
 const ZOOM_MAX := 1.5
 const MURO_R := 52.0             # raio da muralha (aumentada para caber armazéns, horta, currais e oficinas)
@@ -312,9 +312,12 @@ func _ready() -> void:
 	_botoes.montar(self, $HUD/Atacar, _def_b, _corre_b)
 	_ent_b = _botao_acao("ENTRAR", -260.0, -440.0, false, 70.0)
 	_ent_b.pressed.connect(_porta)
+	botao_contexto(_ent_b, 1)
+	botao_contexto(use_b, 0)
 	_ent_b.visible = false
 	_rei_b = _botao_acao("FALAR COM O REI", -260.0, -520.0, false, 70.0)
 	_rei_b.pressed.connect(_cena_rei)
+	botao_contexto(_rei_b, 2)
 	_rei_b.visible = false
 	_status = PainelStatus.new()
 	_status.jogo = self
@@ -1217,6 +1220,28 @@ func _input(e: InputEvent) -> void:
 			_zoom = clampf(_zoom / 0.9, ZOOM_MIN, ZOOM_MAX)
 
 # ---------- interiores e o Rei ----------
+## Botões que aparecem perto de algo (CONSTRUIR/MELHORAR, ENTRAR, FALAR COM O REI, BARCO) ficam
+## embaixo no meio da tela, entre o direcional e os botões de ação, para nada ficar atrás deles.
+## `andar` 0 = mais baixo, 1 = em cima dele, 2 = mais em cima.
+func botao_contexto(b: Button, andar: int) -> void:
+	b.anchor_left = 0.5
+	b.anchor_right = 0.5
+	b.anchor_top = 1.0
+	b.anchor_bottom = 1.0
+	b.offset_left = -190.0
+	b.offset_right = 190.0
+	b.offset_bottom = -28.0 - andar * 88.0
+	b.offset_top = b.offset_bottom - 78.0
+	b.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	b.add_theme_font_size_override("font_size", 22)
+	for estado: String in ["normal", "hover", "pressed", "focus"]:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.05, 0.07, 0.12, 0.72 if estado == "normal" else 0.85)
+		sb.border_color = Color(0.95, 0.78, 0.4, 0.9)
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(16)
+		b.add_theme_stylebox_override(estado, sb)
+
 func _botao_acao(texto: String, esq: float, topo: float, alterna: bool, alt := 80.0) -> Button:
 	var b := Button.new()
 	b.text = texto
